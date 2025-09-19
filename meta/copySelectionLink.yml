@@ -1,0 +1,12 @@
+event: 0
+operation: 4
+shortcut: ''
+enabled: true
+menu: Copy selection link
+name: Copy selection link
+showInMenu:
+  item: true
+  collection: false
+  tools: false
+  reader: false
+  readerAnnotation: false

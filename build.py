@@ -1,12 +1,13 @@
 from pathlib import Path
 import yaml
+from typing import Dict, Any
 
 dist_dir = Path('dist')
 src_dir = Path('src')
 meta_dir = Path('meta')
 dist_dir.mkdir(exist_ok=True)
 
-datas = {
+datas: Dict[str, Any] = {
     'type': 'ActionsTagsBackup',
     'actions': {}
 }

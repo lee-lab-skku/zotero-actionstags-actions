@@ -1,6 +1,7 @@
-if (item.isNote() && Zotero.BetterNotes) {
+if (item.isNote() && Zotero.BetterNotes)
     uri = Zotero.BetterNotes.api.convert.note2link(item);
-}
+else
+    return "The selected item is not a note, or Better Notes plugin is not detected."
 
 const text = `${item.getField('title')} (${Zotero.Items.getTopLevel([item])[0].getField("citationKey")})`;
 

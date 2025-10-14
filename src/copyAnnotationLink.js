@@ -15,4 +15,4 @@ clipboard.addText(uri, "text/unicode");
 clipboard.addText(`<a href="${uri}">${text}</a>`, "text/html");
 clipboard.copy();
 
-return "Copied annotation link to clipboard.";
+return "Copied PDF annotation link to clipboard.";

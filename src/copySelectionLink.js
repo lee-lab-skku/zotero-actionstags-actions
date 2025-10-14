@@ -24,4 +24,4 @@ clipboard.addText(uri, "text/unicode");
 clipboard.addText(`<a href="${uri}">${text}</a>`, "text/html");
 clipboard.copy();
 
-return "Copied selection link to clipboard.";
+return "Copied Zotero selection link to clipboard.";

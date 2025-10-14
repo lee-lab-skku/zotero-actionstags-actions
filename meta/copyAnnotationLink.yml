@@ -2,7 +2,7 @@ event: 0
 operation: 4
 shortcut: ''
 enabled: true
-menu: Copy annotation link
+menu: Copy PDF annotation link
 name: Copy annotation link
 showInMenu:
   item: false

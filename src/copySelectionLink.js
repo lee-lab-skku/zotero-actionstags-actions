@@ -9,8 +9,11 @@ if (targetItem.library.libraryType === "user")
 else
     uri += `/groups/${Zotero.Libraries.get(targetItem.libraryID).groupID}`;
 
-let coll = Zotero.getActiveZoteroPane().getSelectedCollection();
-if (!!coll)
+const coll = Zotero.getActiveZoteroPane().getSelectedCollection();
+const tabs = Zotero.getMainWindow().Zotero_Tabs;
+const tabData = tabs._getTab(tabs.selectedID).tab.data;
+
+if (!!coll && !Object.hasOwn(tabData, 'itemID'))
     uri += `/collections/${coll.key}`;
 uri += `/items/${targetItem.key}`;
 

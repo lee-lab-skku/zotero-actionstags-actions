@@ -8,5 +8,5 @@ showInMenu:
   item: true
   collection: false
   tools: false
-  reader: true
+  reader: false
   readerAnnotation: false

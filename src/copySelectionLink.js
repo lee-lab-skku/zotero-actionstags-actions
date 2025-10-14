@@ -1,14 +1,20 @@
+if (item.isAttachment())
+    targetItem = item.parentItem;
+else
+    targetItem = item;
+
 let uri = "zotero://select";
-if (item.library.libraryType === "user")
+if (targetItem.library.libraryType === "user")
     uri += "/library";
 else
-    uri += `/groups/${Zotero.Libraries.get(item.libraryID).groupID}`;
+    uri += `/groups/${Zotero.Libraries.get(targetItem.libraryID).groupID}`;
+
 let coll = Zotero.getActiveZoteroPane().getSelectedCollection();
 if (!!coll)
     uri += `/collections/${coll.key}`;
-uri += `/items/${item.key}`;
+uri += `/items/${targetItem.key}`;
 
-text = `${item.getField("citationKey")}`;
+text = `${targetItem.getField("citationKey")}`;
 
 const clipboard = new Zotero.ActionsTags.api.utils.ClipboardHelper();
 clipboard.addText(uri, "text/unicode");

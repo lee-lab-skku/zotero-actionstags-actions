@@ -1,4 +1,5 @@
 (async () => {
+const oldItem=Zotero.Items.get(item.id);
 if(Zotero.ActionsTags.__retrieveItemRunning) return;
 Zotero.ActionsTags.__retrieveItemRunning=true;
 const cols=Zotero.Collections.getByLibrary(1);
@@ -7,7 +8,7 @@ const ok=await Services.prompt.select(null,'Selection','Select the collection to
 if(!ok)return 1;
 const coll=cols[selected.value];
 
-const type = item.itemTypeID;
+const type = oldItem.itemTypeID;
 const newItem = new Zotero.Item(type);
 newItem.libraryID = 1;
 
@@ -16,18 +17,18 @@ for (const fieldID of fieldIDs) {
     const fieldName = Zotero.ItemFields.getName(fieldID);
     if (fieldName === 'key' || fieldName === 'version' || fieldName === 'libraryID') continue;
 
-    const value = item.getField(fieldName);
+    const value = oldItem.getField(fieldName);
     if (value) newItem.setField(fieldName, value);
 }
 
-const creators = item.getCreators();
+const creators = oldItem.getCreators();
 if (creators) newItem.setCreators(creators);
 
 if (coll) newItem.addToCollection(coll.id);
 
 await newItem.saveTx();
 
-const attachmentIDs = item.getAttachments();
+const attachmentIDs = oldItem.getAttachments();
 if (attachmentIDs.length) {
     for (const attachmentID of attachmentIDs) {
         const oldAtt = Zotero.Items.get(attachmentID);
@@ -37,7 +38,7 @@ if (attachmentIDs.length) {
         }
     }
 }
-await Zotero.Items.trashTx([item.id]);
+await Zotero.Items.trashTx([oldItem.id]);
 Zotero.ActionsTags.__retrieveItemRunning=false;
 return 0;
 })().catch(e => {

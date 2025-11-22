@@ -1,5 +1,6 @@
 const TARGET_GROUP_ID = 'CENSORED';
 const TARGET_COLLECTION_KEY = 'CENSORED';
+const TARGET_ACTION_KEY = 'copySelectionLink';
 
 (async () => {
     const type = item.itemTypeID;
@@ -35,6 +36,9 @@ const TARGET_COLLECTION_KEY = 'CENSORED';
             }
         }
     }
+
+    const arg = { itemID: newItem.id, itemIDs: [newItem.id], collectionID: coll.id, triggerType: 'menu' };
+    await Zotero.ActionsTags.api.actionManager.dispatchActionByKey(TARGET_ACTION_KEY, arg);
 
     return 0;
 })().catch(e => {

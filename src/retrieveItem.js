@@ -38,7 +38,7 @@ if (attachmentIDs.length) {
         }
     }
 }
-await Zotero.Items.trashTx([oldItem.id]);
+await Zotero.Items.erase([oldItem.id]);
 Zotero.ActionsTags.__retrieveItemRunning=false;
 return 0;
 })().catch(e => {

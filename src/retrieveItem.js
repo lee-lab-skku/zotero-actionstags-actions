@@ -1,4 +1,6 @@
 (async () => {
+if(Zotero.ActionsTags.__retrieveItemRunning) return;
+Zotero.ActionsTags.__retrieveItemRunning=true;
 const cols=Zotero.Collections.getByLibrary(1);
 const selected=new Object();
 const ok=await Services.prompt.select(null,'Selection','Select the collection to move the item to.',cols.map(c=>c.name),selected);
@@ -36,8 +38,10 @@ if (attachmentIDs.length) {
     }
 }
 await Zotero.Items.trashTx([item.id]);
+Zotero.ActionsTags.__retrieveItemRunning=false;
 return 0;
 })().catch(e => {
     Zotero.logError(e);
+    Zotero.ActionsTags.__retrieveItemRunning=false;
     return 1;
 });

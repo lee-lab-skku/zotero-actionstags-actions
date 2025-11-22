@@ -9,14 +9,17 @@ if (targetItem.library.libraryType === "user")
 else
     uri += `/groups/${Zotero.Libraries.get(targetItem.libraryID).groupID}`;
 
-const coll = Zotero.getActiveZoteroPane().getSelectedCollection();
-const tabs = Zotero.getMainWindow().Zotero_Tabs;
-const tabData = tabs._getTab(tabs.selectedID).tab.data;
+if (!!collection)
+    uri += `/collections/${collection.key}`;
+else {
+    const coll = Zotero.getActiveZoteroPane().getSelectedCollection();
+    const tabs = Zotero.getMainWindow().Zotero_Tabs;
+    const tabData = tabs._getTab(tabs.selectedID).tab.data;
+    if (!!coll && !Object.hasOwn(tabData, 'itemID'))
+        uri += `/collections/${coll.key}`;
+}
 
-if (!!coll && !Object.hasOwn(tabData, 'itemID'))
-    uri += `/collections/${coll.key}`;
 uri += `/items/${targetItem.key}`;
-
 text = `${targetItem.getField("citationKey")}`;
 
 const clipboard = new Zotero.ActionsTags.api.utils.ClipboardHelper();

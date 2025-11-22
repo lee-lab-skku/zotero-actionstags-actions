@@ -1,0 +1,11 @@
+operation: 4
+shortcut: ''
+enabled: true
+menu: Retrieve this item from group
+name: Retrieve item
+showInMenu:
+  item: true
+  collection: false
+  tools: false
+  reader: false
+  readerAnnotation: false

@@ -12,17 +12,20 @@ const TARGET_ACTION_KEY = 'copySelectionLink';
     const fieldIDs = Zotero.ItemFields.getItemTypeFields(type);
     for (const fieldID of fieldIDs) {
         const fieldName = Zotero.ItemFields.getName(fieldID);
-        if (fieldName === 'key' || fieldName === 'version' || fieldName === 'libraryID') continue;
+        if (fieldName === 'key' || fieldName === 'version' || fieldName === 'libraryID')
+            continue;
 
         const value = item.getField(fieldName);
-        if (value) newItem.setField(fieldName, value);
+        if (!!value)
+            newItem.setField(fieldName, value);
     }
 
     const creators = item.getCreators();
-    if (creators) newItem.setCreators(creators);
-
+    if (!!creators)
+        newItem.setCreators(creators);
     const coll = Zotero.Collections.getByLibraryAndKey(targetLibraryID, TARGET_COLLECTION_KEY);
-    if (coll) newItem.addToCollection(coll.id);
+    if (!!coll)
+        newItem.addToCollection(coll.id);
 
     await newItem.saveTx();
 
@@ -32,7 +35,11 @@ const TARGET_ACTION_KEY = 'copySelectionLink';
             const oldAtt = Zotero.Items.get(attachmentID);
             if (oldAtt.isAttachment()) {
                 const path = Zotero.File.pathToFile(oldAtt.getFilePath());
-                if (path) await Zotero.Attachments.importFromFile({ file: path, parentItemID: newItem.id, libraryID: targetLibraryID });
+                if (!!path) {
+                    await Zotero.Attachments.importFromFile({
+                        file: path, parentItemID: newItem.id, libraryID: targetLibraryID
+                    });
+                }
             }
         }
     }
@@ -41,7 +48,4 @@ const TARGET_ACTION_KEY = 'copySelectionLink';
     await Zotero.ActionsTags.api.actionManager.dispatchActionByKey(TARGET_ACTION_KEY, arg);
 
     return 0;
-})().catch(e => {
-    Zotero.logError(e);
-    return 1;
-});
+})();

@@ -30,6 +30,6 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist/zotero-actiontag-copylink.yml
+          files: dist/*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -15,6 +15,10 @@ Cu.evalInSandbox(code, sb);
 
 actions = sb.load(actions).actions;
 
+let cnt = 0;
 for (let key in actions) {
     Zotero.ActionsTags.api.actionManager.updateAction(actions[key], key);
+    cnt++;
 }
+
+return `Updated ${cnt} actions to latest version (${latestVersion}).`;

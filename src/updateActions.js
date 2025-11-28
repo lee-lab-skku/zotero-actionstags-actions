@@ -4,7 +4,7 @@ const TARGET_FILE_NAME = 'zotero-actionstags-backup.yml';
 
 const j = await fetch(TARGET_URL).then(res => res.json());
 const assetUrl = j.assets.find(asset => asset.name === TARGET_FILE_NAME).browser_download_url;
-const actions = await fetch(assetUrl).then(res => res.text());
+let actions = await fetch(assetUrl).then(res => res.text());
 
 let code = await fetch(SOURCE_URL).then(res => res.text());
 code=code.replace(/export\s+default\s+[^;]+;|export\s*\{[^}]*\};?/g, "");
@@ -12,4 +12,8 @@ code=code.replace(/export\s+default\s+[^;]+;|export\s*\{[^}]*\};?/g, "");
 sb = Cu.Sandbox(Services.scriptSecurityManager.getSystemPrincipal());
 Cu.evalInSandbox(code, sb);
 
-sb.load('');
+actions = sb.load(actions).actions;
+
+for (let key in actions) {
+    Zotero.ActionsTags.api.actionManager.updateAction(actions[key], key);
+}

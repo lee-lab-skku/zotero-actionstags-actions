@@ -7,8 +7,11 @@ const latest = await fetch(TARGET_URL).then(res => res.json());
 const latestVersion = latest.tag_name;
 const prevVersion = Zotero.Prefs.get(PREF_KEY);
 
-if (prevVersion === latestVersion)
+if (prevVersion === latestVersion) {
+    if (triggerType === 'menu')
+        return 'Actions are already up to date.';
     return;
+}
 Zotero.Prefs.set(PREF_KEY, latestVersion);
 
 const assetUrl = latest.assets.find(asset => asset.name === TARGET_FILE_NAME).browser_download_url;

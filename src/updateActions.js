@@ -6,7 +6,7 @@ const j = await fetch(TARGET_URL).then(res => res.json());
 const assetUrl = j.assets.find(asset => asset.name === TARGET_FILE_NAME).browser_download_url;
 const actions = await fetch(assetUrl).then(res => res.text());
 
-const code = await fetch(SOURCE_URL).then(res => res.text());
+let code = await fetch(SOURCE_URL).then(res => res.text());
 code=code.replace(/export\s+default\s+[^;]+;|export\s*\{[^}]*\};?/g, "");
 
 sb = Cu.Sandbox(Services.scriptSecurityManager.getSystemPrincipal());

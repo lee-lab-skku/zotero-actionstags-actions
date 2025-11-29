@@ -19,10 +19,11 @@ for meta in metas:
 
     with open(meta, 'r', encoding='utf-8') as f:
         meta_data = yaml.safe_load(f)
-    with open(src, 'r', encoding='utf-8') as f:
-        src_code = f.read().strip()
+    if src.is_file():
+        with open(src, 'r', encoding='utf-8') as f:
+            src_code = f.read().strip()
+        meta_data['data'] = src_code
 
-    meta_data['data'] = src_code
     datas['actions'][action] = meta_data
 
 with open(dist_dir / 'zotero-actionstags-backup.yml', 'w', encoding='utf-8') as f:

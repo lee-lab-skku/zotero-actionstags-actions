@@ -3,7 +3,7 @@ const PREF_COLLECTION_KEY = 'extensions.zotero-actionstags.review-collection-key
 const PREF_NAME = 'extensions.zotero-actionstags.reviewer-name';
 
 (async () => {
-    const targetItem = item;
+    const targetItem = Zotero.Items.get(item.id);
 
     if (Zotero.ActionsTags.__reviewNoteRunning) return;
     Zotero.ActionsTags.__reviewNoteRunning = true;
@@ -22,10 +22,10 @@ const PREF_NAME = 'extensions.zotero-actionstags.reviewer-name';
         groupID = groups[selected.value].id;
         Zotero.Prefs.set(PREF_GROUP_KEY, groupID);
     }
+    const targetLibraryID = Zotero.Groups.getLibraryIDFromGroupID(groupID);
 
     let collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
     if (!collectionKey) {
-        const targetLibraryID = Zotero.Groups.getLibraryIDFromGroupID(groupID);
         const cols = Zotero.Collections.getByLibrary(targetLibraryID);
         ok = await Services.prompt.select(null, 'Collection', 'Please select the collection to review notes in.', cols.map(c => c.name), selected);
         if (!ok)
@@ -69,6 +69,7 @@ const PREF_NAME = 'extensions.zotero-actionstags.reviewer-name';
     const noteContent = `<h1>${td.slice(2,4)}${td.slice(5,7)}${td.slice(8,10)} ${reviewerName}</h1>`;
 
     const note = new Zotero.Item('note');
+    note.libraryID = targetLibraryID;
     note.parentID = targetItem.id;
     note.setNote(noteContent);
     await note.saveTx();

@@ -1,5 +1,5 @@
 const PREF_GROUP_KEY = 'extensions.zotero-actionstags.group-id';
-const PREF_COLLECTION_KEY = 'extensions.zotero-actionstags.collection-key';
+const PREF_COLLECTION_KEY = 'extensions.zotero-actionstags.review-collection-key';
 
 (async () => {
     if (Zotero.ActionsTags.__reviewNoteRunning) return;
@@ -30,6 +30,9 @@ const PREF_COLLECTION_KEY = 'extensions.zotero-actionstags.collection-key';
         collectionKey = cols[selected.value].key;
         Zotero.Prefs.set(PREF_COLLECTION_KEY, collectionKey);
     }
+
+    if (!item.getCollections().map(c => Zotero.Collections.get(c).name).includes(collectionKey))
+        return 0;
 
     Zotero.ActionsTags.__reviewNoteRunning = false;
     return 0;

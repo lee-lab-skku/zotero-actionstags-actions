@@ -1,0 +1,12 @@
+event: 1
+operation: 4
+shortcut: ''
+enabled: true
+menu: ''
+name: Review note
+showInMenu:
+  item: false
+  collection: false
+  tools: false
+  reader: false
+  readerAnnotation: false

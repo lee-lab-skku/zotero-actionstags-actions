@@ -8,8 +8,10 @@
     const selected = new Object();
     const ok = await Services.prompt.select(null, 'Selection', 'Select the collection to move the item to.', cols.map(c => c.name), selected);
 
-    if (!ok)
+    if (!ok) {
+        Zotero.ActionsTags.__retrieveItemRunning = false;
         return 1;
+    }
     const coll = cols[selected.value];
 
     const type = oldItem.itemTypeID;

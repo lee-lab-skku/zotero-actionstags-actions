@@ -52,9 +52,26 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
   - Prompts the user to select a destination collection
   - Moves the item by creating a copy in the new collection and deleting the original
 
+### Review Note (`reviewNote.js`)
+
+- **Purpose**: Automatically adds a note to a newly created item if it belongs to a review collection.
+- **Context**: This action is triggered automatically when a new item is created in Zotero. It is not intended for manual use.
+- **Features**:
+  - On first run, it prompts the user to configure the target collection and reviewer's name.
+  - When a new item appears in the monitored collection, it adds a note with a formatted title (e.g., `YYMMDD ReviewerName`) and a selectable review date.
+
+### Update Actions (`updateActions.js`)
+
+- **Purpose**: Automatically updates all actions from a specified GitHub repository release.
+- **Context**: This action runs automatically when Zotero starts and can also be triggered manually from the toolbar.
+- **Features**:
+  - Fetches the latest release from the `lee-lab-skku/zotero-actionstags-actions` repository.
+  - Compares the latest version with the currently installed version.
+  - If an update is available, it downloads and applies the new actions.
+
 ## Installation
 
-1. Go to the [Releases](https://github.com/lee-lab-skku/zotero-actiontag-copylink/releases) page
+1. Go to the [Releases](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) page
 2. Download the YAML file.
 3. In Zotero, go to Options → Actions and Tags
 4. Click "Import" and select the downloaded file

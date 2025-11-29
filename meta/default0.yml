@@ -1,0 +1,13 @@
+event: 1
+operation: 1
+data: /unread
+shortcut: ''
+enabled: false
+menu: ''
+name: Add Unread When Create Item
+showInMenu:
+  item: false
+  collection: false
+  tools: false
+  reader: false
+  readerAnnotation: false

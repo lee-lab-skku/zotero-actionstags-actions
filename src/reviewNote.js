@@ -18,7 +18,7 @@ if (!collectionKey)
 
 if (!targetItem.getCollections().map(c => Zotero.Collections.get(c).key).includes(collectionKey)) {
     Zotero.ActionsTags.__reviewNoteRunning = false;
-    return 0;
+    return;
 }
 
 const reviewerName = Zotero.Prefs.get(PREF_NAME);
@@ -38,7 +38,7 @@ const selected = new Object();
 const ok = await Services.prompt.select(null, 'Review Date', 'Select the review date.', dates.map(d => d.slice(5, 10)), selected);
 if (!ok) {
     Zotero.ActionsTags.__reviewNoteRunning = false;
-    return 1;
+    return 'Review information not added.';
 }
 
 const td = dates[selected.value];
@@ -51,4 +51,4 @@ note.setNote(noteContent);
 await note.saveTx();
 
 Zotero.ActionsTags.__reviewNoteRunning = false;
-return 0;
+return 'Added review information successfully.';

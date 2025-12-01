@@ -58,4 +58,4 @@ if (attachmentIDs.length) {
 const arg = { itemID: newItem.id, itemIDs: [newItem.id], collectionID: coll.id, triggerType: 'menu' };
 await Zotero.ActionsTags.api.actionManager.dispatchActionByKey(TARGET_ACTION_KEY, arg);
 
-return 0;
+return 'Shared item successfully.';

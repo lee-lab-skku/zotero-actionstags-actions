@@ -26,7 +26,7 @@ const now = new Date().getTime();
 let cnt = 0;
 const dates = [];
 
-while (cnt <= 7) {
+while (cnt <= 14) {
     dates.push(new Date(now + cnt * 86400000).toISOString());
     cnt++;
 }

@@ -1,7 +1,17 @@
-const oldItem = Zotero.getActiveZoteroPane().getSelectedItems()[0]
-;
+const PREF_COLLECTION_KEY = 'actionsTags.actions.shareCollectionKey';
+
+const oldItem = Zotero.getActiveZoteroPane().getSelectedItems()[0];
 if (Zotero.ActionsTags.__retrieveItemRunning) return;
 Zotero.ActionsTags.__retrieveItemRunning = true;
+
+let collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
+if (!collectionKey)
+    return 'Set preferences first.';
+
+if (!oldItem.getCollections().map(c => Zotero.Collections.get(c).key).includes(collectionKey)) {
+    Zotero.ActionsTags.__retrieveItemRunning = false;
+    return 'Item not in share collection.';
+}
 
 const cols = Zotero.Collections.getByLibrary(1);
 const selected = new Object();

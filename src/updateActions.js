@@ -24,10 +24,21 @@ Cu.evalInSandbox(code, sb);
 
 actions = sb.load(actions).actions;
 
-let cnt = 0;
+let updateCnt = 0;
+let exCnt = 0;
+let remainCnt = 0;
+let actionData;
+
 for (let key in actions) {
-    Zotero.ActionsTags.api.actionManager.updateAction(actions[key], key);
-    cnt++;
+    actionData = Zotero.ActionsTags.api.actionManager.getActions(key);
+    if (actionData && JSON.stringify(actionData) === JSON.stringify(actions[key]))
+        remainCnt++;
+    else {
+        if (!!actionData)
+            exCnt++;
+        Zotero.ActionsTags.api.actionManager.updateAction(actions[key], key);
+        updateCnt++;
+    }
 }
 
-return `Updated ${cnt} actions from ${prevVersion} to latest (${latestVersion}).`;
+return `Updated ${updateCnt} actions (${updateCnt - exCnt} new, ${exCnt} existing) from ${prevVersion} to ${latestVersion}, while ${remainCnt} actions unchanged.`;

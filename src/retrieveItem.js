@@ -1,5 +1,5 @@
-const oldItem = Zotero.Items.get(item.id);
-
+const oldItem = Zotero.getActiveZoteroPane().getSelectedItems()[0]
+;
 if (Zotero.ActionsTags.__retrieveItemRunning) return;
 Zotero.ActionsTags.__retrieveItemRunning = true;
 

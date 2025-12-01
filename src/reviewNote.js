@@ -1,6 +1,6 @@
-const PREF_GROUP_KEY = 'extensions.zotero-actionstags.group-id';
-const PREF_COLLECTION_KEY = 'extensions.zotero-actionstags.review-collection-key';
-const PREF_NAME = 'extensions.zotero-actionstags.reviewer-name';
+const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
+const PREF_COLLECTION_KEY = 'actionsTags.actions.reviewCollectionKey';
+const PREF_NAME = 'actionsTags.actions.reviewerName';
 
 const targetItem = Zotero.Items.get(item.id);
 

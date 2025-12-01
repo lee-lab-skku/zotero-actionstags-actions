@@ -2,7 +2,7 @@ const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
 const PREF_COLLECTION_KEY = 'actionsTags.actions.shareCollectionKey';
 const TARGET_ACTION_KEY = 'copySelectionLink';
 
-const oldItem = Zotero.getActiveZoteroPane().getSelectedItems()[0];
+const oldItem = Zotero.Items.get(item.id);
 if (Zotero.ActionsTags.__shareItemRunning) return;
 Zotero.ActionsTags.__shareItemRunning = true;
 

@@ -9,7 +9,7 @@ const ok = await Services.prompt.select(null, 'Selection', 'Select the collectio
 
 if (!ok) {
     Zotero.ActionsTags.__retrieveItemRunning = false;
-    return 1;
+    return;
 }
 const coll = cols[selected.value];
 
@@ -54,4 +54,4 @@ if (attachmentIDs.length) {
 await Zotero.Items.erase([oldItem.id]);
 
 Zotero.ActionsTags.__retrieveItemRunning = false;
-return 0;
+return 'Retrieved item successfully.';

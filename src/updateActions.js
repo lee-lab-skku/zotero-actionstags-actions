@@ -6,8 +6,10 @@ const latest = await fetch(TARGET_URL).then(res => res.json());
 const latestVersion = latest.tag_name;
 const prevVersion = Zotero.Prefs.get(PREF_KEY);
 
-if (!prevVersion)
+if (!prevVersion) {
+    Zotero.Prefs.set(PREF_KEY, latestVersion);
     return 'Automatic update is now set.';
+}
 if (prevVersion === latestVersion)
     return;
 

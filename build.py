@@ -26,5 +26,5 @@ for meta in metas:
 
     datas['actions'][action] = meta_data
 
-with open(dist_dir / 'zotero-actionstags-backup.yml', 'w', encoding='utf-8') as f:
+with open(dist_dir / 'actions-zotero.yml', 'w', encoding='utf-8') as f:
     yaml.dump(datas, f, allow_unicode=True)

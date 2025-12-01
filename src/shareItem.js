@@ -1,11 +1,42 @@
-const TARGET_GROUP_ID = 6201785;
-const TARGET_COLLECTION_KEY = 'PM7BWNF7';
+const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
+const PREF_COLLECTION_KEY = 'actionsTags.actions.shareCollectionKey';
 const TARGET_ACTION_KEY = 'copySelectionLink';
 
-const type = item.itemTypeID;
+const oldItem = Zotero.Items.get(item.id);
+if (Zotero.ActionsTags.__shareItemRunning) return;
+Zotero.ActionsTags.__shareItemRunning = true;
+
+const selected = new Object();
+let ok;
+
+let groupID = Zotero.Prefs.get(PREF_GROUP_KEY);
+if (!groupID) {
+    const groups = Zotero.Groups.getAll();
+    ok = await Services.prompt.select(null, 'Organization', 'Please select your organization.', groups.map(g => g.name), selected);
+    if (!ok) {
+        Zotero.ActionsTags.__shareItemRunning = false;
+        return 1;
+    }
+    groupID = groups[selected.value].id;
+    Zotero.Prefs.set(PREF_GROUP_KEY, groupID);
+}
+const targetLibraryID = Zotero.Groups.getLibraryIDFromGroupID(groupID);
+
+let collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
+if (!collectionKey) {
+    const cols = Zotero.Collections.getByLibrary(targetLibraryID);
+    ok = await Services.prompt.select(null, 'Collection', 'Please select the collection to share.', cols.map(c => c.name), selected);
+    if (!ok) {
+        Zotero.ActionsTags.__shareItemRunning = false;
+        return 1;
+    }
+    collectionKey = cols[selected.value].key;
+    Zotero.Prefs.set(PREF_COLLECTION_KEY, collectionKey);
+}
+
+const type = oldItem.itemTypeID;
 const newItem = new Zotero.Item(type);
 
-const targetLibraryID = Zotero.Groups.getLibraryIDFromGroupID(TARGET_GROUP_ID);
 newItem.libraryID = targetLibraryID;
 
 const fieldIDs = Zotero.ItemFields.getItemTypeFields(type);
@@ -14,21 +45,21 @@ for (const fieldID of fieldIDs) {
     if (fieldName === 'key' || fieldName === 'version' || fieldName === 'libraryID')
         continue;
 
-    const value = item.getField(fieldName);
+    const value = oldItem.getField(fieldName);
     if (!!value)
         newItem.setField(fieldName, value);
 }
 
-const creators = item.getCreators();
+const creators = oldItem.getCreators();
 if (!!creators)
     newItem.setCreators(creators);
-const coll = Zotero.Collections.getByLibraryAndKey(targetLibraryID, TARGET_COLLECTION_KEY);
+const coll = Zotero.Collections.getByLibraryAndKey(targetLibraryID, collectionKey);
 if (!!coll)
     newItem.addToCollection(coll.id);
 
 await newItem.saveTx();
 
-const attachmentIDs = item.getAttachments();
+const attachmentIDs = oldItem.getAttachments();
 if (attachmentIDs.length) {
     for (const attachmentID of attachmentIDs) {
         const oldAtt = Zotero.Items.get(attachmentID);

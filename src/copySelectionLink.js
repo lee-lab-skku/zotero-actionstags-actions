@@ -1,3 +1,6 @@
+if (!item)
+    return;
+
 if (item.isAttachment())
     targetItem = item.parentItem;
 else

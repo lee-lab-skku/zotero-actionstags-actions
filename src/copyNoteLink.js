@@ -1,3 +1,6 @@
+if (!item)
+    return;
+
 if (!item.isNote())
     return "The selected item is not a note.";
 if (!Zotero.BetterNotes)

@@ -7,6 +7,6 @@ name: Update actions
 showInMenu:
   item: false
   collection: false
-  tools: true
+  tools: false
   reader: false
   readerAnnotation: false

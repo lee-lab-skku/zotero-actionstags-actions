@@ -6,33 +6,14 @@ const oldItem = Zotero.getActiveZoteroPane().getSelectedItems()[0];
 if (Zotero.ActionsTags.__shareItemRunning) return;
 Zotero.ActionsTags.__shareItemRunning = true;
 
-const selected = new Object();
-let ok;
-
 let groupID = Zotero.Prefs.get(PREF_GROUP_KEY);
-if (!groupID) {
-    const groups = Zotero.Groups.getAll();
-    ok = await Services.prompt.select(null, 'Organization', 'Please select your organization.', groups.map(g => g.name), selected);
-    if (!ok) {
-        Zotero.ActionsTags.__shareItemRunning = false;
-        return 1;
-    }
-    groupID = groups[selected.value].id;
-    Zotero.Prefs.set(PREF_GROUP_KEY, groupID);
-}
+if (!groupID)
+    return 'Set preferences first.';
 const targetLibraryID = Zotero.Groups.getLibraryIDFromGroupID(groupID);
 
 let collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
-if (!collectionKey) {
-    const cols = Zotero.Collections.getByLibrary(targetLibraryID);
-    ok = await Services.prompt.select(null, 'Collection', 'Please select the collection to share.', cols.map(c => c.name), selected);
-    if (!ok) {
-        Zotero.ActionsTags.__shareItemRunning = false;
-        return 1;
-    }
-    collectionKey = cols[selected.value].key;
-    Zotero.Prefs.set(PREF_COLLECTION_KEY, collectionKey);
-}
+if (!collectionKey)
+    return 'Set preferences first.';
 
 const type = oldItem.itemTypeID;
 const newItem = new Zotero.Item(type);

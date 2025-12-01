@@ -1,0 +1,12 @@
+event: 8
+operation: 4
+shortcut: ''
+enabled: true
+menu: ''
+name: Set preferences
+showInMenu:
+  item: false
+  collection: false
+  tools: false
+  reader: false
+  readerAnnotation: false

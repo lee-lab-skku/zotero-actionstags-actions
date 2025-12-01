@@ -2,10 +2,8 @@ const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
 const PREF_COLLECTION_KEY = 'actionsTags.actions.reviewCollectionKey';
 const PREF_NAME = 'actionsTags.actions.reviewerName';
 
-const targetItem = Zotero.Items.get(item.id);
-
-if (Zotero.ActionsTags.__reviewNoteRunning) return;
-Zotero.ActionsTags.__reviewNoteRunning = true;
+if (!item)
+    return;
 
 const groupID = Zotero.Prefs.get(PREF_GROUP_KEY);
 if (!groupID) 
@@ -16,8 +14,7 @@ const collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
 if (!collectionKey)
     return 'Set preferences first.';
 
-if (!targetItem.getCollections().map(c => Zotero.Collections.get(c).key).includes(collectionKey)) {
-    Zotero.ActionsTags.__reviewNoteRunning = false;
+if (!item.getCollections().map(c => Zotero.Collections.get(c).key).includes(collectionKey)) {
     return;
 }
 
@@ -37,7 +34,6 @@ while (cnt <= 7) {
 const selected = new Object();
 const ok = await Services.prompt.select(null, 'Review Date', 'Select the review date.', dates.map(d => d.slice(5, 10)), selected);
 if (!ok) {
-    Zotero.ActionsTags.__reviewNoteRunning = false;
     return 'Review information not added.';
 }
 
@@ -46,9 +42,8 @@ const noteContent = `<h1>${td.slice(2,4)}${td.slice(5,7)}${td.slice(8,10)} ${rev
 
 const note = new Zotero.Item('note');
 note.libraryID = targetLibraryID;
-note.parentID = targetItem.id;
+note.parentID = item.id;
 note.setNote(noteContent);
 await note.saveTx();
 
-Zotero.ActionsTags.__reviewNoteRunning = false;
 return 'Added review information successfully.';

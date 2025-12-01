@@ -1,3 +1,6 @@
+if (!item)
+    return;
+
 let uri = "zotero://open-pdf";
 if (item.library.libraryType === "user")
     uri += "/library";

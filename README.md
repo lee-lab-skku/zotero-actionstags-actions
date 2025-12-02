@@ -1,4 +1,4 @@
-# Zotero Actions & Tags backup actions
+# Zotero Actions & Tags actions
 
 This repository contains some useful JavaScript actions for the [Zotero Actions & Tags](https://github.com/windingwind/zotero-actions-tags) plugin.
 
@@ -41,29 +41,36 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 - **Purpose**: Shares an item to a predefined group library and collection
 - **Context**: Available for items
 - **Features**:
-  - Copies the selected item, including attachments, to a hardcoded `[LeeLab]` → `Temporary Share`
-  - After copying, it automatically triggers the `copySelectionLink` action on the newly created item in the group library
+  - Copies the selected item, including attachments, to the specified group collection set by preferences.
+  - After copying, it automatically triggers the `copySelectionLink` action on the newly created item in the group library.
 
 ### Retrieve Item (`retrieveItem.js`)
 
-- **Purpose**: Moves an item to a selected collection in the user library
-- **Context**: Recommended for items in `[LeeLab]` → `Temporary Share`
+- **Purpose**: Moves an item to a selected collection in the user library.
+- **Context**: Only works with items in share collection.
 - **Features**:
-  - Prompts the user to select a destination collection
-  - Moves the item by creating a copy in the new collection and deleting the original
+  - Prompts the user to select a destination collection.
+  - Moves the item by creating a copy in the new collection and erasing the original.
+
+### Set Preferences (`setPreferences.js`)
+
+- **Purpose**: Set the organaization and user information in Zotero preferences.
+- **Context**: Automatically triggered during the first restart after installation.
+- **Features**:
+  - If the preferences are not set, it prompts the user to set those.
+  - Preferences are utilized by other actions such as *Review Note* or *Share Item*.
 
 ### Review Note (`reviewNote.js`)
 
 - **Purpose**: Automatically adds a note to a newly created item if it belongs to a review collection.
 - **Context**: This action is triggered automatically when a new item is created in Zotero. It is not intended for manual use.
 - **Features**:
-  - On first run, it prompts the user to configure the target collection and reviewer's name.
   - When a new item appears in the monitored collection, it adds a note with a formatted title (e.g., `YYMMDD ReviewerName`) and a selectable review date.
 
 ### Update Actions (`updateActions.js`)
 
 - **Purpose**: Automatically updates all actions from a specified GitHub repository release.
-- **Context**: This action runs automatically when Zotero starts and can also be triggered manually from the toolbar.
+- **Context**: This action runs automatically when Zotero starts.
 - **Features**:
   - Fetches the latest release from the `lee-lab-skku/zotero-actionstags-actions` repository.
   - Compares the latest version with the currently installed version.

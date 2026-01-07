@@ -32,7 +32,8 @@ for (const item of items) {
     else
         uri += `/groups/${Zotero.Libraries.get(targetItem.libraryID).groupID}`;
 
-    uri += `/collections/${key}`;
+    if (!!key)
+        uri += `/collections/${key}`;
 
     uri += `/items/${targetItem.key}`;
     text = `${targetItem.getField("citationKey")}`;

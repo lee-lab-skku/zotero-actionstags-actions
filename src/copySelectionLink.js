@@ -2,7 +2,6 @@ if (item)
     return;
 
 let key;
-
 if (!!collection)
     key = collection.key;
 else {
@@ -13,34 +12,21 @@ else {
         key = coll.key;
 }
 
-function parse(item) {
-    let targetItem;
-    if (item.isAttachment())
-        targetItem = item.parentItem;
-    else
-        targetItem = item;
+function parseURI(item) {
+    const baseURI = "zotero://select";
+    const groupURI = (item.library.libraryType === "user") ? "library" : `groups/${Zotero.Libraries.get(item.libraryID).groupID}`;
+    const collectionURI = key ? `collections/${key}` : "";
+    const itemURI = `items/${item.key}`;
 
-    let uri = "zotero://select";
-    if (targetItem.library.libraryType === "user")
-        uri += "/library";
-    else
-        uri += `/groups/${Zotero.Libraries.get(targetItem.libraryID).groupID}`;
-    if (!!key)
-        uri += `/collections/${key}`;
-    uri += `/items/${targetItem.key}`;
-    const text = `${targetItem.getField("citationKey")}`;
+    const uri = [baseURI, groupURI, collectionURI, itemURI].filter(uri => uri).join("/");
+    const text = `${item.getField("citationKey")}`;
 
-    return { uri, text };
+    return `<a href="${uri}">${text}</a>`;
 }
 
-const links = items.map(parse);
-
-const plainText = links.map(link => link.uri).join("\n");
-const htmlText = links.map(link => `<a href="${link.uri}">${link.text}</a>`).join("<br>");
-
+const links = items.map(item => item.isAttachment() ? item.parentItem : item).map(parseURI).join("<br>");
 const clipboard = new Zotero.ActionsTags.api.utils.ClipboardHelper();
-clipboard.addText(plainText, "text/unicode");
-clipboard.addText(htmlText, "text/html");
+clipboard.addText(links, "text/html");
 clipboard.copy();
 
 return "Copied Zotero selection link to clipboard.";

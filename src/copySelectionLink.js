@@ -1,13 +1,6 @@
 if (item)
     return;
 
-const uris = [];
-const texts = [];
-
-
-let targetItem;
-let text;
-let uri;
 let key;
 
 if (!!collection)
@@ -20,30 +13,30 @@ else {
         key = coll.key;
 }
 
-for (const item of items) {
+function parse(item) {
+    let targetItem;
     if (item.isAttachment())
         targetItem = item.parentItem;
     else
         targetItem = item;
 
-    uri = "zotero://select";
+    let uri = "zotero://select";
     if (targetItem.library.libraryType === "user")
         uri += "/library";
     else
         uri += `/groups/${Zotero.Libraries.get(targetItem.libraryID).groupID}`;
-
     if (!!key)
         uri += `/collections/${key}`;
-
     uri += `/items/${targetItem.key}`;
-    text = `${targetItem.getField("citationKey")}`;
+    const text = `${targetItem.getField("citationKey")}`;
 
-    uris.push(uri);
-    texts.push(text);
+    return { uri, text };
 }
 
-const plainText = uris.join("\n");
-const htmlText = texts.map((text, i) => `<a href="${uris[i]}">${text}</a>`).join("<br>");
+const links = items.map(parse);
+
+const plainText = links.map(link => link.uri).join("\n");
+const htmlText = links.map(link => `<a href="${link.uri}">${link.text}</a>`).join("<br>");
 
 const clipboard = new Zotero.ActionsTags.api.utils.ClipboardHelper();
 clipboard.addText(plainText, "text/unicode");

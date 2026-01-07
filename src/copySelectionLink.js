@@ -8,17 +8,16 @@ const texts = [];
 let targetItem;
 let text;
 let uri;
+let key;
 
-if (!!collection) {
-    const key = collection.key;
-} else {
-    collection = null;
+if (!!collection)
+    key = collection.key;
+else {
     const coll = Zotero.getActiveZoteroPane().getSelectedCollection();
     const tabs = Zotero.getMainWindow().Zotero_Tabs;
     const tabData = tabs._getTab(tabs.selectedID).tab.data;
-    if (!!coll && !Object.hasOwn(tabData, 'itemID')) {
-        const key = coll.key;
-    }
+    if (!!coll && !Object.hasOwn(tabData, 'itemID'))
+        key = coll.key;
 }
 
 for (const item of items) {

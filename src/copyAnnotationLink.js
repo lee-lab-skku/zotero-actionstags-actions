@@ -6,7 +6,7 @@ if (item.library.libraryType === "user")
     uri += "/library";
 else
     uri += `/groups/${Zotero.Libraries.get(item.libraryID).groupID}`;
-uri += `/items/${item.key}`;
+uri += `/items/${item.parentItem.key}`;
 uri += `?page=${JSON.parse(item.annotationPosition).pageIndex + 1}&annotation=${item.key}`;
 
 let text = item.annotationText || "";

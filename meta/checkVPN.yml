@@ -1,0 +1,12 @@
+event: 8
+operation: 4
+shortcut: ''
+enabled: true
+menu: Check VPN connection
+name: Check VPN
+showInMenu:
+  item: false
+  collection: false
+  tools: true
+  reader: false
+  readerAnnotation: false

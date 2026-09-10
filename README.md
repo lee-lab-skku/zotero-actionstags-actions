@@ -57,7 +57,7 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 
 ### Set Preferences (`setPreferences.js`)
 
-- **Purpose**: Set the organaization and user information in Zotero preferences.
+- **Purpose**: Set the organization and user information in Zotero preferences.
 - **Context**: Automatically triggered during the first restart after installation.
 - **Features**:
   - If the preferences are not set, it prompts the user to set those.
@@ -68,7 +68,7 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 - **Purpose**: Automatically adds a note to a newly created item if it belongs to a review collection.
 - **Context**: This action is triggered automatically when a new item is created in Zotero. It is not intended for manual use.
 - **Features**:
-  - When a new item appears in the monitored collection, it adds a note with a formatted title (e.g., `YYMMDD ReviewerName`) and a selectable review date.
+  - When a new regular item appears in the configured group's monitored collection, it adds a note with a formatted title (e.g., `YYMMDD ReviewerName`) and a selectable local review date.
 
 ### Update Actions (`updateActions.js`)
 
@@ -78,6 +78,13 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
   - Fetches the latest release from the `lee-lab-skku/zotero-actionstags-actions` repository.
   - Compares the latest version with the currently installed version.
   - If an update is available, it downloads and applies the new actions.
+
+### Check VPN (`checkVPN.js`)
+
+- **Purpose**: Checks whether the configured WebDAV server responds within five seconds.
+- **Context**: Runs at startup and is available in the Tools menu.
+- **Features**: Honors the configured HTTP/HTTPS scheme and reports network failures.
+  A response only confirms reachability, not successful authentication or synchronization.
 
 ## Installation
 

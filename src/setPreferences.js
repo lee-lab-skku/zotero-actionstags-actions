@@ -1,57 +1,60 @@
+const Zotero = require('Zotero');
+const Services = require('Services');
 const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
 const PREF_GROUP_KEY_ALT = 'tara.groupID';
 const PREF_REVIEW_COLLECTION_KEY = 'actionsTags.actions.reviewCollectionKey';
 const PREF_SHARE_COLLECTION_KEY = 'actionsTags.actions.shareCollectionKey';
 const PREF_NAME = 'actionsTags.actions.reviewerName';
 
-const selected = new Object();
-let ok;
 let anySet = false;
-
-let groupID = Zotero.Prefs.get(PREF_GROUP_KEY);
-if (!groupID) {
-    let groupID = Zotero.Prefs.get(PREF_GROUP_KEY_ALT);
-    if (!groupID) {
-        const groups = Zotero.Groups.getAll();
-        ok = await Services.prompt.select(null, 'Organization', 'Which group is your organization?', groups.map(g => g.name), selected);
-        if (!ok)
-            return;
-        groupID = groups[selected.value].id;
-        Zotero.Prefs.set(PREF_GROUP_KEY, groupID);
-        anySet = true;
-    }
-}
-const targetLibraryID = Zotero.Groups.getLibraryIDFromGroupID(groupID);
-
-let reviewCollectionKey = Zotero.Prefs.get(PREF_REVIEW_COLLECTION_KEY);
-if (!reviewCollectionKey) {
-    const cols = Zotero.Collections.getByLibrary(targetLibraryID);
-    ok = await Services.prompt.select(null, 'Review', 'Which collection is for review?', cols.map(c => c.name), selected);
-    if (!ok)
+let groupID = Number(Zotero.Prefs.get(PREF_GROUP_KEY) || Zotero.Prefs.get(PREF_GROUP_KEY_ALT));
+let group = groupID && Zotero.Groups.get(groupID);
+if (!group) {
+    const groups = Zotero.Groups.getAll();
+    if (!groups.length)
+        return 'Join and sync a Zotero group before setting preferences.';
+    const selected = { value: 0 };
+    if (!Services.prompt.select(null, 'Organization', 'Which group is your organization?', groups.map(g => g.name), selected))
         return;
-    reviewCollectionKey = cols[selected.value].key;
-    Zotero.Prefs.set(PREF_REVIEW_COLLECTION_KEY, reviewCollectionKey);
+    group = groups[selected.value];
+    if (!group)
+        return;
+    groupID = group.id;
+}
+if (Zotero.Prefs.get(PREF_GROUP_KEY) !== groupID) {
+    Zotero.Prefs.set(PREF_GROUP_KEY, groupID);
     anySet = true;
 }
-let shareCollectionKey = Zotero.Prefs.get(PREF_SHARE_COLLECTION_KEY);
-if (!shareCollectionKey) {
-    const cols = Zotero.Collections.getByLibrary(targetLibraryID);
-    ok = await Services.prompt.select(null, 'Share', 'Which collection is for sharing?', cols.map(c => c.name), selected);
-    if (!ok)
+const targetLibraryID = group.libraryID;
+const cols = Zotero.Collections.getByLibrary(targetLibraryID, true);
+if (!cols.length)
+    return 'Create and sync the review and share collections in your group first.';
+
+for (const [pref, title, message] of [
+    [PREF_REVIEW_COLLECTION_KEY, 'Review', 'Which collection is for review?'],
+    [PREF_SHARE_COLLECTION_KEY, 'Share', 'Which collection is for sharing?'],
+]) {
+    const key = Zotero.Prefs.get(pref);
+    if (key && Zotero.Collections.getByLibraryAndKey(targetLibraryID, key))
+        continue;
+    const selected = { value: 0 };
+    if (!Services.prompt.select(null, title, message, cols.map(c => c.name), selected))
         return;
-    shareCollectionKey = cols[selected.value].key;
-    Zotero.Prefs.set(PREF_SHARE_COLLECTION_KEY, shareCollectionKey);
+    if (!cols[selected.value])
+        return;
+    Zotero.Prefs.set(pref, cols[selected.value].key);
     anySet = true;
 }
 
-let reviewerName = Zotero.Prefs.get(PREF_NAME);
-if (!reviewerName) {
-    ok = await Services.prompt.prompt(null, 'Name', 'What is your name? (In Korean, no space.)', selected, null, {});
-    if (!ok)
+if (!String(Zotero.Prefs.get(PREF_NAME) || '').trim()) {
+    const input = { value: '' };
+    if (!Services.prompt.prompt(null, 'Name', 'What is your name? (In Korean, no space.)', input, null, {}))
         return;
-    reviewerName = selected.value;
-    Zotero.Prefs.set(PREF_NAME, reviewerName);
+    const name = input.value.trim();
+    if (!name)
+        return 'Enter a non-empty reviewer name.';
+    Zotero.Prefs.set(PREF_NAME, name);
+    anySet = true;
 }
-
 if (anySet)
     return 'Preferences set successfully.';

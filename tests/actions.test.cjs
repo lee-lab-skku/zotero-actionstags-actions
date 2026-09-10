@@ -102,3 +102,75 @@ test('standalone Better Notes titles are escaped without requesting citation key
     assert.match(env.copied[1][1], /&lt;note&gt;/);
     assert.match(env.copied[1][1], /&amp;ignore/);
 });
+
+function prefsEnvironment(values = {}) {
+    const prefs = new Map(Object.entries(values));
+    const Zotero = { Prefs: { get: key => prefs.get(key), set: (key, value) => prefs.set(key, value) } };
+    return { Zotero, prefs };
+}
+
+test('preferences migrate legacy group ID and initialize names with a string', async () => {
+    const env = prefsEnvironment({ 'tara.groupID': 100 });
+    const group = { id: 100, libraryID: 8 };
+    env.Zotero.Groups = { get: id => id === 100 && group };
+    env.Zotero.Collections = { getByLibrary: id => {
+        assert.equal(id, 8); return [{ key: 'COLL', name: 'Review' }];
+    } };
+    env.Services = { prompt: {
+        select: (win, title, message, choices, selected) => { selected.value = 0; return true; },
+        prompt: (win, title, message, input) => { assert.equal(input.value, ''); input.value = ' Reviewer '; return true; },
+    } };
+    await run('setPreferences', env);
+    assert.equal(env.prefs.get('actionsTags.actions.groupID'), 100);
+    assert.equal(env.prefs.get('actionsTags.actions.reviewerName'), 'Reviewer');
+});
+
+test('preferences handle no joined groups without opening an empty selector', async () => {
+    const env = prefsEnvironment();
+    env.Zotero.Groups = { getAll: () => [] };
+    env.Services = { prompt: { select: () => assert.fail('Empty selector') } };
+    assert.match(await run('setPreferences', env), /Join and sync/);
+});
+
+test('WebDAV honors the configured scheme and warns on network failure or status zero', async () => {
+    for (const result of [{ status: 401 }, { status: 0 }, new Error('offline')]) {
+        const env = prefsEnvironment({ 'sync.storage.protocol': 'webdav', 'sync.storage.scheme': 'http', 'sync.storage.url': 'dav.example/path' });
+        let alerts = 0;
+        env.Services = { prompt: { alert: () => alerts++ } };
+        env.Zotero.HTTP = { request: async (method, url, options) => {
+            assert.equal(method, 'HEAD'); assert.equal(url, 'http://dav.example/path');
+            assert.equal(options.timeout, 5000);
+            if (result instanceof Error) throw result;
+            return result;
+        } };
+        await run('checkVPN', env);
+        assert.equal(alerts, result.status === 401 ? 0 : 1);
+    }
+});
+
+test('review notes use local dates and escape reviewer names, ignoring other libraries', async () => {
+    const env = prefsEnvironment({ 'actionsTags.actions.groupID': 100,
+        'actionsTags.actions.reviewCollectionKey': 'REVIEW', 'actionsTags.actions.reviewerName': '<Lee>&' });
+    const saved = [];
+    env.Zotero.Groups = { get: () => ({ libraryID: 8 }) };
+    env.Zotero.Collections = { getByLibraryAndKey: () => ({ id: 10 }) };
+    env.Zotero.Item = class {
+        setNote(html) { this.html = html; }
+        async saveTx() { saved.push(this); }
+    };
+    env.Services = { prompt: { select: (win, title, message, choices, selected) => {
+        assert.equal(choices[0], '01-01'); assert.equal(choices.at(-1), '01-15');
+        selected.value = 0; return true;
+    } } };
+    class LocalDate extends Date {
+        constructor(...args) { super(...(args.length ? args : [2026, 0, 1, 0, 30])); }
+        toISOString() { throw new Error('Do not format local review dates as UTC'); }
+    }
+    const item = { id: 1, libraryID: 8, isRegularItem: () => true,
+        isEditable: () => true, getCollections: () => [10] };
+    await run('reviewNote', env, { item, Date: LocalDate });
+    assert.equal(saved[0].html, '<h1>260101 &lt;Lee&gt;&amp;</h1>');
+    assert.equal(saved[0].parentID, 1);
+    await run('reviewNote', env, { item: { ...item, libraryID: 7 } });
+    assert.equal(saved.length, 1);
+});

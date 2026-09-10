@@ -1,49 +1,48 @@
+const Zotero = require('Zotero');
+const Services = require('Services');
 const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
 const PREF_COLLECTION_KEY = 'actionsTags.actions.reviewCollectionKey';
 const PREF_NAME = 'actionsTags.actions.reviewerName';
 
-if (!item)
+if (!item || !item.isRegularItem() || item.deleted)
     return;
 
-const groupID = Zotero.Prefs.get(PREF_GROUP_KEY);
-if (!groupID) 
-    return 'Set preferences first.';
-const targetLibraryID = Zotero.Groups.getLibraryIDFromGroupID(groupID);
-
+const groupID = Number(Zotero.Prefs.get(PREF_GROUP_KEY));
+const group = groupID && Zotero.Groups.get(groupID);
 const collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
-if (!collectionKey)
+if (!group || !collectionKey)
     return 'Set preferences first.';
-
-if (!item.getCollections().map(c => Zotero.Collections.get(c).key).includes(collectionKey)) {
+const targetLibraryID = group.libraryID;
+if (item.libraryID !== targetLibraryID)
     return;
-}
+const targetCollection = Zotero.Collections.getByLibraryAndKey(targetLibraryID, collectionKey);
+if (!targetCollection || !item.getCollections().includes(targetCollection.id))
+    return;
+if (!item.isEditable())
+    return 'The review item is read-only.';
 
-const reviewerName = Zotero.Prefs.get(PREF_NAME);
-if (!reviewerName) 
+const reviewerName = String(Zotero.Prefs.get(PREF_NAME) || '').trim();
+if (!reviewerName)
     return 'Set preferences first.';
 
-const now = new Date().getTime();
-let cnt = 0;
-const dates = [];
-
-while (cnt <= 14) {
-    dates.push(new Date(now + cnt * 86400000).toISOString());
-    cnt++;
-}
-
-const selected = new Object();
-const ok = await Services.prompt.select(null, 'Review Date', 'Select the review date.', dates.map(d => d.slice(5, 10)), selected);
-if (!ok) {
+const today = new Date();
+const dates = Array.from({ length: 15 }, (_, offset) => {
+    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() + offset);
+    return [date.getFullYear(), String(date.getMonth() + 1).padStart(2, '0'),
+        String(date.getDate()).padStart(2, '0')].join('-');
+});
+const selected = { value: 0 };
+if (!Services.prompt.select(null, 'Review Date', 'Select the review date.', dates.map(d => d.slice(5)), selected))
     return 'Review information not added.';
-}
-
-const td = dates[selected.value];
-const noteContent = `<h1>${td.slice(2,4)}${td.slice(5,7)}${td.slice(8,10)} ${reviewerName}</h1>`;
+const date = dates[selected.value];
+if (!date)
+    return;
+const title = date.slice(2).replace(/-/g, '') + ' ' + reviewerName;
+const escapedTitle = title.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 
 const note = new Zotero.Item('note');
 note.libraryID = targetLibraryID;
 note.parentID = item.id;
-note.setNote(noteContent);
+note.setNote('<h1>' + escapedTitle + '</h1>');
 await note.saveTx();
-
 return 'Added review information successfully.';

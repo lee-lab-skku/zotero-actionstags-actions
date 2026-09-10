@@ -1,60 +1,85 @@
+const Zotero = require('Zotero');
 const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
 const PREF_COLLECTION_KEY = 'actionsTags.actions.shareCollectionKey';
-const TARGET_ACTION_KEY = 'copySelectionLink';
 
 if (!item)
     return;
+if (!item.isRegularItem() || item.deleted)
+    return 'Select a regular library item to share.';
 
-let groupID = Zotero.Prefs.get(PREF_GROUP_KEY);
-if (!groupID)
+const groupID = Number(Zotero.Prefs.get(PREF_GROUP_KEY));
+const group = groupID && Zotero.Groups.get(groupID);
+const collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
+if (!group || !collectionKey)
     return 'Set preferences first.';
-const targetLibraryID = Zotero.Groups.getLibraryIDFromGroupID(groupID);
+const destination = Zotero.Collections.getByLibraryAndKey(group.libraryID, collectionKey);
+if (!destination)
+    return 'The share collection no longer exists. Set preferences again.';
 
-let collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
-if (!collectionKey)
-    return 'Set preferences first.';
+async function copyItemToCollection(source, destination) {
+    const library = Zotero.Libraries.get(destination.libraryID);
+    if (!library?.editable)
+        throw new Error('The destination library is read-only.');
+    if (source.libraryID === destination.libraryID)
+        throw new Error('Select an item from a different library.');
 
-const type = item.itemTypeID;
-const newItem = new Zotero.Item(type);
-
-newItem.libraryID = targetLibraryID;
-
-const fieldIDs = Zotero.ItemFields.getItemTypeFields(type);
-for (const fieldID of fieldIDs) {
-    const fieldName = Zotero.ItemFields.getName(fieldID);
-    if (fieldName === 'key' || fieldName === 'version' || fieldName === 'libraryID')
-        continue;
-
-    const value = item.getField(fieldName);
-    if (!!value)
-        newItem.setField(fieldName, value);
-}
-
-const creators = item.getCreators();
-if (!!creators)
-    newItem.setCreators(creators);
-const coll = Zotero.Collections.getByLibraryAndKey(targetLibraryID, collectionKey);
-if (!!coll)
-    newItem.addToCollection(coll.id);
-
-await newItem.saveTx();
-
-const attachmentIDs = item.getAttachments();
-if (attachmentIDs.length) {
-    for (const attachmentID of attachmentIDs) {
-        const oldAtt = Zotero.Items.get(attachmentID);
-        if (oldAtt.isAttachment()) {
-            const path = Zotero.File.pathToFile(oldAtt.getFilePath());
-            if (!!path) {
-                await Zotero.Attachments.importFromFile({
-                    file: path, parentItemID: newItem.id, libraryID: targetLibraryID
-                });
-            }
-        }
+    const attachments = await Zotero.Items.getAsync(source.getAttachments());
+    const notes = await Zotero.Items.getAsync(source.getNotes());
+    const images = [];
+    for (const note of notes)
+        images.push(...await Zotero.Items.getAsync(note.getAttachments()));
+    // Core copy APIs can skip missing files; stop before writing instead.
+    for (const attachment of [...attachments, ...images]) {
+        if (!attachment.isFileAttachment())
+            continue;
+        if (!library.filesEditable)
+            throw new Error('The destination library does not allow file uploads.');
+        if (!await attachment.fileExists())
+            throw new Error('Download or locate all attachments and note images before copying.');
     }
+
+    return Zotero.DB.executeTransaction(async () => {
+        const copy = source.clone(destination.libraryID);
+        copy.setCollections([destination.id]);
+        await copy.save({ skipSelect: true });
+        for (const note of notes) {
+            const newNote = note.clone(destination.libraryID);
+            newNote.parentID = copy.id;
+            await newNote.save({ skipSelect: true });
+            await Zotero.Notes.copyEmbeddedImages(note, newNote);
+        }
+        for (const attachment of attachments) {
+            let newAttachment;
+            if (attachment.isLinkedFileAttachment()) {
+                // Group libraries do not support linked files. Import a stored copy.
+                const path = await attachment.getFilePathAsync();
+                if (!path)
+                    throw new Error('The linked attachment is no longer available.');
+                newAttachment = await Zotero.Attachments.importFromFile({
+                    file: path,
+                    libraryID: destination.libraryID,
+                    parentItemID: copy.id,
+                    title: attachment.getField('title'),
+                    contentType: attachment.attachmentContentType,
+                });
+                newAttachment.setTags(attachment.getTags());
+                newAttachment.setNote(attachment.getNote());
+                await newAttachment.save();
+            } else {
+                newAttachment = await Zotero.Attachments.copyAttachmentToLibrary(
+                    attachment, destination.libraryID, copy.id);
+            }
+            await Zotero.Items.copyChildItems(attachment, newAttachment);
+        }
+        return copy;
+    });
 }
 
-const arg = { itemID: newItem.id, itemIDs: [newItem.id], collectionID: coll.id, triggerType: 'menu' };
-await Zotero.ActionsTags.api.actionManager.dispatchActionByKey(TARGET_ACTION_KEY, arg);
-
-return;
+const newItem = await copyItemToCollection(item, destination);
+// A selection-level action must receive itemIDs without itemID.
+await Zotero.ActionsTags.api.actionManager.dispatchActionByKey('copySelectionLink', {
+    itemIDs: [newItem.id],
+    collectionID: destination.id,
+    triggerType: 'menu',
+});
+return 'Shared item successfully.';

@@ -44,7 +44,9 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 - **Purpose**: Shares an item to a predefined group library and collection
 - **Context**: Available for items
 - **Features**:
-  - Copies the selected item, including attachments, to the specified group collection set by preferences.
+  - Copies regular items, tags, child notes with embedded images, attachments, and Zotero annotations to the group collection set by preferences.
+  - Imports linked files as stored attachments and preserves URL attachments.
+  - Requires a different destination library, write access, and locally available attachment files and note images.
   - After copying, it automatically triggers the `copySelectionLink` action on the newly created item in the group library.
 
 ### Retrieve Item (`retrieveItem.js`)
@@ -53,7 +55,9 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 - **Context**: Only works with items in share collection.
 - **Features**:
   - Prompts the user to select a destination collection.
-  - Moves the item by creating a copy in the new collection and erasing the original.
+  - Copies the item and its children to My Library, then moves the source to the group library trash after the copy succeeds.
+  - A failed copy leaves the source intact; missing attachment files or note images must be downloaded or located first.
+  - Zotero 10 Undo can restore the source from the trash; it does not remove the newly created copy.
 
 ### Set Preferences (`setPreferences.js`)
 

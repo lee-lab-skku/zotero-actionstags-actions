@@ -1,61 +1,98 @@
+const Zotero = require('Zotero');
+const Services = require('Services');
+const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
 const PREF_COLLECTION_KEY = 'actionsTags.actions.shareCollectionKey';
 
-if (!item && items[0])
+if (!item)
     return;
-
-let collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
-if (!collectionKey)
+if (!item.isRegularItem() || item.deleted)
+    return 'Select a regular library item to retrieve.';
+const groupID = Number(Zotero.Prefs.get(PREF_GROUP_KEY));
+const group = groupID && Zotero.Groups.get(groupID);
+const collectionKey = Zotero.Prefs.get(PREF_COLLECTION_KEY);
+if (!group || !collectionKey)
     return 'Set preferences first.';
+const shareCollection = Zotero.Collections.getByLibraryAndKey(group.libraryID, collectionKey);
+if (item.libraryID !== group.libraryID || !shareCollection
+    || !item.getCollections().includes(shareCollection.id))
+    return 'Item not in the configured group share collection.';
+if (!item.isEditable())
+    return 'The source item is read-only.';
 
-if (!item.getCollections().map(c => Zotero.Collections.get(c).key).includes(collectionKey))
-    return 'Item not in share collection.';
-
-const cols = Zotero.Collections.getByLibrary(1);
-const selected = new Object();
-const ok = await Services.prompt.select(null, 'Selection', 'Select the collection to move the item to.', cols.map(c => c.name), selected);
-
-if (!ok)
+const cols = Zotero.Collections.getByLibrary(Zotero.Libraries.userLibraryID, true);
+if (!cols.length)
+    return 'Create a collection in My Library first.';
+const selected = { value: 0 };
+if (!Services.prompt.select(null, 'Selection', 'Select the collection to move the item to.', cols.map(c => c.name), selected))
     return;
-const coll = cols[selected.value];
+const destination = cols[selected.value];
+if (!destination)
+    return;
 
-const type = item.itemTypeID;
-const newItem = new Zotero.Item(type);
-newItem.libraryID = 1;
+async function copyItemToCollection(source, destination) {
+    const library = Zotero.Libraries.get(destination.libraryID);
+    if (!library?.editable)
+        throw new Error('The destination library is read-only.');
+    if (source.libraryID === destination.libraryID)
+        throw new Error('Select an item from a different library.');
 
-const fieldIDs = Zotero.ItemFields.getItemTypeFields(type);
-for (const fieldID of fieldIDs) {
-    const fieldName = Zotero.ItemFields.getName(fieldID);
-    if (fieldName === 'key' || fieldName === 'version' || fieldName === 'libraryID')
-        continue;
-
-    const value = item.getField(fieldName);
-    if (!!value)
-        newItem.setField(fieldName, value);
-}
-
-const creators = item.getCreators();
-if (!!creators)
-    newItem.setCreators(creators);
-if (!!coll)
-    newItem.addToCollection(coll.id);
-
-await newItem.saveTx();
-
-const attachmentIDs = item.getAttachments();
-if (attachmentIDs.length) {
-    for (const attachmentID of attachmentIDs) {
-        const oldAtt = Zotero.Items.get(attachmentID);
-        if (oldAtt.isAttachment()) {
-            const path = Zotero.File.pathToFile(oldAtt.getFilePath());
-            if (!!path) {
-                await Zotero.Attachments.importFromFile({
-                    file: path, parentItemID: newItem.id, libraryID: 1
-                });
-            }
-        }
+    const attachments = await Zotero.Items.getAsync(source.getAttachments());
+    const notes = await Zotero.Items.getAsync(source.getNotes());
+    const images = [];
+    for (const note of notes)
+        images.push(...await Zotero.Items.getAsync(note.getAttachments()));
+    // Core copy APIs can skip missing files; stop before writing instead.
+    for (const attachment of [...attachments, ...images]) {
+        if (!attachment.isFileAttachment())
+            continue;
+        if (!library.filesEditable)
+            throw new Error('The destination library does not allow file uploads.');
+        if (!await attachment.fileExists())
+            throw new Error('Download or locate all attachments and note images before copying.');
     }
+
+    return Zotero.DB.executeTransaction(async () => {
+        const copy = source.clone(destination.libraryID);
+        copy.setCollections([destination.id]);
+        await copy.save({ skipSelect: true });
+        for (const note of notes) {
+            const newNote = note.clone(destination.libraryID);
+            newNote.parentID = copy.id;
+            await newNote.save({ skipSelect: true });
+            await Zotero.Notes.copyEmbeddedImages(note, newNote);
+        }
+        for (const attachment of attachments) {
+            let newAttachment;
+            if (attachment.isLinkedFileAttachment()) {
+                // Group libraries do not support linked files. Import a stored copy.
+                const path = await attachment.getFilePathAsync();
+                if (!path)
+                    throw new Error('The linked attachment is no longer available.');
+                newAttachment = await Zotero.Attachments.importFromFile({
+                    file: path,
+                    libraryID: destination.libraryID,
+                    parentItemID: copy.id,
+                    title: attachment.getField('title'),
+                    contentType: attachment.attachmentContentType,
+                });
+                newAttachment.setTags(attachment.getTags());
+                newAttachment.setNote(attachment.getNote());
+                await newAttachment.save();
+            } else {
+                newAttachment = await Zotero.Attachments.copyAttachmentToLibrary(
+                    attachment, destination.libraryID, copy.id);
+            }
+            await Zotero.Items.copyChildItems(attachment, newAttachment);
+        }
+        return copy;
+    });
 }
 
-await Zotero.Items.erase([item.id]);
-
-return 'Retrieved item successfully.';
+await copyItemToCollection(item, destination);
+// Keep the source recoverable; only trash it after the complete copy commits.
+item.deleted = true;
+await item.saveTx({
+    undoAction: 'undo-action-trash',
+    undoActionArgs: { count: 1 },
+});
+return 'Retrieved item successfully. The source is in the group library trash.';

@@ -8,35 +8,44 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 
 ## [Unreleased]
 
+## [3.0.0-beta.1] - 2026-09-10
+
 ### Added
 
 - JSON release backups for automatic updates, alongside the YAML import file.
 - Regression tests and CI for action behavior and backup generation.
 - Contributor documentation covering compatibility, validation, and manual Zotero testing.
+- Prerelease-aware publishing for version tags with a prerelease suffix.
 
 ### Changed
 
-- Target Zotero 10 and use plural collection selection APIs.
-  Selection links include a collection only when its context is unambiguous and the item belongs to it.
+- **Breaking:** Require Zotero 10 and a compatible Actions & Tags plugin; earlier Zotero versions are no longer supported.
+- **Breaking:** Copy one selection link per resolved item instead of one per selected row, deduplicating parent and attachment selections.
+  Include a collection path only when the collection context is unambiguous and the item belongs to it.
+- Fall back to item titles or keys when citation keys are unavailable.
 - Preserve tags, child notes, embedded images, attachments, and Zotero annotations when sharing or retrieving items.
   Linked files are imported as stored attachments, and URL attachments are retained.
-- Check destination permissions and local attachment availability before copying between libraries.
-- Move retrieved source items to the group library trash only after a successful copy, instead of permanently erasing them.
+- **Breaking:** Limit sharing and retrieval to regular, non-trashed items in a different library from the destination; same-library copying is rejected.
+- **Breaking:** Require destination write permissions and all attachment files and note images to be locally available before copying; incomplete copies are no longer attempted.
+- **Breaking:** Move retrieved source items to the group library trash only after a successful copy, instead of permanently erasing them.
   Zotero 10 Undo can restore the source without removing the destination copy.
-- Load automatic updates from JSON and preserve existing enabled settings and shortcuts.
+- **Breaking:** Require an `actions-zotero.json` release asset for automatic updates; YAML-only releases remain manually importable.
   Import the YAML manually for the initial upgrade to this updater.
+- Preserve existing enabled settings and shortcuts during automatic updates.
+- Validate the entire release backup before updating any actions.
+- **Breaking:** Reject script actions with missing source files and action metadata without an explicit integer event or string data during the build.
 - Resolve build paths relative to the build script so it can run from another working directory.
 
 ### Fixed
 
-- Handle standalone attachments, duplicate parent links, empty selections, and missing citation keys when copying links.
+- Handle standalone attachments and empty selections when copying links.
 - Validate PDF annotation positions and escape user text in HTML links and review notes.
 - Dispatch the copied item's selection link correctly after sharing.
 - Retain and migrate the configured group ID, handle missing groups and collections, and validate reviewer names.
 - Restrict review notes and retrieval to the configured group and collection; format review dates using the local calendar.
 - Honor the configured WebDAV HTTP/HTTPS scheme and report connection failures as well as timeouts.
-- Validate release data before updating actions and record the installed version only after all updates succeed, allowing failed updates to be retried.
-- Explicitly declare the retrieval action's menu-only event and reject missing scripts or incomplete metadata during the build.
+- Record the installed version only after all updates succeed, allowing failed updates to be retried.
+- Explicitly declare the retrieval action's menu-only event.
 
 ### Removed
 
@@ -121,7 +130,8 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 - YAML backup generation and tag-triggered release builds.
 - Optional `/unread` tagging actions, disabled by default.
 
-[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/e339b8d...main
+[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.1...main
+[3.0.0-beta.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/e339b8d...v3.0.0-beta.1
 [2.6.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/d5f0577...e339b8d
 [2.5.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/90e7f1d...d5f0577
 [2.5.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/066c5b1...90e7f1d

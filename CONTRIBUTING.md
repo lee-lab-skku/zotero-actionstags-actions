@@ -18,6 +18,17 @@ Generated release files belong in the ignored `dist/` directory.
 Publish both YAML and JSON assets together; both must contain the same action definitions.
 The tag release workflow uploads both files.
 
+## Versioning and prereleases
+
+Versions are recorded in Git tags and `CHANGELOG.md`; there is no separate package version file.
+Use `vMAJOR.MINOR.PATCH` for stable releases and a SemVer suffix such as `v3.0.0-beta.1` for prereleases.
+Move completed changes from `Unreleased` into the matching version section, then tag that release commit.
+Place behavior changes under `Changed`, reserve `Fixed` for corrections, and prefix incompatible entries with **Breaking:**.
+The release workflow marks tags containing a prerelease suffix as GitHub prereleases.
+
+Install beta builds by importing their YAML file manually.
+Keep Update Actions disabled while testing a beta: its GitHub latest-release endpoint tracks stable releases, not prereleases, and it does not prevent installing an older stable version.
+
 ## Action contracts
 
 Each source script must remain independently usable as an Actions & Tags async function body, including top-level `await` and `return`.

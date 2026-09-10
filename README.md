@@ -4,7 +4,8 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 
 ## Requirements
 
-- **Better BibTeX**: Must be installed for citation key generation.
+- **Zotero 10** and a Zotero 10-compatible version of **Actions & Tags**.
+- **Better BibTeX** (Optional): Provides citation key generation; links fall back to the item title or key when no citation key is available.
 - **Better Notes** (Optional): Required for the `copyNoteLink` action to function.
 
 ## Actions Included
@@ -26,7 +27,9 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 - **Features**:
   - Generates `zotero://select` links
   - Uses citation key as link text
-  - Respects current collection context, if called in the main tab
+  - Respects a single selected collection in the library tab when the item belongs to it
+  - Uses library-level links for multiple or mixed collection/search selections
+  - Supports standalone attachments and avoids duplicate links for a parent and its attachments
 
 ### Copy Note Link (`copyNoteLink.js`)
 
@@ -88,6 +91,10 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 - **`src/`**: Contains the raw JavaScript files for each action.
 - **`meta/`**: Contains the YAML definitions that describe the actions for the Actions & Tags plugin.
 - **`build.py`**: A Python script that combines the files from `src/` and `meta/` into a single `zotero-actionstags-backup.yml` file for distribution.
+
+## AI Disclosure
+
+AI coding tools have assisted with API compatibility updates, code review, documentation, and regression tests.
 
 ## Credits
 

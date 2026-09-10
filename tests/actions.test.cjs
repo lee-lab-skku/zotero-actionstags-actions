@@ -148,6 +148,42 @@ test('WebDAV honors the configured scheme and warns on network failure or status
     }
 });
 
+function updateEnvironment({ invalid = false, fail = false, previousTag } = {}) {
+    const env = prefsEnvironment(previousTag ? { 'actionsTags.actions.versionTag': previousTag } : {});
+    const changes = [];
+    const action = { event: 0, operation: 4, data: 'return;', enabled: true, shortcut: 'new' };
+    const backup = { type: 'ActionsTagsBackup', actions: { first: action, second: invalid ? {} : action } };
+    env.Zotero.HTTP = { request: async (method, url) => ({ response: url.includes('api.github.com')
+        ? { tag_name: 'v2', assets: [{ name: 'actions-zotero.json', browser_download_url: 'https://github.com/lee-lab-skku/zotero-actionstags-actions/releases/download/v2/actions-zotero.json' }] }
+        : backup }) };
+    env.Zotero.ActionsTags = { api: { actionManager: {
+        getActions: () => ({ enabled: false, shortcut: 'user' }),
+        updateAction: async (action, key) => {
+            if (fail && key === 'second') throw new Error('write failed');
+            changes.push(action);
+        },
+    } } };
+    return { ...env, changes };
+}
+
+test('updater applies initial updates and preserves user enable/shortcut choices', async () => {
+    const env = updateEnvironment();
+    await run('updateActions', env);
+    assert.equal(env.changes.length, 2);
+    assert.equal(env.changes[0].enabled, false);
+    assert.equal(env.changes[0].shortcut, 'user');
+    assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v2');
+});
+
+test('updater validates the entire backup and does not advance version on failed writes', async () => {
+    for (const options of [{ invalid: true }, { fail: true }]) {
+        const env = updateEnvironment({ ...options, previousTag: 'v1' });
+        await assert.rejects(run('updateActions', env));
+        assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v1');
+        if (options.invalid) assert.equal(env.changes.length, 0);
+    }
+});
+
 function copyEnvironment({ missing = false, failCopy = false, sourceLibrary = 8 } = {}) {
     const env = prefsEnvironment({ 'actionsTags.actions.groupID': 100, 'actionsTags.actions.shareCollectionKey': 'SHARE' });
     const events = [];
@@ -274,4 +310,18 @@ test('review notes use local dates and escape reviewer names, ignoring other lib
     assert.equal(saved[0].parentID, 1);
     await run('reviewNote', env, { item: { ...item, libraryID: 7 } });
     assert.equal(saved.length, 1);
+});
+
+test('update download failure and unavailable JSON never change installed actions or version', async () => {
+    for (const response of [new Error('HTTP 403'), { tag_name: 'v2', assets: [] }]) {
+        const env = updateEnvironment({ previousTag: 'v1' });
+        env.Zotero.HTTP.request = async () => {
+            if (response instanceof Error) throw response;
+            return { response };
+        };
+        if (response instanceof Error) await assert.rejects(run('updateActions', env));
+        else assert.match(await run('updateActions', env), /manually/);
+        assert.equal(env.changes.length, 0);
+        assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v1');
+    }
 });

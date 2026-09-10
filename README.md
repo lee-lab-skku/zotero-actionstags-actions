@@ -77,11 +77,14 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 ### Update Actions (`updateActions.js`)
 
 - **Purpose**: Automatically updates all actions from a specified GitHub repository release.
-- **Context**: This action runs automatically when Zotero starts.
+- **Context**: Disabled by default; when enabled, this action runs when Zotero starts.
 - **Features**:
   - Fetches the latest release from the `lee-lab-skku/zotero-actionstags-actions` repository.
   - Compares the latest version with the currently installed version.
   - If an update is available, it downloads and applies the new actions.
+  - Uses the release's `actions-zotero.json` asset and records the version only after all updates succeed.
+  - Preserves existing enabled/disabled settings and shortcuts; other action code and metadata are replaced.
+  - If an update partially fails, the next run retries it.
 
 ### Check VPN (`checkVPN.js`)
 
@@ -93,15 +96,20 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 ## Installation
 
 1. Go to the [Releases](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) page
-2. Download the YAML file.
-3. In Zotero, go to Options → Actions and Tags
-4. Click "Import" and select the downloaded file
+1. Download `actions-zotero.yml`.
+1. In Zotero, open Settings &rightarrow; Actions & Tags.
+1. Click "Import" and select the downloaded file.
+
+For the first upgrade to these Zotero 10 actions, import the YAML manually, especially if an older updater already recorded a release without applying it.
+The JSON file is intended for subsequent automatic updates.
 
 ## Project Structure
 
 - **`src/`**: Contains the raw JavaScript files for each action.
 - **`meta/`**: Contains the YAML definitions that describe the actions for the Actions & Tags plugin.
-- **`build.py`**: A Python script that combines the files from `src/` and `meta/` into a single `zotero-actionstags-backup.yml` file for distribution.
+- **`build.py`**: Combines `src/` and `meta/` into `dist/actions-zotero.yml` for import and `dist/actions-zotero.json` for automatic updates.
+
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development, testing, and compatibility notes.
 
 ## AI Disclosure
 

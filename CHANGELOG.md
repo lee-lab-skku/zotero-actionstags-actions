@@ -8,6 +8,11 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 
 ## [Unreleased]
 
+### Added
+
+- A Trash on Delete action that moves selected collection items to the library trash with Zotero's confirmation and Undo support.
+  Restart Zotero after importing to activate it; disabling the action immediately restores normal collection removal.
+
 ## [3.0.0-beta.1] - 2026-09-10
 
 ### Added

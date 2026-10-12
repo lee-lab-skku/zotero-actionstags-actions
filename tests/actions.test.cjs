@@ -17,6 +17,118 @@ async function run(name, globals, args = {}) {
         .runInContext(context);
 }
 
+function deleteEnvironment() {
+    const listeners = new Map();
+    const calls = [];
+    const errors = [];
+    const action = { enabled: true };
+    const selection = { items: [{ deleted: false, isAnnotation: () => false }] };
+    const target = { inTree: true, isContentEditable: false, closest: () => false };
+    const window = {
+        document: { getElementById: id => {
+            assert.equal(id, 'zotero-items-tree');
+            return { contains: node => !!node?.inTree };
+        } },
+        Zotero_Tabs: { selectedType: 'library' },
+        ZoteroPane: {
+            getCollectionTreeRows: () => [{ isCollection: () => true }],
+            getSelectedItems: () => assert.fail('Tab-dependent pane selection getter used'),
+            itemsView: {
+                selection: { get selected() { return new Set(selection.items.map((_, index) => index)); } },
+                getRow: index => ({ ref: selection.items[index] }),
+            },
+            deleteSelectedItems: async (...args) => { calls.push(args); },
+        },
+        addEventListener: (type, fn, capture) => {
+            if (type === 'keydown') assert.equal(capture, true);
+            assert.ok(!listeners.has(type));
+            listeners.set(type, fn);
+        },
+        removeEventListener: (type, fn) => {
+            assert.equal(listeners.get(type), fn);
+            listeners.delete(type);
+        },
+    };
+    const Zotero = {
+        ActionsTags: { api: { actionManager: { getActions: key => {
+            assert.equal(key, 'trashOnDelete');
+            return action;
+        } } } },
+        logError: error => errors.push(error),
+    };
+    function press(overrides = {}) {
+        const event = { key: 'Delete', target,
+            preventDefault() { this.prevented = true; },
+            stopImmediatePropagation() { this.stopped = true; }, ...overrides };
+        listeners.get('keydown')(event);
+        return event;
+    }
+    return { window, Zotero, action, selection, target, listeners, calls, errors, press };
+}
+
+const flushDelete = () => new Promise(resolve => setImmediate(resolve));
+
+test('collection Delete blocks native removal and invokes confirmed Zotero trash once', async () => {
+    const env = deleteEnvironment();
+    env.window.ZoteroPane.getCollectionTreeRows = () => [1, 2].map(() => ({ isCollection: () => true }));
+    await run('trashOnDelete', env, { window: env.window });
+    const event = env.press();
+    assert.equal(event.prevented, true);
+    assert.equal(event.stopped, true);
+    env.press();
+    await flushDelete();
+    assert.deepEqual(env.calls, [[true, true]]);
+    env.press({ repeat: true });
+    await flushDelete();
+    assert.equal(env.calls.length, 1);
+});
+
+test('collection Delete leaves editing, modified keys, and other contexts untouched', async () => {
+    for (const change of [
+        env => { env.action.enabled = false; },
+        env => { delete env.Zotero.ActionsTags; },
+        env => { env.window.Zotero_Tabs.selectedType = 'reader'; },
+        env => { env.target.inTree = false; },
+        env => { env.target.isContentEditable = true; },
+        env => { env.target.closest = () => ({}); },
+        env => { env.window.ZoteroPane.getCollectionTreeRows = () => []; },
+        env => { env.window.ZoteroPane.getCollectionTreeRows = () => [true, false].map(value => ({ isCollection: () => value })); },
+        env => { env.window.ZoteroPane.itemsView = null; },
+        env => { env.selection.items = []; },
+        env => { env.selection.items = [{ deleted: true }]; },
+        env => { env.selection.items = [{ isAnnotation: () => true }]; },
+    ]) {
+        const env = deleteEnvironment();
+        await run('trashOnDelete', env, { window: env.window });
+        change(env);
+        assert.equal(env.press().prevented, undefined);
+        await flushDelete();
+        assert.equal(env.calls.length, 0);
+    }
+    const env = deleteEnvironment();
+    await run('trashOnDelete', env, { window: env.window });
+    for (const override of [{ key: 'Backspace' }, ...['ctrlKey', 'altKey', 'metaKey', 'shiftKey', 'isComposing', 'defaultPrevented'].map(key => ({ [key]: true }))])
+        assert.equal(env.press(override).prevented, undefined);
+});
+
+test('collection Delete replaces listeners, cleans up, and recovers after a failure', async () => {
+    const env = deleteEnvironment();
+    await run('trashOnDelete', env, { window: env.window });
+    await run('trashOnDelete', env, { window: env.window });
+    const failure = new Error('Cannot trash');
+    env.window.ZoteroPane.deleteSelectedItems = async () => { throw failure; };
+    env.press();
+    await flushDelete();
+    assert.deepEqual(env.errors, [failure]);
+    env.window.ZoteroPane.deleteSelectedItems = async (...args) => env.calls.push(args);
+    env.press();
+    await flushDelete();
+    assert.equal(env.calls.length, 1);
+    env.listeners.get('unload')();
+    assert.equal(env.listeners.size, 0);
+    assert.equal(env.window.__actionsTagsTrashOnDelete, undefined);
+});
+
 function linkEnvironment(collections = [], rows = collections) {
     const copied = [];
     class ClipboardHelper {

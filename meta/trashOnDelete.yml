@@ -1,0 +1,12 @@
+event: 9
+operation: 4
+shortcut: ''
+enabled: true
+menu: ''
+name: Move collection items to trash with Delete
+showInMenu:
+  item: false
+  collection: false
+  tools: false
+  reader: false
+  readerAnnotation: false

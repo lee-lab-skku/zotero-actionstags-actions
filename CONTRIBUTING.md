@@ -9,7 +9,7 @@ There are no Node package dependencies.
 python -m pip install PyYAML
 python build.py
 python -m unittest discover -s tests -p 'test_*.py'
-node --test tests/actions.test.cjs
+node --test tests/*.test.cjs
 git diff --check
 ```
 

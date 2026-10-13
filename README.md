@@ -39,6 +39,15 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
   - Generates `zotero://note` links
   - Uses the note title and parent item's citation key for the link text
 
+### Agent Link Bridge (`linkBridge.js`)
+
+- **Purpose**: Returns selection, PDF annotation, and Better Notes links to local shell or agent clients.
+- **Context**: Registers `POST /action-links` on Zotero's existing local HTTP server at startup.
+- **Features**: Requires a profile-specific token, uses explicit item keys and library scope, and leaves the clipboard and UI selection untouched.
+
+Import the updated copylink actions together with this action, then restart Zotero.
+See [Local link API](docs/action-links.md) for pairing, requests, responses, and troubleshooting.
+
 ### Share Item (`shareItem.js`)
 
 - **Purpose**: Shares an item to a predefined group library and collection

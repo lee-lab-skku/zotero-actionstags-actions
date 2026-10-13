@@ -8,10 +8,16 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 
 ## [Unreleased]
 
+## [3.0.0-beta.2] - 2026-10-13
+
 ### Added
 
 - A Trash on Delete action that moves selected collection items to the library trash with Zotero's confirmation and Undo support.
   Restart Zotero after importing to activate it; disabling the action immediately restores normal collection removal.
+- An Agent Link Bridge startup action exposing `POST /action-links` on Zotero's existing local HTTP server.
+  Local clients can request selection, PDF annotation, and Better Notes links by explicit library and item keys, with an optional collection key for selection links.
+- Profile-token authentication and structured link/error responses for the three copylink actions, preserving their existing menu and clipboard behavior.
+  Import the updated copylink actions together with the bridge and restart Zotero before pairing a client.
 
 ## [3.0.0-beta.1] - 2026-09-10
 
@@ -135,7 +141,8 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 - YAML backup generation and tag-triggered release builds.
 - Optional `/unread` tagging actions, disabled by default.
 
-[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.1...main
+[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.2...main
+[3.0.0-beta.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.1...v3.0.0-beta.2
 [3.0.0-beta.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/e339b8d...v3.0.0-beta.1
 [2.6.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/d5f0577...e339b8d
 [2.5.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/90e7f1d...d5f0577

@@ -109,6 +109,8 @@ When upgrading from a release with Share Item and Retrieve Item, delete those tw
 The updater only adds or updates actions included in a release; it does not remove previously installed actions that are absent from the backup.
 The obsolete `extensions.zotero.actionsTags.actions.shareCollectionKey` preference can also be reset in Zotero's Advanced Config Editor; current actions no longer use it.
 Keep the group, review collection, and reviewer name preferences for Review Note.
+Preference setup no longer imports `tara.groupID`; users with only that legacy setting must select their organization once.
+An unused legacy preference can remain in the profile without affecting these actions.
 
 ## Project Structure
 

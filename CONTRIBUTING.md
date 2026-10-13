@@ -52,7 +52,7 @@ Preserve users' enabled settings and shortcuts when updating existing actions.
 ## Verification boundaries
 
 Automated tests execute the actual action bodies with mocked Zotero/Actions & Tags APIs.
-They verify selection contexts, escaping, preference migration, network failures, and update failures.
+They verify selection contexts, escaping, preference setup, network failures, and update failures.
 They do not prove that a real Zotero database, filesystem, plugin UI, or sync server behaves correctly.
 
 Before releasing, test in a disposable Zotero 10 profile with compatible Actions & Tags and optional Better Notes/Better BibTeX versions:

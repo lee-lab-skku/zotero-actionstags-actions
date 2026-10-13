@@ -221,11 +221,11 @@ function prefsEnvironment(values = {}) {
     return { Zotero, prefs };
 }
 
-test('preferences migrate legacy group ID and initialize names with a string', async () => {
+test('preferences prompt for an organization despite legacy settings and initialize names with a string', async () => {
     const env = prefsEnvironment({ 'tara.groupID': 100 });
     const selections = [];
     const group = { id: 100, libraryID: 8 };
-    env.Zotero.Groups = { get: id => id === 100 && group };
+    env.Zotero.Groups = { get: id => id === 100 && group, getAll: () => [group] };
     env.Zotero.Collections = { getByLibrary: id => {
         assert.equal(id, 8); return [{ key: 'COLL', name: 'Review' }];
     } };
@@ -237,7 +237,23 @@ test('preferences migrate legacy group ID and initialize names with a string', a
     assert.equal(env.prefs.get('actionsTags.actions.groupID'), 100);
     assert.equal(env.prefs.get('actionsTags.actions.reviewerName'), 'Reviewer');
     assert.equal(env.prefs.get('actionsTags.actions.reviewCollectionKey'), 'COLL');
-    assert.deepEqual(selections, ['Review']);
+    assert.deepEqual(selections, ['Organization', 'Review']);
+});
+
+test('preferences reuse valid current settings without opening prompts', async () => {
+    const env = prefsEnvironment({ 'actionsTags.actions.groupID': 100,
+        'actionsTags.actions.reviewCollectionKey': 'REVIEW', 'actionsTags.actions.reviewerName': 'Reviewer' });
+    const group = { id: 100, libraryID: 8 };
+    const collection = { key: 'REVIEW', name: 'Review' };
+    env.Zotero.Groups = { get: id => id === 100 && group,
+        getAll: () => assert.fail('Existing group should be reused') };
+    env.Zotero.Collections = { getByLibrary: () => [collection],
+        getByLibraryAndKey: (id, key) => id === 8 && key === 'REVIEW' && collection };
+    env.Services = { prompt: {
+        select: () => assert.fail('Unexpected selection prompt'),
+        prompt: () => assert.fail('Unexpected name prompt'),
+    } };
+    assert.equal(await run('setPreferences', env), undefined);
 });
 
 test('preferences handle no joined groups without opening an empty selector', async () => {

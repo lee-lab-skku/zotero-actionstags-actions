@@ -10,6 +10,9 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 
 ### Removed
 
+- **Breaking:** Remove the legacy `tara.groupID` fallback during preference setup.
+  Users without a current organization setting must select their group once.
+
 - **Breaking:** Remove Share Item and Retrieve Item, including the share collection prompt from preference setup.
   Delete previously installed copies in Actions & Tags; automatic updates do not remove actions absent from the release backup.
 

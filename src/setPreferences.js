@@ -1,12 +1,11 @@
 const Zotero = require('Zotero');
 const Services = require('Services');
 const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
-const PREF_GROUP_KEY_ALT = 'tara.groupID';
 const PREF_REVIEW_COLLECTION_KEY = 'actionsTags.actions.reviewCollectionKey';
 const PREF_NAME = 'actionsTags.actions.reviewerName';
 
 let anySet = false;
-let groupID = Number(Zotero.Prefs.get(PREF_GROUP_KEY) || Zotero.Prefs.get(PREF_GROUP_KEY_ALT));
+let groupID = Number(Zotero.Prefs.get(PREF_GROUP_KEY));
 let group = groupID && Zotero.Groups.get(groupID);
 if (!group) {
     const groups = Zotero.Groups.getAll();

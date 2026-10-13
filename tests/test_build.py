@@ -19,6 +19,7 @@ class BuildTests(unittest.TestCase):
         json_data = json.loads((ROOT / 'dist/actions-zotero.json').read_text(encoding='utf-8'))
         self.assertEqual(yaml_data, json_data)
         self.assertEqual(yaml_data['type'], 'ActionsTagsBackup')
+        self.assertTrue({'shareItem', 'retrieveItem'}.isdisjoint(yaml_data['actions']))
         self.assertEqual(set(yaml_data['actions']), {meta.stem for meta in (ROOT / 'meta').glob('*.yml')})
         for key, action in yaml_data['actions'].items():
             self.assertIsInstance(action['event'], int)

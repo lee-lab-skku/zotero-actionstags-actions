@@ -223,18 +223,21 @@ function prefsEnvironment(values = {}) {
 
 test('preferences migrate legacy group ID and initialize names with a string', async () => {
     const env = prefsEnvironment({ 'tara.groupID': 100 });
+    const selections = [];
     const group = { id: 100, libraryID: 8 };
     env.Zotero.Groups = { get: id => id === 100 && group };
     env.Zotero.Collections = { getByLibrary: id => {
         assert.equal(id, 8); return [{ key: 'COLL', name: 'Review' }];
     } };
     env.Services = { prompt: {
-        select: (win, title, message, choices, selected) => { selected.value = 0; return true; },
+        select: (win, title, message, choices, selected) => { selections.push(title); selected.value = 0; return true; },
         prompt: (win, title, message, input) => { assert.equal(input.value, ''); input.value = ' Reviewer '; return true; },
     } };
     await run('setPreferences', env);
     assert.equal(env.prefs.get('actionsTags.actions.groupID'), 100);
     assert.equal(env.prefs.get('actionsTags.actions.reviewerName'), 'Reviewer');
+    assert.equal(env.prefs.get('actionsTags.actions.reviewCollectionKey'), 'COLL');
+    assert.deepEqual(selections, ['Review']);
 });
 
 test('preferences handle no joined groups without opening an empty selector', async () => {
@@ -293,107 +296,6 @@ test('updater validates the entire backup and does not advance version on failed
         await assert.rejects(run('updateActions', env));
         assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v1');
         if (options.invalid) assert.equal(env.changes.length, 0);
-    }
-});
-
-function copyEnvironment({ missing = false, failCopy = false, sourceLibrary = 8 } = {}) {
-    const env = prefsEnvironment({ 'actionsTags.actions.groupID': 100, 'actionsTags.actions.shareCollectionKey': 'SHARE' });
-    const events = [];
-    const destination = { id: 20, key: 'DEST', name: 'Destination', libraryID: sourceLibrary === 8 ? 7 : 8 };
-    const source = { id: 1, libraryID: sourceLibrary, deleted: false,
-        isRegularItem: () => true, isEditable: () => true, getCollections: () => [10],
-        getAttachments: () => [2], getNotes: () => [3], clone: libraryID => {
-            events.push('clone'); return { id: 4, libraryID, setCollections: ids => assert.equal(ids[0], 20),
-                save: async () => events.push('save-parent') };
-        }, saveTx: async options => { assert.equal(options.undoAction, 'undo-action-trash'); events.push('trash'); },
-    };
-    const attachment = { isFileAttachment: () => true, isLinkedFileAttachment: () => false, fileExists: async () => !missing };
-    const note = { getAttachments: () => [], clone: () => ({ save: async () => events.push('save-note') }) };
-    env.Zotero.Groups = { get: () => ({ libraryID: 8 }) };
-    env.Zotero.Libraries = { userLibraryID: 7, get: () => ({ editable: true, filesEditable: true }) };
-    env.Zotero.Collections = { getByLibraryAndKey: () => sourceLibrary === 8
-        ? { id: 10 } : destination, getByLibrary: libraryID => { assert.equal(libraryID, 7); return [destination]; } };
-    env.Zotero.Items = { getAsync: async ids => ids.map(id => ({ 2: attachment, 3: note })[id]),
-        copyChildItems: async () => events.push('annotations') };
-    env.Zotero.DB = { executeTransaction: async fn => {
-        const result = await fn(); events.push('commit'); return result;
-    } };
-    env.Zotero.Notes = { copyEmbeddedImages: async () => events.push('images') };
-    env.Zotero.Attachments = { copyAttachmentToLibrary: async () => {
-        if (failCopy) throw new Error('copy failed'); events.push('attachment'); return {};
-    } };
-    env.Zotero.ActionsTags = { api: { actionManager: { dispatchActionByKey: async (key, args) => {
-        assert.equal(key, 'copySelectionLink'); assert.equal(args.itemID, undefined);
-        assert.equal(args.itemIDs[0], 4); events.push('clipboard');
-    } } } };
-    env.Services = { prompt: { select: (win, title, message, choices, selected) => { selected.value = 0; return true; } } };
-    return { ...env, events, source };
-}
-
-test('retrieve copies notes, images, files, and annotations before trashing source', async () => {
-    const env = copyEnvironment();
-    await run('retrieveItem', env, { item: env.source });
-    assert.deepEqual(env.events, ['clone', 'save-parent', 'save-note', 'images', 'attachment', 'annotations', 'commit', 'trash']);
-    assert.equal(env.source.deleted, true);
-});
-
-test('share dispatches the copied selection and keeps the source', async () => {
-    const env = copyEnvironment({ sourceLibrary: 7 });
-    await run('shareItem', env, { item: env.source });
-    assert.equal(env.events.at(-1), 'clipboard');
-    assert.equal(env.source.deleted, false);
-});
-
-test('failed or incomplete copies never trash source, and missing files prevent writes', async () => {
-    for (const name of ['shareItem', 'retrieveItem']) {
-        for (const failure of [{ missing: true }, { failCopy: true }]) {
-            const env = copyEnvironment({ ...failure, sourceLibrary: name === 'shareItem' ? 7 : 8 });
-            await assert.rejects(run(name, env, { item: env.source }));
-            assert.equal(env.source.deleted, false);
-            assert.ok(!env.events.includes('trash'));
-            if (failure.missing) assert.equal(env.events.length, 0);
-        }
-    }
-});
-
-test('retrieve safely ignores the selection-level invocation', async () => {
-    const env = copyEnvironment();
-    await run('retrieveItem', env);
-    assert.equal(env.events.length, 0);
-});
-
-test('copies convert linked files and preserve their tags, note, and annotations', async () => {
-    const env = copyEnvironment({ sourceLibrary: 7 });
-    const attachment = {
-        isFileAttachment: () => true, fileExists: async () => true,
-        isLinkedFileAttachment: () => true, getFilePathAsync: async () => '/paper.pdf',
-        getField: () => 'Paper', attachmentContentType: 'application/pdf',
-        getTags: () => [{ tag: 'keep' }], getNote: () => '<p>attachment note</p>',
-    };
-    const originalGet = env.Zotero.Items.getAsync;
-    env.Zotero.Items.getAsync = async ids => ids[0] === 2 ? [attachment] : originalGet(ids);
-    env.Zotero.Attachments.importFromFile = async options => {
-        assert.equal(options.file, '/paper.pdf');
-        assert.equal(options.parentItemID, 4);
-        assert.equal(options.libraryID, 8);
-        return {
-            setTags: tags => assert.equal(tags[0].tag, 'keep'),
-            setNote: note => assert.equal(note, '<p>attachment note</p>'),
-            save: async () => env.events.push('stored-file'),
-        };
-    };
-    await run('shareItem', env, { item: env.source });
-    assert.ok(env.events.includes('stored-file'));
-    assert.ok(env.events.includes('annotations'));
-});
-
-test('copy preflight rejects read-only targets and disallowed file uploads', async () => {
-    for (const permissions of [{ editable: false }, { editable: true, filesEditable: false }]) {
-        const env = copyEnvironment();
-        env.Zotero.Libraries.get = () => permissions;
-        await assert.rejects(run('retrieveItem', env, { item: env.source }));
-        assert.equal(env.events.length, 0);
-        assert.equal(env.source.deleted, false);
     }
 });
 

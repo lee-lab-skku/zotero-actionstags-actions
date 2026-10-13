@@ -8,6 +8,11 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 
 ## [Unreleased]
 
+### Removed
+
+- **Breaking:** Remove Share Item and Retrieve Item, including the share collection prompt from preference setup.
+  Delete previously installed copies in Actions & Tags; automatic updates do not remove actions absent from the release backup.
+
 ## [3.0.0-beta.2] - 2026-10-13
 
 ### Added

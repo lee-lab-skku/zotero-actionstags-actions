@@ -3,7 +3,6 @@ const Services = require('Services');
 const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
 const PREF_GROUP_KEY_ALT = 'tara.groupID';
 const PREF_REVIEW_COLLECTION_KEY = 'actionsTags.actions.reviewCollectionKey';
-const PREF_SHARE_COLLECTION_KEY = 'actionsTags.actions.shareCollectionKey';
 const PREF_NAME = 'actionsTags.actions.reviewerName';
 
 let anySet = false;
@@ -28,21 +27,16 @@ if (Zotero.Prefs.get(PREF_GROUP_KEY) !== groupID) {
 const targetLibraryID = group.libraryID;
 const cols = Zotero.Collections.getByLibrary(targetLibraryID, true);
 if (!cols.length)
-    return 'Create and sync the review and share collections in your group first.';
+    return 'Create and sync a review collection in your group first.';
 
-for (const [pref, title, message] of [
-    [PREF_REVIEW_COLLECTION_KEY, 'Review', 'Which collection is for review?'],
-    [PREF_SHARE_COLLECTION_KEY, 'Share', 'Which collection is for sharing?'],
-]) {
-    const key = Zotero.Prefs.get(pref);
-    if (key && Zotero.Collections.getByLibraryAndKey(targetLibraryID, key))
-        continue;
+const reviewKey = Zotero.Prefs.get(PREF_REVIEW_COLLECTION_KEY);
+if (!reviewKey || !Zotero.Collections.getByLibraryAndKey(targetLibraryID, reviewKey)) {
     const selected = { value: 0 };
-    if (!Services.prompt.select(null, title, message, cols.map(c => c.name), selected))
+    if (!Services.prompt.select(null, 'Review', 'Which collection is for review?', cols.map(c => c.name), selected))
         return;
     if (!cols[selected.value])
         return;
-    Zotero.Prefs.set(pref, cols[selected.value].key);
+    Zotero.Prefs.set(PREF_REVIEW_COLLECTION_KEY, cols[selected.value].key);
     anySet = true;
 }
 

@@ -39,19 +39,11 @@ Startup scripts must not assume that item or collection arguments exist.
 
 Keep persisted action keys and numeric event/operation values stable.
 Script actions require a matching source file and an explicit event, including `event: 0` for menu-only actions.
-Keep the copy helper in the share and retrieve scripts equivalent so both remain standalone and preserve the same data.
 
 Target Zotero 10 APIs.
 Use plural collection selection getters and handle mixed selections and multiple libraries without choosing an arbitrary collection.
 Use `Zotero.Libraries.userLibraryID`, not a hardcoded personal library ID.
 Escape user text before inserting it into HTML clipboard content or notes.
-
-Before copying between libraries, validate permissions and local file availability.
-Use Zotero cloning and attachment/note APIs to preserve tags, notes, embedded images, and annotations.
-Do not permanently erase the source during retrieval.
-Only trash it after the destination copy commits, with a Zotero 10 undo label.
-Database transactions do not roll back filesystem copies; an I/O failure can leave unreferenced destination storage files, although the source must remain intact.
-Cross-library related-item relationships and links embedded inside note text are not remapped by these actions.
 
 The updater must validate the full backup before applying changes and record its version only after every write succeeds.
 Do not download and evaluate parser code to decode release data.
@@ -60,16 +52,13 @@ Preserve users' enabled settings and shortcuts when updating existing actions.
 ## Verification boundaries
 
 Automated tests execute the actual action bodies with mocked Zotero/Actions & Tags APIs.
-They verify selection contexts, escaping, preference migration, network failures, update failures, and copy-before-trash ordering.
+They verify selection contexts, escaping, preference migration, network failures, and update failures.
 They do not prove that a real Zotero database, filesystem, plugin UI, or sync server behaves correctly.
 
 Before releasing, test in a disposable Zotero 10 profile with compatible Actions & Tags and optional Better Notes/Better BibTeX versions:
 
 1. Import the generated YAML and verify menu actions and startup events.
 1. Copy links from a single collection, mixed collection/search selection, multiple libraries, and a reader; include standalone attachments and notes.
-1. Share and retrieve an item with tags, a note containing an image, a stored PDF with Zotero annotations, a linked file, and a URL attachment.
-1. Verify missing files and read-only libraries stop copying and leave the source intact.
-1. Verify retrieval places the source in the group trash and Undo restores it while retaining the destination copy.
 1. Verify review dates around local midnight and preference setup with missing or stale groups/collections.
 1. Verify WebDAV failures and a release update with a failed download or write.
 

@@ -48,26 +48,6 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 Import the updated copylink actions together with this action, then restart Zotero.
 See [Local link API](docs/action-links.md) for pairing, requests, responses, and troubleshooting.
 
-### Share Item (`shareItem.js`)
-
-- **Purpose**: Shares an item to a predefined group library and collection
-- **Context**: Available for items
-- **Features**:
-  - Copies regular items, tags, child notes with embedded images, attachments, and Zotero annotations to the group collection set by preferences.
-  - Imports linked files as stored attachments and preserves URL attachments.
-  - Requires a different destination library, write access, and locally available attachment files and note images.
-  - After copying, it automatically triggers the `copySelectionLink` action on the newly created item in the group library.
-
-### Retrieve Item (`retrieveItem.js`)
-
-- **Purpose**: Moves an item to a selected collection in the user library.
-- **Context**: Only works with items in share collection.
-- **Features**:
-  - Prompts the user to select a destination collection.
-  - Copies the item and its children to My Library, then moves the source to the group library trash after the copy succeeds.
-  - A failed copy leaves the source intact; missing attachment files or note images must be downloaded or located first.
-  - Zotero 10 Undo can restore the source from the trash; it does not remove the newly created copy.
-
 ### Trash on Delete (`trashOnDelete.js`)
 
 - **Purpose**: Moves selected items to the library trash when pressing Delete in a collection's item list.
@@ -87,7 +67,7 @@ Leave its shortcut field empty; the action handles Delete directly to prevent si
 - **Context**: Automatically triggered during the first restart after installation.
 - **Features**:
   - If the preferences are not set, it prompts the user to set those.
-  - Preferences are utilized by other actions such as *Review Note* or *Share Item*.
+  - Preferences are utilized by *Review Note*.
 
 ### Review Note (`reviewNote.js`)
 
@@ -124,6 +104,11 @@ Leave its shortcut field empty; the action handles Delete directly to prevent si
 
 For the first upgrade to these Zotero 10 actions, import the YAML manually, especially if an older updater already recorded a release without applying it.
 The JSON file is intended for subsequent automatic updates.
+
+When upgrading from a release with Share Item and Retrieve Item, delete those two actions in Settings &rightarrow; Actions & Tags.
+The updater only adds or updates actions included in a release; it does not remove previously installed actions that are absent from the backup.
+The obsolete `extensions.zotero.actionsTags.actions.shareCollectionKey` preference can also be reset in Zotero's Advanced Config Editor; current actions no longer use it.
+Keep the group, review collection, and reviewer name preferences for Review Note.
 
 ## Project Structure
 

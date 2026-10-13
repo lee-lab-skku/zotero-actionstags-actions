@@ -132,7 +132,7 @@ test('annotation and note links preserve page, parent labels, escaping, and per-
 
 test('validation and authorization refuse unsupported, missing, deleted, disabled, and browser requests', async () => {
     const env = await start();
-    for (const data of [null, { ...selection, action: 'shareItem' }, { ...selection, itemKeys: [] },
+    for (const data of [null, { ...selection, action: 'unsupportedAction' }, { ...selection, itemKeys: [] },
         { ...selection, itemKeys: ['bad'] }, { ...selection, library: { type: 'group', id: 7 } },
         { ...selection, action: 'copyNoteLink', collectionKey: 'COLL0001' }])
         assert.equal((await env.request(data)).status, 400);

@@ -2,6 +2,7 @@
 const Zotero = require('Zotero');
 const Services = require('Services');
 const Components = require('Components');
+const { AddonManager } = require('ChromeUtils').importESModule('resource://gre/modules/AddonManager.sys.mjs');
 async function runTrial() {
     const report = { checks: [], versions: {} };
     const reportFile = Services.dirsvc.get('ProfD', Components.interfaces.nsIFile);
@@ -15,14 +16,12 @@ async function runTrial() {
         for (let attempt = 0; attempt < 100 && !Zotero.ActionsTags?.api; attempt++)
             await Zotero.Promise.delay(100);
         const manager = Zotero.ActionsTags.api.actionManager;
-        // Let the plugin finish loading its persisted actions before installing the fixture actions.
-        await Zotero.Promise.delay(1500);
         report.versions.zotero = Zotero.version;
-        report.versions.actionsTags = Zotero.ActionsTags.data?.version;
+        report.versions.actionsTags = (await AddonManager.getAddonByID('zoterotag@euclpts.com')).version;
         const backup = trialActions;
-        for (const key of ['copySelectionLink', 'copyAnnotationLink', 'copyNoteLink', 'linkBridge'])
-            manager.updateAction(backup.actions[key], key);
-        await manager.dispatchActionByKey('linkBridge', { triggerType: 8 });
+        check(Object.keys(backup.actions).every(key => manager.getActions(key)?.data === backup.actions[key].data),
+            'persisted action definitions loaded');
+        // The bridge precedes this fixture in the real A&T startup event sequence.
         check(!!Zotero.Server.Endpoints['/action-links'], 'startup event registers endpoint');
         const token = Zotero.Prefs.get('actionsTags.actions.linkBridgeToken');
         check(typeof token === 'string' && token.length === 64, 'profile token generated');
@@ -98,6 +97,6 @@ async function runTrial() {
         report.error = { message: error.message, stack: error.stack };
     }
     await Zotero.File.putContentsAsync(reportFile.path, JSON.stringify(report, null, 2));
-    Services.startup.quit(Components.interfaces.nsIAppStartup.eAttemptQuit);
+    Services.startup.quit(Components.interfaces.nsIAppStartup.eAttemptQuit, report.ok ? 0 : 1);
 }
 await runTrial();

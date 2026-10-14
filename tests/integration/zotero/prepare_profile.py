@@ -47,6 +47,8 @@ def main():
         'extensions.zotero.httpServer.enabled': True,
         'extensions.zotero.httpServer.port': 23129,
         'extensions.zotero.firstRunGuidance': False,
+        'extensions.zotero.firstRun2': False,
+        'app.update.auto': False,
         'extensions.zotero.sync.autoSync': False,
         'extensions.autoDisableScopes': 0,
         'extensions.update.enabled': False,

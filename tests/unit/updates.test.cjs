@@ -1,11 +1,11 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { compileAction } = require('./helpers/action-runner.cjs');
+const { compileAction } = require('../support/action-runner.cjs');
 const { test } = require('node:test');
 
 function run(name, env, triggerType = 8) {
-    let source = fs.readFileSync(path.join(__dirname, '..', 'src', name + '.js'), 'utf8');
+    let source = fs.readFileSync(path.join(__dirname, '../..', 'src', name + '.js'), 'utf8');
     if (name === 'updateActions' && env.build) source = embed(source, env.build.version, env.build.repository);
     return compileAction(name, source)(env, { triggerType });
 }
@@ -28,7 +28,7 @@ function release(tag, options = {}) {
 function environment({ current = 'v1.0.0', releases = [release('v2.0.0')], pages,
     prereleases = false, choice = 0, cancel = false, failKey, backup } = {}) {
     const prefs = new Map([[preference, prereleases], ['actionsTags.actions.versionTag', 'v0.9.0']]);
-    const updaterSource = fs.readFileSync(path.join(__dirname, '..', 'src/updateActions.js'), 'utf8');
+    const updaterSource = fs.readFileSync(path.join(__dirname, '../..', 'src/updateActions.js'), 'utf8');
     const installed = new Map([['updateActions', { data: embed(updaterSource, current, repository), enabled: false, shortcut: 'mine' }]]);
     const requests = [], prompts = [], writes = [];
     const Zotero = {

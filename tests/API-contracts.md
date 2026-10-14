@@ -26,7 +26,7 @@ Read-only or ineligible review items and cancelled dates produce no new note.
 
 ## Coverage interpretation
 
-`tests/run-coverage.py` measures action bodies with Node's built-in V8 coverage and measures `build.py` with coverage.py's subprocess patch.
+`tests/tooling/run-coverage.py` measures action bodies with Node's built-in V8 coverage and measures `build.py` with coverage.py's subprocess patch.
 The runner compiles action bodies into generated async functions with the A&T argument shape and injects a test clock where needed.
 Inline maps preserve original line and column positions; all workers use the same compiled file so Node can merge coverage consistently.
 Updater provenance values are passed into the generated test function, preserving each test's installed-version/source value while avoiding multiple competing maps for one source file.

@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { compileAction } = require('./helpers/action-runner.cjs');
+const { compileAction } = require('../support/action-runner.cjs');
 const { test } = require('node:test');
 
 function environment() {
@@ -26,7 +26,7 @@ function environment() {
         select: () => { counts.selection++; return false; },
     } };
     const originals = [];
-    const source = key => fs.readFileSync(path.join(__dirname, '..', 'src', key + '.js'), 'utf8');
+    const source = key => fs.readFileSync(path.join(__dirname, '../..', 'src', key + '.js'), 'utf8');
     // Match A&T 2.6.2's event-8 script inputs: require and triggerType, no item/items.
     const run = (key, triggerType = 8) => {
         let body = source(key);

@@ -8,20 +8,21 @@ There are no Node package dependencies.
 ```sh
 python -m pip install PyYAML
 python build.py
-python -m unittest discover -s tests -p 'test_*.py'
-node --test tests/*.test.cjs
+python -m unittest discover -s tests/build -p 'test_*.py'
+node --test tests/unit/*.test.cjs tests/tooling/*.test.cjs
 git diff --check
 ```
 
-The default local suite needs no Zotero installation, display, network connection, or socket binding.
-The HTTP socket check is separate: `node --test tests/integration/*.test.cjs`.
-CI runs both suites.
+The default local suite includes action units, build checks, and test-tooling checks; it needs no Zotero installation, display, network connection, or socket binding.
+See [test suites](tests/README.md) for their purposes and execution requirements.
+The HTTP socket check is separate: `node --test tests/integration/http/*.test.cjs`.
+CI runs the default local checks and the HTTP socket suite.
 
 For local coverage, install the optional Python tool and run:
 
 ```sh
 python -m pip install "coverage>=7.10,<8"
-python tests/run-coverage.py
+python tests/tooling/run-coverage.py
 ```
 
 JavaScript uses Node's built-in experimental coverage with source maps; there are no Node package dependencies.
@@ -97,7 +98,7 @@ Before releasing, test in a disposable Zotero 10 profile with compatible Actions
 
 1. Import the generated YAML and verify menu actions and startup events.
 1. Copy links from a single collection, mixed collection/search selection, multiple libraries, and a reader; include standalone attachments and notes.
-1. Verify the bridge's authenticated requests and returned links using the [disposable profile fixture](tests/manual/README.md); also open the returned URIs and check shared-library targets manually.
+1. Verify the bridge's authenticated requests and returned links using the [disposable profile fixture](tests/integration/zotero/README.md); also open the returned URIs and check shared-library targets manually.
 1. Verify Delete moves collection items to trash and Shift+Delete removes them from the collection, including confirmation, Undo, and multiple selected collections. Check Enable transitions and that editing, modified keys, and other views retain their usual behavior.
 1. Verify review dates around local midnight and preference setup with missing or stale groups/collections.
 1. Verify WebDAV failures and a release update with a failed download or write.

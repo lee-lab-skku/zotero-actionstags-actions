@@ -2,10 +2,10 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
-const { compileAction } = require('./helpers/action-runner.cjs');
+const { compileAction } = require('../support/action-runner.cjs');
 const vm = require('node:vm');
 
-const sourceDir = path.join(__dirname, '..', 'src');
+const sourceDir = path.join(__dirname, '../..', 'src');
 async function run(name, globals, args = {}) {
     let source = fs.readFileSync(path.join(sourceDir, name + '.js'), 'utf8');
     if (name === 'updateActions' && globals.build)

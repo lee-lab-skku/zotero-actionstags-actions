@@ -45,13 +45,16 @@ jobs:
         run: python build.py
 
       - name: Test build and generated backups
-        run: python -m unittest discover -s tests -p 'test_*.py'
+        run: python -m unittest discover -s tests/build -p 'test_*.py'
 
-      - name: Test action bodies
-        run: node --test tests/*.test.cjs
+      - name: Test action logic
+        run: node --test tests/unit/*.test.cjs
+
+      - name: Test action harness and coverage mapping
+        run: node --test tests/tooling/*.test.cjs
 
       - name: Test HTTP bridge socket
-        run: node --test tests/integration/*.test.cjs
+        run: node --test tests/integration/http/*.test.cjs
 
       - name: Check commit whitespace
         run: git show --format= --check --diff-merges=first-parent HEAD

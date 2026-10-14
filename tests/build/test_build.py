@@ -9,7 +9,7 @@ import unittest
 import yaml
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def updater_source(version, repository, root=ROOT):

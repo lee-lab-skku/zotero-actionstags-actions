@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const http = require('node:http');
-const { start, selection } = require('../helpers/link-bridge.cjs');
+const { start, selection } = require('../../support/link-bridge.cjs');
 
 test('HTTP client receives the endpoint JSON contract through a real socket with a return-dropping dispatcher', async t => {
     const env = await start();

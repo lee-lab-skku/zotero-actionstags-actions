@@ -1,6 +1,6 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { run, start, selection } = require('./helpers/link-bridge.cjs');
+const { run, start, selection } = require('../support/link-bridge.cjs');
 
 test('agent selection uses API once, returns raw labels and escaped HTML, and leaves clipboard/UI untouched', async () => {
     const env = await start();

@@ -23,7 +23,7 @@ def main():
     data = profile.with_name(profile.name + '-data')
     if profile.exists() or data.exists():
         parser.error('Profile and sibling data directory must not already exist.')
-    root = Path(__file__).resolve().parents[2]
+    root = Path(__file__).resolve().parents[3]
     backup = json.loads((root / 'dist/actions-zotero.json').read_text(encoding='utf-8'))
     keys = ['copySelectionLink', 'copyAnnotationLink', 'copyNoteLink', 'linkBridge']
     actions = {key: backup['actions'][key] for key in keys}

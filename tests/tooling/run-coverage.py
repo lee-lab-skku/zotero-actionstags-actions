@@ -4,7 +4,7 @@ import shutil
 import subprocess
 import sys
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 
 
 def main():
@@ -28,7 +28,8 @@ def main():
         '--test-coverage-include=' + (ROOT / 'coverage/action-sources/src/*.js').as_posix(),
         '--test-reporter=spec', '--test-reporter=lcov',
         '--test-reporter-destination=stdout', '--test-reporter-destination=' + str(output / 'actions.lcov'),
-        *(str(file) for file in sorted((ROOT / 'tests').glob('*.test.cjs'))))
+        *(str(file) for directory in ['unit', 'tooling']
+          for file in sorted((ROOT / 'tests' / directory).glob('*.test.cjs'))))
     measured = {(ROOT / line[3:]).resolve() for line in (output / 'actions.lcov').read_text().splitlines()
                 if line.startswith('SF:')}
     expected = {file.resolve() for file in (ROOT / 'src').glob('*.js')}
@@ -36,7 +37,7 @@ def main():
         raise SystemExit('Action coverage must include every original src/*.js file, with no generated wrappers.')
     command = (sys.executable, '-m', 'coverage')
     run(*command, 'erase', '--rcfile=' + config)
-    run(*command, 'run', '--rcfile=' + config, '-m', 'unittest', 'discover', '-s', 'tests', '-p', 'test_*.py')
+    run(*command, 'run', '--rcfile=' + config, '-m', 'unittest', 'discover', '-s', 'tests/build', '-p', 'test_*.py')
     run(*command, 'combine', '--rcfile=' + config)
     run(*command, 'report', '--rcfile=' + config)
     run(*command, 'html', '--rcfile=' + config)

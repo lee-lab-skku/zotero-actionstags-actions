@@ -8,8 +8,8 @@ const { spawnSync } = require('node:child_process');
 function fixture(t) {
     const root = fs.mkdtempSync(path.join(os.tmpdir(), 'actions-runner-contract-'));
     t.after(() => fs.rmSync(root, { recursive: true, force: true }));
-    for (const name of ['src', 'meta', 'tests/helpers']) fs.mkdirSync(path.join(root, name), { recursive: true });
-    fs.copyFileSync(path.join(__dirname, 'helpers/action-runner.cjs'), path.join(root, 'tests/helpers/action-runner.cjs'));
+    for (const name of ['src', 'meta', 'tests/support']) fs.mkdirSync(path.join(root, name), { recursive: true });
+    fs.copyFileSync(path.join(__dirname, '../support/action-runner.cjs'), path.join(root, 'tests/support/action-runner.cjs'));
     const env = { ...process.env };
     // Nested coverage is independent of the repository's action report.
     delete env.NODE_V8_COVERAGE;
@@ -29,7 +29,7 @@ test('the action harness preserves startup, window-load and item/selection argum
     }
     const script = `
 const assert = require('node:assert/strict');
-const { compileAction } = require('./tests/helpers/action-runner.cjs');
+const { compileAction } = require('./tests/support/action-runner.cjs');
 (async () => {
     assert.deepEqual(await compileAction('startup')({ Zotero: { value: 5 } }, { triggerType: 8 }), ['undefined', 'undefined', 5, 8]);
     assert.deepEqual(await compileAction('window')({}, { window: { id: 7 } }), [7, 'undefined', 'undefined']);
@@ -47,7 +47,7 @@ test('coverage maps an unexecuted branch to the original action instead of its a
     fs.writeFileSync(path.join(root, 'probe.test.cjs'), `
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const { compileAction } = require('./tests/helpers/action-runner.cjs');
+const { compileAction } = require('./tests/support/action-runner.cjs');
 test('probe', async () => { assert.equal(await compileAction('probe')({}), 'yes'); });`);
     const result = spawnSync(process.execPath, ['--enable-source-maps', '--test', '--experimental-test-coverage',
         '--test-coverage-include=**/src/*.js', '--test-reporter=lcov', 'probe.test.cjs'],

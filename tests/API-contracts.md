@@ -42,7 +42,8 @@ No coverage percentage threshold is enforced.
 
 The unit suite requires no installed Zotero or plugins and opens no network sockets.
 The separate socket test validates an HTTP client against the bridge's endpoint contract using mocked Zotero/A&T objects.
-The disposable-profile fixture remains the entry point for real Zotero objects and plugins.
+The [manual CI PoC](integration/zotero/README.md#ci-poc) uses real Zotero objects and an installed A&T plugin.
+It checks persisted action definitions, actual startup dispatch, database-backed link targets, and localhost responses, while recording and checking the installed version pair.
 
-Actual YAML import/editor persistence, automatic event wiring, Zotero database permissions and transactions, confirmations/Undo, OS clipboard flavors, opening returned URIs, reader behavior, shared-library access, and platform differences require installed-environment tests.
+YAML import/editor persistence, other event wiring, database permission/transaction edge cases, confirmations/Undo, OS clipboard flavors, opening returned URIs, reader behavior, shared-library access, and platform differences require additional installed-environment tests.
 Local mocks and coverage cannot establish those behaviors.

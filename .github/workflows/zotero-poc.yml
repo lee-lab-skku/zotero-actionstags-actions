@@ -1,0 +1,64 @@
+name: Zotero integration PoC
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  zotero:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    env:
+      ZOTERO_VERSION: '10.0.6'
+      ACTIONS_TAGS_VERSION: '2.6.2'
+    steps:
+      - name: Checkout tested commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          persist-credentials: false
+
+      - name: Setup Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      - name: Install runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes xvfb xauth libgtk-3-0t64 libdbus-glib-1-2 libasound2t64
+          python -m pip install PyYAML
+
+      - name: Download the fixed app and plugin pair
+        run: |
+          mkdir -p "$RUNNER_TEMP/zotero-tools"
+          curl --fail --location --retry 3 --max-time 180 \
+            "https://download.zotero.org/client/release/$ZOTERO_VERSION/Zotero-${ZOTERO_VERSION}_linux-x86_64.tar.xz" \
+            --output "$RUNNER_TEMP/zotero-tools/zotero.tar.xz"
+          tar -xJf "$RUNNER_TEMP/zotero-tools/zotero.tar.xz" -C "$RUNNER_TEMP/zotero-tools"
+          curl --fail --location --retry 3 --max-time 60 \
+            "https://github.com/windingwind/zotero-actions-tags/releases/download/v$ACTIONS_TAGS_VERSION/actions-and-tags-for-zotero.xpi" \
+            --output "$RUNNER_TEMP/zotero-tools/actions-tags.xpi"
+
+      - name: Build the tested action definitions
+        run: python build.py --version "poc-${GITHUB_SHA}" --repository "$GITHUB_REPOSITORY"
+
+      - name: Run the real app in a disposable profile
+        run: |
+          python tests/integration/zotero/run.py \
+            --zotero "$RUNNER_TEMP/zotero-tools/Zotero_linux-x86_64/zotero" \
+            --actions-tags-xpi "$RUNNER_TEMP/zotero-tools/actions-tags.xpi" \
+            --expected-zotero "$ZOTERO_VERSION" \
+            --expected-actions-tags "$ACTIONS_TAGS_VERSION" \
+            --output "$RUNNER_TEMP/zotero-poc-results"
+
+      - name: Save report and app log
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: zotero-poc-${{ github.sha }}
+          path: ${{ runner.temp }}/zotero-poc-results/
+          if-no-files-found: warn
+          retention-days: 7

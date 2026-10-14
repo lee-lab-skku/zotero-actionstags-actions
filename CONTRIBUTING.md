@@ -17,6 +17,7 @@ The default local suite includes action units, build checks, and test-tooling ch
 See [test suites](tests/README.md) for their purposes and execution requirements.
 The HTTP socket check is separate: `node --test tests/integration/http/*.test.cjs`.
 CI runs the default local checks and the HTTP socket suite.
+A separate manual [real Zotero PoC](tests/integration/zotero/README.md#ci-poc) runs one fixed app/plugin pair in a disposable profile under Xvfb.
 
 For local coverage, install the optional Python tool and run:
 
@@ -92,7 +93,8 @@ Preserve users' enabled settings and shortcuts when updating existing actions.
 Automated tests execute the actual action bodies with mocked Zotero/Actions & Tags APIs.
 They verify selection contexts, escaping, preference setup, network failures, and update failures.
 The separate integration suite uses a real localhost HTTP socket with mocked Zotero/Actions & Tags APIs; that suite requires loopback binding.
-They do not prove that a real Zotero database, filesystem, plugin UI, or sync server behaves correctly.
+The manual real-app PoC checks a limited path through the actual database, plugin dispatcher, and HTTP server.
+It does not cover the plugin UI, clipboard, reader UI, shared libraries, or sync server.
 
 Before releasing, test in a disposable Zotero 10 profile with compatible Actions & Tags and optional Better Notes/Better BibTeX versions:
 

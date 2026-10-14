@@ -133,3 +133,81 @@ test('startup reuses the token and shutdown listener, replaces its endpoint, and
     assert.equal(env.Zotero.Server.Endpoints['/action-links'], undefined);
     assert.ok(env.Zotero.Server.Endpoints['/other']);
 });
+
+
+test('request validation distinguishes library, collection and item lookup failures before dispatch', async () => {
+    const env = await start();
+    for (const library of [{ type: 'user', id: 7 }, { type: 'group', id: '100' },
+        { type: 'group', id: 0 }, { type: 'group', id: 1.5 }, { type: 'group', id: Number.MAX_SAFE_INTEGER + 1 }]) {
+        const result = await env.request({ ...selection, library });
+        assert.equal(result.status, 400); assert.equal(result.error.code, 'INVALID_LIBRARY');
+    }
+    for (const itemKeys of [['lowercas'], [3], ['ITEM0001', 'bad']]) {
+        const result = await env.request({ ...selection, itemKeys });
+        assert.equal(result.status, 400); assert.equal(result.error.code, 'INVALID_REQUEST');
+    }
+    assert.equal((await env.request({ ...selection, collectionKey: 'bad' })).error.code, 'INVALID_COLLECTION');
+    assert.equal((await env.request({ ...selection, collectionKey: 'MISSING1' })).error.code, 'COLLECTION_NOT_FOUND');
+    env.collection.deleted = true;
+    assert.equal((await env.request({ ...selection, collectionKey: 'COLL0001' })).error.code, 'COLLECTION_NOT_FOUND');
+    assert.deepEqual(env.calls, []);
+});
+
+test('malformed action results return structured errors and permit a later request', async () => {
+    const env = await start();
+    const manager = env.Zotero.ActionsTags.api.actionManager;
+    const original = manager.dispatchActionByKey;
+    for (const links of [null, [], [null], [{ uri: 'x', label: 'x' }], [{ uri: 3, label: 'x', html: 'x' }]]) {
+        manager.dispatchActionByKey = async key => {
+            env.Zotero.ActionLinkBridge.capture(key, null, [env.targets[0]], null, 'unknown').complete(links);
+        };
+        const result = await env.request(selection);
+        assert.equal(result.status, 500); assert.equal(result.error.code, 'INVALID_RESULT');
+        assert.equal(env.Zotero.ActionLinkBridge.active, null);
+    }
+    manager.dispatchActionByKey = original;
+    assert.equal((await env.request(selection)).status, 200);
+});
+
+test('unexpected Zotero lookup errors are logged and do not leak details or block retries', async () => {
+    const env = await start();
+    const original = env.Zotero.Items.getByLibraryAndKeyAsync;
+    const failure = Error('private database path');
+    env.Zotero.Items.getByLibraryAndKeyAsync = async () => { throw failure; };
+    const result = await env.request(selection);
+    assert.equal(result.status, 500); assert.equal(result.error.code, 'ACTION_FAILED');
+    assert.ok(!result.error.message.includes('private database path'));
+    assert.deepEqual(env.errors, [failure]);
+    env.Zotero.Items.getByLibraryAndKeyAsync = original;
+    assert.equal((await env.request(selection)).status, 200);
+});
+
+test('replacing a bridge during dispatch rejects the old request and leaves the replacement usable', async () => {
+    const env = await start();
+    const original = env.Zotero.ActionsTags.api.actionManager.dispatchActionByKey;
+    let resume, entered;
+    const waiting = new Promise(resolve => { entered = resolve; });
+    env.Zotero.ActionsTags.api.actionManager.dispatchActionByKey = async (...args) => {
+        entered(); await new Promise(resolve => { resume = resolve; }); await original(...args);
+    };
+    const request = env.request(selection);
+    await waiting;
+    await run('linkBridge', env);
+    resume();
+    const result = await request;
+    assert.equal(result.status, 503); assert.equal(result.error.code, 'BRIDGE_UNAVAILABLE');
+    env.Zotero.ActionsTags.api.actionManager.dispatchActionByKey = original;
+    assert.equal((await env.request(selection)).status, 200);
+});
+
+test('bridge startup fails clearly when Zotero has no local server', async () => {
+    await assert.rejects(run('linkBridge', { Zotero: {}, Services: {} }), /local HTTP server is unavailable/);
+});
+
+test('Better Notes converter failures become action errors with no clipboard or partial links', async () => {
+    const env = await start();
+    env.Zotero.BetterNotes.api.convert.note2link = async () => { throw Error('converter failed'); };
+    const result = await env.request({ ...selection, action: 'copyNoteLink', itemKeys: ['NOTE0001'] });
+    assert.equal(result.status, 422); assert.equal(result.error.code, 'ACTION_FAILED');
+    assert.equal(result.links, undefined); assert.deepEqual(env.copied, []);
+});

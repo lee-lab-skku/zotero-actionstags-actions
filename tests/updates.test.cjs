@@ -185,3 +185,100 @@ test('setPreferences defaults to No, remembers startup choice, and allows manual
         assert.equal(prefs.get(preference), expected);
     }
 });
+
+// Ordering is the SemVer 2.0.0 example, exercised through the public action.
+test('release ordering follows numeric/textual prerelease precedence and stable promotion', async () => {
+    const ordered = ['v1.0.0', 'v1.0.0-rc.1', 'v1.0.0-beta.11', 'v1.0.0-beta.2',
+        'v1.0.0-beta', 'v1.0.0-alpha.beta', 'v1.0.0-alpha.1', 'v1.0.0-alpha'];
+    const env = environment({ current: 'v0.9.0', prereleases: true,
+        releases: [...ordered].reverse().map(tag => release(tag, { prerelease: tag.includes('-') })) });
+    await run('updateActions', env);
+    assert.deepEqual(env.prompts[0].choices.slice(1).map(choice => choice.split(' ')[0]), ordered);
+    assert.deepEqual(env.writes, []);
+});
+
+test('drafts and invalid SemVer tags are excluded even with prerelease opt-in', async () => {
+    const invalid = ['v02.0.0', 'v2.00.0', 'v2.0.01', 'v2.0.0-beta.01', 'v2.0', 'latest'];
+    const env = environment({ prereleases: true, releases: [
+        release('v9.0.0', { draft: true }), ...invalid.map(tag => release(tag)), release('v2.0.0'),
+    ] });
+    await run('updateActions', env);
+    assert.deepEqual(env.prompts[0].choices, ['Not now', 'v2.0.0 (stable)']);
+});
+
+test('every malformed backup is rejected before the first action write', async () => {
+    const valid = { event: 0, operation: 4, data: 'return;' };
+    const malformed = [null, {}, { type: 'Wrong', actions: { first: valid } },
+        { type: 'ActionsTagsBackup', actions: [] }, { type: 'ActionsTagsBackup', actions: {} },
+        ...[null, [], { ...valid, event: -1 }, { ...valid, event: true }, { ...valid, event: 0.5 },
+            { ...valid, operation: -1 }, { ...valid, operation: true }, { ...valid, operation: 6 },
+            { ...valid, operation: 1.5 }, { ...valid, data: 3 }].map(action => ({
+                type: 'ActionsTagsBackup', actions: { first: valid, second: action },
+            })),
+    ];
+    for (const backup of malformed) {
+        const env = environment({ choice: 1 });
+        const http = env.Zotero.HTTP.request;
+        env.Zotero.HTTP.request = async (method, url, options) => url.startsWith('https://api.github.com/')
+            ? http(method, url, options) : { response: backup };
+        await assert.rejects(run('updateActions', env), /valid action backup|Invalid action/);
+        assert.deepEqual(env.writes, []);
+        assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v0.9.0');
+    }
+});
+
+test('new actions inherit release settings, absent actions remain, and the updater is applied last', async () => {
+    const env = environment({ choice: 1, backup: { type: 'ActionsTagsBackup', actions: {
+        updateActions: { event: 8, operation: 4, data: 'return;' },
+        first: { event: 0, operation: 4, data: 'return;', enabled: true, shortcut: 'release' },
+    } } });
+    env.installed.set('obsolete', { event: 0, operation: 4, data: 'return;' });
+    await run('updateActions', env);
+    assert.deepEqual(env.writes, ['first', 'updateActions']);
+    assert.equal(env.installed.get('first').data, 'return;');
+    assert.equal(env.installed.get('first').enabled, true);
+    assert.equal(env.installed.get('first').shortcut, 'release');
+    assert.ok(env.installed.has('obsolete'));
+    assert.equal(env.installed.get('updateActions').enabled, false);
+    assert.equal(env.installed.get('updateActions').shortcut, 'mine');
+});
+
+test('identical replacement actions are not rewritten while the selected version is recorded', async () => {
+    const action = { event: 0, operation: 4, data: 'return;', enabled: false, shortcut: 'mine' };
+    const env = environment({ choice: 1, backup: { type: 'ActionsTagsBackup', actions: { first: action } } });
+    env.installed.set('first', { ...action });
+    assert.match(await run('updateActions', env), /Updated 0 actions/);
+    assert.deepEqual(env.writes, []);
+    assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v2.0.0');
+});
+
+test('release API errors use Zotero HTTP JSON options and do not leave a running guard', async () => {
+    const env = environment();
+    const original = env.Zotero.HTTP.request;
+    env.Zotero.HTTP.request = async (method, url, options) => {
+        assert.equal(method, 'GET'); assert.equal(options.responseType, 'json');
+        assert.equal(options.timeout, 30000); assert.equal(options.errorDelayMax, 0);
+        assert.equal(options.headers.Accept, 'application/vnd.github+json');
+        assert.equal(options.successCodes, undefined, 'Non-2xx responses must reject, as Zotero HTTP does');
+        throw Error('HTTP 503');
+    };
+    await assert.rejects(run('updateActions', env), /HTTP 503/);
+    assert.deepEqual(env.writes, []);
+    env.Zotero.HTTP.request = original;
+    await run('updateActions', env);
+    assert.equal(env.prompts.length, 1, 'The next check must run');
+});
+
+test('malformed release lists and unsafe download URLs never modify installed actions', async () => {
+    const env = environment();
+    env.Zotero.HTTP.request = async () => ({ response: { message: 'API error' } });
+    await assert.rejects(run('updateActions', env), /invalid release list/);
+    assert.deepEqual(env.writes, []);
+    for (const url of ['https://other.example/actions-zotero.json',
+        'https://github.com/other/repo/releases/download/v2.0.0/actions-zotero.json']) {
+        const candidate = release('v2.0.0'); candidate.assets[0].browser_download_url = url;
+        const next = environment({ choice: 1, releases: [candidate] });
+        assert.match(await run('updateActions', next), /manually/);
+        assert.equal(next.requests.length, 1); assert.deepEqual(next.writes, []);
+    }
+});

@@ -29,6 +29,7 @@ The report measures every original `src/*.js` action body and writes `coverage/a
 Python coverage includes subprocess builds and merges temporary checkout copies into `build.py`, with HTML at `coverage/python/index.html` and JSON at `coverage/build.json`.
 Generated test wrappers and reports stay in ignored `coverage/`.
 Coverage is an aid to finding missing cases; it does not establish API compatibility or replace behavioral assertions.
+See [API contracts and test oracles](tests/API-contracts.md) for the source-backed expectations and remaining integration boundaries.
 
 CI runs these checks on Ubuntu 24.04 with Python 3.12 and Node.js 22 for branch pushes, pull requests, and manual runs.
 Tag releases call the same test workflow and publish only after it succeeds; tests and release builds check out the triggering commit SHA.

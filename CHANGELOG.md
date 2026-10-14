@@ -36,6 +36,7 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 - Update Actions now offers an interactive selection only when an aligned release has a newer SemVer tag than the installed base tag.
 - Fetch releases from the installed source repository and apply the selected JSON backup after validation.
+- Release CI passes the triggering tag and source repository to the build so published YAML/JSON backups identify their release and update source.
 
 ## [3.0.0-beta.3] &mdash; 2026-10-14
 
@@ -62,12 +63,16 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - Profile-token authentication and structured link/error responses for the three copylink actions, preserving their existing menu and clipboard behavior.
   Import the updated copylink actions together with the bridge and restart Zotero before pairing a client.
 
+### Changed
+
+- Test CI runs all Node.js test files, including the bridge suite, instead of only the action behavior suite.
+
 ## [3.0.0-beta.1] &mdash; 2026-09-10
 
 ### Added
 
 - JSON release backups for automatic updates, alongside the YAML import file.
-- Regression tests and CI for action behavior and backup generation.
+- Regression tests and CI that run Python backup-generation tests and Node.js action behavior tests on pushes and pull requests.
 - Contributor documentation covering compatibility, validation, and manual Zotero testing.
 - Prerelease-aware publishing for version tags with a prerelease suffix.
 

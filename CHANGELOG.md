@@ -8,7 +8,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 For this changelog, `withdrawl` at commit `80b729a` is the initial baseline, without a release date; earlier versions are intentionally omitted.
-Version `2.4.0` describes changes from that baseline, and each later version describes changes from the preceding listed version.
+Version `2.4.2` describes changes from that baseline, and each later version describes changes from the preceding listed version.
 
 ## [Unreleased]
 
@@ -115,18 +115,6 @@ Version `2.4.0` describes changes from that baseline, and each later version des
 
 ## [2.4.2] &mdash; 2025-12-01
 
-### Changed
-
-- Extend the selectable review dates from today through seven days ahead to today through fourteen days ahead.
-
-## [2.4.1] &mdash; 2025-12-01
-
-### Fixed
-
-- Cancel preference dialogs without returning a numeric status as an action message.
-
-## [2.4.0] &mdash; 2025-12-01
-
 ### Added
 
 - A startup action to configure the organization, review collection, share collection, and reviewer name in one place.
@@ -139,6 +127,7 @@ Version `2.4.0` describes changes from that baseline, and each later version des
 - Rename the generated backup to `actions-zotero.yml` and discover update assets by their `.yml` extension.
 - Initialize the automatic updater's version on its first run without applying an update, and skip unchanged action definitions on later updates.
 - Return readable completion messages from retrieval and review actions.
+- Extend the selectable review dates from today through seven days ahead to today through fourteen days ahead.
 
 ### Fixed
 
@@ -162,12 +151,10 @@ Version `2.4.0` describes changes from that baseline, and each later version des
 [Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.3...main
 [3.0.0-beta.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.2...v3.0.0-beta.3
 [3.0.0-beta.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.1...v3.0.0-beta.2
-[3.0.0-beta.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/e339b8d...v3.0.0-beta.1
-[2.6.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/d5f0577...e339b8d
-[2.5.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/90e7f1d...d5f0577
-[2.5.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/066c5b1...90e7f1d
-[2.4.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/89ceaf8...066c5b1
-[2.4.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/73e8884...89ceaf8
-[2.4.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/61ba637...73e8884
-[2.4.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/80b729a...61ba637
+[3.0.0-beta.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.6.0...v3.0.0-beta.1
+[2.6.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.5.1...v2.6.0
+[2.5.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.5.0...v2.5.1
+[2.5.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.4.3...v2.5.0
+[2.4.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.4.2...v2.4.3
+[2.4.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/80b729a...v2.4.2
 [withdrawl]: https://github.com/lee-lab-skku/zotero-actionstags-actions/tree/80b729a

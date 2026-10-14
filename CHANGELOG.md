@@ -8,10 +8,11 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 
 ## [Unreleased]
 
+## [3.0.0-beta.3] - 2026-10-14
+
 ### Changed
 
 - Trash on Delete now swaps both collection shortcuts: Delete moves items to the library trash, and Shift+Delete removes them from the collection.
-  Use the action's Enable checkbox in Actions & Tags to switch between swapped and default behavior.
 
 ### Removed
 
@@ -154,7 +155,8 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 - YAML backup generation and tag-triggered release builds.
 - Optional `/unread` tagging actions, disabled by default.
 
-[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.2...main
+[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.3...main
+[3.0.0-beta.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.2...v3.0.0-beta.3
 [3.0.0-beta.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.1...v3.0.0-beta.2
 [3.0.0-beta.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/e339b8d...v3.0.0-beta.1
 [2.6.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/d5f0577...e339b8d

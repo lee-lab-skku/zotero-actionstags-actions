@@ -107,13 +107,13 @@ const { action, version } = JSON.parse(fs.readFileSync(0, 'utf8'));
                 return action;
             } } } },
             HTTP: { request: async (method, url) => {
-                assert.equal(url, `https://api.github.com/repos/${action.repository}/releases/latest`);
+                assert.equal(url, `https://api.github.com/repos/${action.repository}/releases?per_page=100&page=1`);
                 assert.equal(++requests, 1, 'Matching imported version must not download actions');
-                return { response: { tag_name: version, assets: [] } };
+                return { response: [{ tag_name: version, assets: [] }] };
             } },
         };
         await new vm.Script('(async () => {' + action.data + '\n})()')
-            .runInNewContext({ require: () => Zotero });
+            .runInNewContext({ require: key => key === 'Zotero' ? Zotero : { prompt: { select: () => assert.fail('No newer release') } } });
         assert.equal(requests, 1);
     }
 })().catch(error => { console.error(error); process.exitCode = 1; });

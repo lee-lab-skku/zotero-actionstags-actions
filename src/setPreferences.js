@@ -3,8 +3,20 @@ const Services = require('Services');
 const PREF_GROUP_KEY = 'actionsTags.actions.groupID';
 const PREF_REVIEW_COLLECTION_KEY = 'actionsTags.actions.reviewCollectionKey';
 const PREF_NAME = 'actionsTags.actions.reviewerName';
+const PRERELEASE_KEY = 'actionsTags.actions.includePrereleases';
 
 let anySet = false;
+const manual = typeof triggerType !== 'undefined' && triggerType !== 8;
+if (manual || typeof Zotero.Prefs.get(PRERELEASE_KEY) !== 'boolean') {
+    const prompt = Services.prompt;
+    const flags = prompt.BUTTON_POS_0 * prompt.BUTTON_TITLE_NO
+        + prompt.BUTTON_POS_1 * prompt.BUTTON_TITLE_YES + prompt.BUTTON_POS_0_DEFAULT;
+    const answer = prompt.confirmEx(null, 'Action updates',
+        'Include prerelease versions when checking for action updates?', flags,
+        null, null, null, null, {});
+    Zotero.Prefs.set(PRERELEASE_KEY, answer === 1);
+    anySet = true;
+}
 let groupID = Number(Zotero.Prefs.get(PREF_GROUP_KEY));
 let group = groupID && Zotero.Groups.get(groupID);
 if (!group) {

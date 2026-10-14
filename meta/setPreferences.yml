@@ -2,11 +2,11 @@ event: 8
 operation: 4
 shortcut: ''
 enabled: true
-menu: ''
+menu: Configure action preferences
 name: Set preferences
 showInMenu:
   item: false
   collection: false
-  tools: false
+  tools: true
   reader: false
   readerAnnotation: false

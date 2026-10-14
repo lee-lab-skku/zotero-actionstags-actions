@@ -250,6 +250,8 @@ test('preferences prompt for an organization despite legacy settings and initial
         assert.equal(id, 8); return [{ key: 'COLL', name: 'Review' }];
     } };
     env.Services = { prompt: {
+        BUTTON_POS_0: 1, BUTTON_POS_1: 256, BUTTON_TITLE_NO: 4, BUTTON_TITLE_YES: 3, BUTTON_POS_0_DEFAULT: 0,
+        confirmEx: (win, title, message, flags) => { assert.equal(flags, 772); return 0; },
         select: (win, title, message, choices, selected) => { selections.push(title); selected.value = 0; return true; },
         prompt: (win, title, message, input) => { assert.equal(input.value, ''); input.value = ' Reviewer '; return true; },
     } };
@@ -262,7 +264,8 @@ test('preferences prompt for an organization despite legacy settings and initial
 
 test('preferences reuse valid current settings without opening prompts', async () => {
     const env = prefsEnvironment({ 'actionsTags.actions.groupID': 100,
-        'actionsTags.actions.reviewCollectionKey': 'REVIEW', 'actionsTags.actions.reviewerName': 'Reviewer' });
+        'actionsTags.actions.reviewCollectionKey': 'REVIEW', 'actionsTags.actions.reviewerName': 'Reviewer',
+        'actionsTags.actions.includePrereleases': false });
     const group = { id: 100, libraryID: 8 };
     const collection = { key: 'REVIEW', name: 'Review' };
     env.Zotero.Groups = { get: id => id === 100 && group,
@@ -277,7 +280,7 @@ test('preferences reuse valid current settings without opening prompts', async (
 });
 
 test('preferences handle no joined groups without opening an empty selector', async () => {
-    const env = prefsEnvironment();
+    const env = prefsEnvironment({ 'actionsTags.actions.includePrereleases': false });
     env.Zotero.Groups = { getAll: () => [] };
     env.Services = { prompt: { select: () => assert.fail('Empty selector') } };
     assert.match(await run('setPreferences', env), /Join and sync/);
@@ -301,14 +304,16 @@ test('WebDAV honors the configured scheme and warns on network failure or status
 
 function updateEnvironment({ invalid = false, fail = false, previousTag } = {}) {
     const env = prefsEnvironment(previousTag ? { 'actionsTags.actions.versionTag': previousTag } : {});
+    env.Zotero.getMainWindow = () => null;
+    env.Services = { prompt: { select: (win, title, message, choices, selected) => { selected.value = 1; return true; } } };
     const changes = [];
     const action = { event: 0, operation: 4, data: 'return;', enabled: true, shortcut: 'new' };
     const backup = { type: 'ActionsTagsBackup', actions: { first: action, second: invalid ? {} : action } };
     env.Zotero.HTTP = { request: async (method, url) => ({ response: url.includes('api.github.com')
-        ? { tag_name: 'v2', assets: [{ name: 'actions-zotero.json', browser_download_url: 'https://github.com/lee-lab-skku/zotero-actionstags-actions/releases/download/v2/actions-zotero.json' }] }
+        ? [{ tag_name: 'v2.0.0', assets: [{ name: 'actions-zotero.json', browser_download_url: 'https://github.com/lee-lab-skku/zotero-actionstags-actions/releases/download/v2.0.0/actions-zotero.json' }] }]
         : backup }) };
     env.Zotero.ActionsTags = { api: { actionManager: {
-        getActions: () => ({ enabled: false, shortcut: 'user' }),
+        getActions: key => ({ enabled: false, shortcut: 'user', ...(key === 'updateActions' ? { releaseVersion: previousTag || 'v1.0.0' } : {}) }),
         updateAction: async (action, key) => {
             if (fail && key === 'second') throw new Error('write failed');
             changes.push(action);
@@ -323,7 +328,7 @@ test('updater applies initial updates and preserves user enable/shortcut choices
     assert.equal(env.changes.length, 2);
     assert.equal(env.changes[0].enabled, false);
     assert.equal(env.changes[0].shortcut, 'user');
-    assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v2');
+    assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v2.0.0');
 });
 
 test('updater follows the installed source repository including other owners', async () => {
@@ -331,19 +336,19 @@ test('updater follows the installed source repository including other owners', a
     const repository = 'example-lab/custom-actions';
     const manager = env.Zotero.ActionsTags.api.actionManager;
     const getActions = manager.getActions;
-    manager.getActions = key => key === 'updateActions' ? { repository } : getActions(key);
+    manager.getActions = key => key === 'updateActions' ? { ...getActions(key), repository } : getActions(key);
     const request = env.Zotero.HTTP.request;
     const urls = [];
     env.Zotero.HTTP.request = async (method, url) => {
         urls.push(url);
         const result = await request(method, url);
         if (url.includes('api.github.com'))
-            result.response.assets[0].browser_download_url = `https://github.com/${repository}/releases/download/v2/actions-zotero.json`;
+            result.response[0].assets[0].browser_download_url = `https://github.com/${repository}/releases/download/v2.0.0/actions-zotero.json`;
         return result;
     };
     await run('updateActions', env);
-    assert.deepEqual(urls, [`https://api.github.com/repos/${repository}/releases/latest`,
-        `https://github.com/${repository}/releases/download/v2/actions-zotero.json`]);
+    assert.deepEqual(urls, [`https://api.github.com/repos/${repository}/releases?per_page=100&page=1`,
+        `https://github.com/${repository}/releases/download/v2.0.0/actions-zotero.json`]);
     assert.equal(env.changes.length, 2);
 });
 
@@ -357,9 +362,9 @@ test('updater rejects malformed source paths before HTTP', async () => {
 
 test('updater validates the entire backup and does not advance version on failed writes', async () => {
     for (const options of [{ invalid: true }, { fail: true }]) {
-        const env = updateEnvironment({ ...options, previousTag: 'v1' });
+        const env = updateEnvironment({ ...options, previousTag: 'v1.0.0' });
         await assert.rejects(run('updateActions', env));
-        assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v1');
+        assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v1.0.0');
         if (options.invalid) assert.equal(env.changes.length, 0);
     }
 });
@@ -392,8 +397,8 @@ test('review notes use local dates and escape reviewer names, ignoring other lib
 });
 
 test('update download failure and unavailable JSON never change installed actions or version', async () => {
-    for (const response of [new Error('HTTP 403'), { tag_name: 'v2', assets: [] }]) {
-        const env = updateEnvironment({ previousTag: 'v1' });
+    for (const response of [new Error('HTTP 403'), [{ tag_name: 'v2.0.0', assets: [] }]]) {
+        const env = updateEnvironment({ previousTag: 'v1.0.0' });
         env.Zotero.HTTP.request = async () => {
             if (response instanceof Error) throw response;
             return { response };
@@ -401,6 +406,6 @@ test('update download failure and unavailable JSON never change installed action
         if (response instanceof Error) await assert.rejects(run('updateActions', env));
         else assert.match(await run('updateActions', env), /manually/);
         assert.equal(env.changes.length, 0);
-        assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v1');
+        assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v1.0.0');
     }
 });

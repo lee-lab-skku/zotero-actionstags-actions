@@ -84,19 +84,23 @@ Leave its shortcut field empty; the action handles both keys directly.
 
 ### Update Actions (`updateActions.js`)
 
-- **Purpose**: Automatically updates all actions from a specified GitHub repository release.
-- **Context**: Disabled by default; when enabled, this action runs when Zotero starts.
+- **Purpose**: Check the installed source repository for newer releases and let the user choose one.
+- **Context**: Disabled by default. Enable it for startup checks; dispatch it manually in Actions & Tags or use **Tools → Update custom actions**.
 - **Features**:
-  - Reads the source repository from its installed `repository` metadata and fetches that repository’s latest stable release.
-    Legacy actions without this field use `lee-lab-skku/zotero-actionstags-actions` as the script default.
-  - YAML/JSON builds carry the same version in the top-level `version` and Update Actions `releaseVersion` fields, so direct installation needs no initial version preference.
-  - Downloads and applies its actions when the release tag differs from that installed action version. Local builds identify the nearest version tag, commit distance, and hash, with a `-dirty` suffix for tracked edits; these IDs are not used for SemVer ordering.
-  - Uses the release's `actions-zotero.json` asset and records the version only after all updates succeed.
-  - Preserves existing enabled/disabled settings and shortcuts; other action code and metadata are replaced.
-  - If an update partially fails, the next run retries it.
+  - Reads the source from installed `repository` metadata; old imports use `lee-lab-skku/zotero-actionstags-actions` as the default.
+  - Shows a selection dialog only when an allowed release has a newer SemVer tag than the installed version.
+  - Local Git build IDs are displayed intact, but comparison uses their base tag, ignoring commit distance, hash, and dirty state.
+  - Lists all newer allowed releases, newest first, including intermediate releases. Drafts are excluded.
+  - Starts with **Not now** selected; cancelling does not download or change actions.
+  - Labels YAML-only releases for manual import. JSON releases can be applied after selection.
+  - Validates the complete backup before writing, preserves enabled settings and shortcuts, and applies the updater last.
+  - Records the chosen tag only after all writes succeed. Partial failures can leave earlier actions changed, but retain the old updater version for retry.
+  - Does not automatically remove actions absent from a release or downgrade a beta when prereleases are disabled.
 
-Keep Update Actions disabled while testing a beta or manually modified actions.
-It does not compare version order and can replace a beta with an older stable release.
+**Set preferences** asks whether to include prereleases, with **No** as the first and default button.
+The choice is saved at `extensions.zotero.actionsTags.actions.includePrereleases` and is not asked again at startup.
+Use **Tools → Configure action preferences** or manually dispatch Set preferences to change it.
+An unknown installed version requires a versioned YAML import before the updater can determine which releases are newer.
 
 ### Check VPN (`checkVPN.js`)
 

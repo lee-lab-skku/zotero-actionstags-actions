@@ -34,8 +34,9 @@ Move completed changes from `Unreleased` into the matching version section, then
 Place behavior changes under `Changed`, reserve `Fixed` for corrections, and prefix incompatible entries with **Breaking:**.
 The release workflow marks tags containing a prerelease suffix as GitHub prereleases.
 
-Install beta builds by importing their YAML file manually.
-Keep Update Actions disabled while testing a beta: its GitHub latest-release endpoint tracks stable releases, not prereleases, and it does not prevent installing an older stable version.
+Install the new interactive updater initially by importing its YAML file manually.
+Update Actions is disabled by default; enable it for startup checks. Set preferences controls prerelease inclusion and defaults to No.
+The updater compares release SemVer tags with the installed base tag, asks before applying a newer release, and never offers equal or older versions.
 
 ## Action contracts
 
@@ -72,6 +73,7 @@ Before releasing, test in a disposable Zotero 10 profile with compatible Actions
 1. Verify Delete moves collection items to trash and Shift+Delete removes them from the collection, including confirmation, Undo, and multiple selected collections. Check Enable transitions and that editing, modified keys, and other views retain their usual behavior.
 1. Verify review dates around local midnight and preference setup with missing or stale groups/collections.
 1. Verify WebDAV failures and a release update with a failed download or write.
+1. Verify Set preferences focuses No for prerelease opt-in, remembers the startup choice, and permits changing it manually. Check startup/manual updater dispatch, no dialog for equal or older releases, intermediate-version selection, cancellation, and YAML-only labels in a disposable profile.
 
 ## API references
 

@@ -1,14 +1,18 @@
 <!-- markdownlint-disable MD024 -->
+
 # Changelog
 
-Notable changes are recorded in the style of [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
 For this changelog, `withdrawl` at commit `80b729a` is the initial baseline, without a release date; earlier versions are intentionally omitted.
 Version `2.4.0` describes changes from that baseline, and each later version describes changes from the preceding listed version.
-Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` use their tagged commit dates because no corresponding GitHub releases are currently listed.
 
 ## [Unreleased]
 
-## [3.0.0-beta.3] - 2026-10-14
+## [3.0.0-beta.3] &mdash; 2026-10-14
 
 ### Changed
 
@@ -22,7 +26,7 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 - **Breaking:** Remove Share Item and Retrieve Item, including the share collection prompt from preference setup.
   Delete previously installed copies in Actions & Tags; automatic updates do not remove actions absent from the release backup.
 
-## [3.0.0-beta.2] - 2026-10-13
+## [3.0.0-beta.2] &mdash; 2026-10-13
 
 ### Added
 
@@ -33,7 +37,7 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 - Profile-token authentication and structured link/error responses for the three copylink actions, preserving their existing menu and clipboard behavior.
   Import the updated copylink actions together with the bridge and restart Zotero before pairing a client.
 
-## [3.0.0-beta.1] - 2026-09-10
+## [3.0.0-beta.1] &mdash; 2026-09-10
 
 ### Added
 
@@ -76,19 +80,19 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 
 - Downloading and evaluating an external YAML parser during automatic updates.
 
-## [2.6.0] - 2026-06-15
+## [2.6.0] &mdash; 2026-06-15
 
 ### Added
 
 - A WebDAV reachability check at startup and in the Tools menu, warning when the server does not respond within five seconds.
 
-## [2.5.1] - 2026-06-15
+## [2.5.1] &mdash; 2026-06-15
 
 ### Fixed
 
 - PDF annotation links now identify the parent attachment in the item path and the annotation in the query, fixing links that failed to open the PDF.
 
-## [2.5.0] - 2026-01-07
+## [2.5.0] &mdash; 2026-01-07
 
 ### Added
 
@@ -98,7 +102,7 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 
 - Generate selection links once for the whole selection, resolving child attachments to their parent items.
 
-## [2.4.3] - 2026-01-07
+## [2.4.3] &mdash; 2026-01-07
 
 ### Added
 
@@ -109,19 +113,19 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 - Disable automatic action updates by default.
 - Update action descriptions to explain shared preference setup and the configured share collection.
 
-## [2.4.2] - 2025-12-01
+## [2.4.2] &mdash; 2025-12-01
 
 ### Changed
 
 - Extend the selectable review dates from today through seven days ahead to today through fourteen days ahead.
 
-## [2.4.1] - 2025-12-01
+## [2.4.1] &mdash; 2025-12-01
 
 ### Fixed
 
 - Cancel preference dialogs without returning a numeric status as an action message.
 
-## [2.4.0] - 2025-12-01
+## [2.4.0] &mdash; 2025-12-01
 
 ### Added
 

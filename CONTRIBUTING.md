@@ -13,6 +13,9 @@ node --test tests/*.test.cjs
 git diff --check
 ```
 
+CI runs on Ubuntu 24.04 with Python 3.12 and Node.js 22.
+External actions are pinned to release commit SHAs.
+
 The build resolves paths relative to `build.py`, so it can run from another working directory.
 Use `python build.py --version <tag>` to embed a release tag in Update Actions for direct YAML/JSON installation.
 Without an explicit version, `python build.py` derives a Git build ID: a clean tagged commit uses its tag, and later commits use `<tag>-<distance>-g<hash>`, adding `-dirty` for tracked edits.

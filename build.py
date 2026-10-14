@@ -79,7 +79,11 @@ for meta in metas:
     elif meta_data.get('operation') == 4:
         raise ValueError(f'Missing script for action: {action}')
 
-    if not isinstance(meta_data.get('event'), int) or not isinstance(meta_data.get('data'), str):
+    # Python booleans are ints, but A&T requires numeric enum values.
+    event, operation = meta_data.get('event'), meta_data.get('operation')
+    if (type(event) is not int or event < 0
+            or type(operation) is not int or not 0 <= operation <= 5
+            or not isinstance(meta_data.get('data'), str)):
         raise ValueError(f'Invalid action metadata: {action}')
 
     datas['actions'][action] = meta_data

@@ -12,10 +12,15 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ## [Unreleased]
 
+## [3.0.0-rc.1] &mdash; 2026-10-14
+
 ### Changed
 
 - Embed updater version and source repository in script constants instead of custom action fields, so editing activation or menu settings in Actions & Tags retains this information.
-  Keep the backup-root `version` and `repository` fields unchanged.
+- Turn on the Update Actions by default.
+
+### Fixed
+
 - Run global preference, update, and VPN menu commands once per selection, filtering item-level follow-up calls without changing other action dispatches.
   Suppress overlapping executions of the same command and release the guard after completion, cancellation, or failure.
 
@@ -168,7 +173,8 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - YAML backup generation and tag-triggered release builds.
 - Optional `/unread` tagging actions, disabled by default.
 
-[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.4...main
+[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.1...HEAD
+[3.0.0-rc.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.4...v3.0.0-rc.1
 [3.0.0-beta.4]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.3...v3.0.0-beta.4
 [3.0.0-beta.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.2...v3.0.0-beta.3
 [3.0.0-beta.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.1...v3.0.0-beta.2

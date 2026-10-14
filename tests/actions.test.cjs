@@ -2,24 +2,17 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
+const { compileAction } = require('./helpers/action-runner.cjs');
 const vm = require('node:vm');
 
 const sourceDir = path.join(__dirname, '..', 'src');
 async function run(name, globals, args = {}) {
-    const context = vm.createContext({
-        require: key => {
-            assert.ok(key in globals, `Unexpected global: ${key}`);
-            return globals[key];
-        },
-        item: null, items: [], collection: false, ...args,
-    });
     let source = fs.readFileSync(path.join(sourceDir, name + '.js'), 'utf8');
     if (name === 'updateActions' && globals.build)
         source = source.replace('const INSTALLED_VERSION = null;', `const INSTALLED_VERSION = ${JSON.stringify(globals.build.version)};`)
             .replace("const SOURCE_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';",
                 `const SOURCE_REPOSITORY = ${JSON.stringify(globals.build.repository)};`);
-    return new vm.Script(`(async () => {${source}\n})()`)
-        .runInContext(context);
+    return compileAction(name, source)(globals, args);
 }
 
 function deleteEnvironment() {
@@ -319,9 +312,10 @@ function updateEnvironment({ invalid = false, fail = false, previousTag } = {}) 
         : backup }) };
     env.Zotero.ActionsTags = { api: { actionManager: {
         getActions: () => ({ enabled: false, shortcut: 'user' }),
-        updateAction: async (action, key) => {
+        updateAction: (action, key) => {
             if (fail && key === 'second') throw new Error('write failed');
             changes.push(action);
+            return key;
         },
     } } };
     return { ...env, changes, build: { version: previousTag || 'v1.0.0', repository: 'lee-lab-skku/zotero-actionstags-actions' } };

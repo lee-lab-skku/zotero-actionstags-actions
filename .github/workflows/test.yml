@@ -47,8 +47,11 @@ jobs:
       - name: Test build and generated backups
         run: python -m unittest discover -s tests -p 'test_*.py'
 
-      - name: Test action bodies and HTTP bridge
+      - name: Test action bodies
         run: node --test tests/*.test.cjs
+
+      - name: Test HTTP bridge socket
+        run: node --test tests/integration/*.test.cjs
 
       - name: Check commit whitespace
         run: git show --format= --check --diff-merges=first-parent HEAD

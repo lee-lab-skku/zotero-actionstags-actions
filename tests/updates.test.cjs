@@ -1,15 +1,13 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const vm = require('node:vm');
+const { compileAction } = require('./helpers/action-runner.cjs');
 const { test } = require('node:test');
 
 function run(name, env, triggerType = 8) {
     let source = fs.readFileSync(path.join(__dirname, '..', 'src', name + '.js'), 'utf8');
     if (name === 'updateActions' && env.build) source = embed(source, env.build.version, env.build.repository);
-    return new vm.Script(`(async () => {${source}\n})()`).runInNewContext({
-        require: key => env[key], triggerType,
-    });
+    return compileAction(name, source)(env, { triggerType });
 }
 
 function embed(source, version, repository) {
@@ -38,9 +36,9 @@ function environment({ current = 'v1.0.0', releases = [release('v2.0.0')], pages
         getMainWindow: () => null,
         ActionsTags: { api: { actionManager: {
             getActions: key => installed.get(key),
-            updateAction: async (action, key) => {
+            updateAction: (action, key) => {
                 if (key === failKey) throw Error('write failed');
-                writes.push(key); installed.set(key, action);
+                writes.push(key); installed.set(key, action); return key;
             },
         } } },
         HTTP: { request: async (method, url) => {

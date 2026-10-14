@@ -1,0 +1,20 @@
+[run]
+branch = True
+parallel = True
+# The unittest driver is excluded; all measured code runs in child processes.
+disable_warnings = no-data-collected
+patch = subprocess
+include = */build.py
+data_file = coverage/.coverage
+
+[paths]
+build =
+    .
+    /tmp/*/repo
+    */Temp/*/repo
+
+[report]
+show_missing = True
+
+[html]
+directory = coverage/python

@@ -13,6 +13,23 @@ node --test tests/*.test.cjs
 git diff --check
 ```
 
+The default local suite needs no Zotero installation, display, network connection, or socket binding.
+The HTTP socket check is separate: `node --test tests/integration/*.test.cjs`.
+CI runs both suites.
+
+For local coverage, install the optional Python tool and run:
+
+```sh
+python -m pip install "coverage>=7.10,<8"
+python tests/run-coverage.py
+```
+
+JavaScript uses Node's built-in experimental coverage with source maps; there are no Node package dependencies.
+The report measures every original `src/*.js` action body and writes `coverage/actions.lcov`.
+Python coverage includes subprocess builds and merges temporary checkout copies into `build.py`, with HTML at `coverage/python/index.html` and JSON at `coverage/build.json`.
+Generated test wrappers and reports stay in ignored `coverage/`.
+Coverage is an aid to finding missing cases; it does not establish API compatibility or replace behavioral assertions.
+
 CI runs these checks on Ubuntu 24.04 with Python 3.12 and Node.js 22 for branch pushes, pull requests, and manual runs.
 Tag releases call the same test workflow and publish only after it succeeds; tests and release builds check out the triggering commit SHA.
 Tag pushes do not start a second standalone test run.
@@ -72,7 +89,7 @@ Preserve users' enabled settings and shortcuts when updating existing actions.
 
 Automated tests execute the actual action bodies with mocked Zotero/Actions & Tags APIs.
 They verify selection contexts, escaping, preference setup, network failures, and update failures.
-The bridge suite also uses a real localhost HTTP socket with mocked Zotero/Actions & Tags APIs; the test environment must allow binding to loopback.
+The separate integration suite uses a real localhost HTTP socket with mocked Zotero/Actions & Tags APIs; that suite requires loopback binding.
 They do not prove that a real Zotero database, filesystem, plugin UI, or sync server behaves correctly.
 
 Before releasing, test in a disposable Zotero 10 profile with compatible Actions & Tags and optional Better Notes/Better BibTeX versions:

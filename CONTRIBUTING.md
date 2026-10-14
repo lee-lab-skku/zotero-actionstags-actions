@@ -53,12 +53,15 @@ Preserve users' enabled settings and shortcuts when updating existing actions.
 
 Automated tests execute the actual action bodies with mocked Zotero/Actions & Tags APIs.
 They verify selection contexts, escaping, preference setup, network failures, and update failures.
+The bridge suite also uses a real localhost HTTP socket with mocked Zotero/Actions & Tags APIs; the test environment must allow binding to loopback.
 They do not prove that a real Zotero database, filesystem, plugin UI, or sync server behaves correctly.
 
 Before releasing, test in a disposable Zotero 10 profile with compatible Actions & Tags and optional Better Notes/Better BibTeX versions:
 
 1. Import the generated YAML and verify menu actions and startup events.
 1. Copy links from a single collection, mixed collection/search selection, multiple libraries, and a reader; include standalone attachments and notes.
+1. Verify the bridge's authenticated requests and returned links using the [disposable profile fixture](tests/manual/README.md); also open the returned URIs and check shared-library targets manually.
+1. Verify Delete moves collection items to trash and Shift+Delete removes them from the collection, including confirmation, Undo, and multiple selected collections. Check Enable transitions and that editing, modified keys, and other views retain their usual behavior.
 1. Verify review dates around local midnight and preference setup with missing or stale groups/collections.
 1. Verify WebDAV failures and a release update with a failed download or write.
 

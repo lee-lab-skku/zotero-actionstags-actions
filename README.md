@@ -16,14 +16,14 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 - **Context**: Available in the Zotero PDF reader, annotation menu
 - **Features**:
   - Generates `zotero://open-pdf` links
-  - Includes page number and annotation position
+  - Includes page number and annotation key
   - Shows preview text from annotation
   - Includes citation key
 
 ### Copy Selection Link (`copySelectionLink.js`)
 
 - **Purpose**: Simple link to selected item with citation key
-- **Context**: Available for items
+- **Context**: Available in the item menu and PDF reader
 - **Features**:
   - Generates `zotero://select` links
   - Uses citation key as link text
@@ -70,9 +70,9 @@ Leave its shortcut field empty; the action handles both keys directly.
 ### Set Preferences (`setPreferences.js`)
 
 - **Purpose**: Set the organization and user information in Zotero preferences.
-- **Context**: Automatically triggered during the first restart after installation.
+- **Context**: Checks preferences each time Zotero starts.
 - **Features**:
-  - If the preferences are not set, it prompts the user to set those.
+  - Prompts for missing settings or a group or review collection that is no longer valid.
   - Preferences are utilized by *Review Note*.
 
 ### Review Note (`reviewNote.js`)
@@ -87,12 +87,14 @@ Leave its shortcut field empty; the action handles both keys directly.
 - **Purpose**: Automatically updates all actions from a specified GitHub repository release.
 - **Context**: Disabled by default; when enabled, this action runs when Zotero starts.
 - **Features**:
-  - Fetches the latest release from the `lee-lab-skku/zotero-actionstags-actions` repository.
-  - Compares the latest version with the currently installed version.
-  - If an update is available, it downloads and applies the new actions.
+  - Fetches the latest stable release from the `lee-lab-skku/zotero-actionstags-actions` repository.
+  - Downloads and applies its actions when the release tag differs from the recorded tag.
   - Uses the release's `actions-zotero.json` asset and records the version only after all updates succeed.
   - Preserves existing enabled/disabled settings and shortcuts; other action code and metadata are replaced.
   - If an update partially fails, the next run retries it.
+
+Keep Update Actions disabled while testing a beta or manually modified actions.
+It does not compare version order and can replace a beta with an older stable release.
 
 ### Check VPN (`checkVPN.js`)
 
@@ -120,9 +122,9 @@ An unused legacy preference can remain in the profile without affecting these ac
 
 ## Project Structure
 
-- **`src/`**: Contains the raw JavaScript files for each action.
-- **`meta/`**: Contains the YAML definitions that describe the actions for the Actions & Tags plugin.
-- **`build.py`**: Combines `src/` and `meta/` into `dist/actions-zotero.yml` for import and `dist/actions-zotero.json` for automatic updates.
+- `src/`: Contains the raw JavaScript files for each action.
+- `meta/`: Contains the YAML definitions that describe the actions for the Actions & Tags plugin.
+- `build.py`: Combines `src/` and `meta/` into `dist/actions-zotero.yml` for import and `dist/actions-zotero.json` for automatic updates.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development, testing, and compatibility notes.
 

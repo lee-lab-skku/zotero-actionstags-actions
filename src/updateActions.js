@@ -1,8 +1,6 @@
 const Zotero = require('Zotero');
 const TARGET_URL = 'https://api.github.com/repos/lee-lab-skku/zotero-actionstags-actions/releases/latest';
 const PREF_KEY = 'actionsTags.actions.versionTag';
-// The build embeds the release tag here, including for direct YAML/JSON imports.
-const INSTALLED_VERSION = 'dev';
 
 async function getJSON(url) {
     const response = await Zotero.HTTP.request('GET', url, {
@@ -15,8 +13,11 @@ const latest = await getJSON(TARGET_URL);
 if (!latest || typeof latest.tag_name !== 'string' || !latest.tag_name || !Array.isArray(latest.assets))
     throw new Error('GitHub returned an invalid release.');
 const latestVersion = latest.tag_name;
-// Tagged imports carry their own version; dev retains the legacy update record.
-const prevVersion = INSTALLED_VERSION === 'dev' ? Zotero.Prefs.get(PREF_KEY) : INSTALLED_VERSION;
+const manager = Zotero.ActionsTags.api.actionManager;
+// Imported action metadata identifies the installation independently of old update records.
+const installedVersion = manager.getActions('updateActions')?.releaseVersion;
+const prevVersion = typeof installedVersion === 'string' && installedVersion
+    ? installedVersion : Zotero.Prefs.get(PREF_KEY);
 if (prevVersion === latestVersion)
     return;
 
@@ -39,7 +40,6 @@ for (const [key, action] of entries) {
         throw new Error('Invalid action in release: ' + key);
 }
 
-const manager = Zotero.ActionsTags.api.actionManager;
 let updated = 0;
 for (const [key, action] of entries) {
     const previous = manager.getActions(key);

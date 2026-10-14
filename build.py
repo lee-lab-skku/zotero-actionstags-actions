@@ -31,6 +31,7 @@ meta_dir = root_dir / 'meta'
 dist_dir.mkdir(exist_ok=True)
 
 datas: Dict[str, Any] = {
+    'version': build_version,
     'type': 'ActionsTagsBackup',
     'actions': {}
 }
@@ -45,11 +46,6 @@ for meta in metas:
     if src.is_file():
         with open(src, 'r', encoding='utf-8') as f:
             src_code = f.read().strip()
-        if action == 'updateActions':
-            marker = "const INSTALLED_VERSION = 'dev';"
-            if src_code.count(marker) != 1:
-                raise ValueError('Missing or ambiguous updater version marker')
-            src_code = src_code.replace(marker, 'const INSTALLED_VERSION = ' + json.dumps(build_version) + ';', 1)
         meta_data['data'] = src_code
         if action == 'updateActions':
             meta_data['releaseVersion'] = build_version
@@ -62,7 +58,7 @@ for meta in metas:
     datas['actions'][action] = meta_data
 
 with open(dist_dir / 'actions-zotero.yml', 'w', encoding='utf-8') as f:
-    yaml.dump(datas, f, allow_unicode=True)
+    yaml.dump(datas, f, allow_unicode=True, sort_keys=False)
 
 # JSON is also valid YAML and lets the updater avoid evaluating a remote parser.
 with open(dist_dir / 'actions-zotero.json', 'w', encoding='utf-8') as f:

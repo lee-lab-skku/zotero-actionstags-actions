@@ -16,7 +16,7 @@ git diff --check
 The build resolves paths relative to `build.py`, so it can run from another working directory.
 Use `python build.py --version <tag>` to embed a release tag in Update Actions for direct YAML/JSON installation.
 Without an explicit version, `python build.py` derives a Git build ID: a clean tagged commit uses its tag, and later commits use `<tag>-<distance>-g<hash>`, adding `-dirty` for tracked edits.
-The same ID is stored in the script constant and `releaseVersion` action field.
+The same ID is stored in the backup’s top-level `version` and Update Actions `releaseVersion` field; the updater reads its installed metadata through the action manager.
 Without a reachable version tag, Git falls back to the commit hash; outside a Git checkout, pass `--version` explicitly.
 The release workflow passes its tag automatically.
 Generated release files belong in the ignored `dist/` directory.

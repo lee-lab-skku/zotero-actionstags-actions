@@ -20,18 +20,14 @@ class BuildTests(unittest.TestCase):
         json_data = json.loads((ROOT / 'dist/actions-zotero.json').read_text(encoding='utf-8'))
         self.assertEqual(yaml_data, json_data)
         self.assertEqual(yaml_data['type'], 'ActionsTagsBackup')
+        self.assertEqual(yaml_data['version'], yaml_data['actions']['updateActions']['releaseVersion'])
+        self.assertTrue((ROOT / 'dist/actions-zotero.yml').read_text().startswith('version: '))
         self.assertTrue({'shareItem', 'retrieveItem'}.isdisjoint(yaml_data['actions']))
         self.assertEqual(set(yaml_data['actions']), {meta.stem for meta in (ROOT / 'meta').glob('*.yml')})
         for key, action in yaml_data['actions'].items():
             self.assertIsInstance(action['event'], int)
             if action['operation'] == 4:
                 expected = (ROOT / 'src' / (key + '.js')).read_text(encoding='utf-8').strip()
-                if key == 'updateActions':
-                    version = action['releaseVersion']
-                    self.assertTrue(version)
-                    self.assertNotEqual(version, 'dev')
-                    expected = expected.replace("const INSTALLED_VERSION = 'dev';",
-                                                'const INSTALLED_VERSION = ' + json.dumps(version) + ';', 1)
                 self.assertEqual(action['data'], expected)
 
     def test_git_build_id_tracks_exact_tag_distance_and_dirty_changes(self):
@@ -52,7 +48,8 @@ class BuildTests(unittest.TestCase):
                 self.assertEqual(data, yaml.safe_load((repo / 'dist/actions-zotero.yml').read_text()))
                 action = data['actions']['updateActions']
                 version = action['releaseVersion']
-                self.assertIn('const INSTALLED_VERSION = ' + json.dumps(version) + ';', action['data'])
+                self.assertEqual(data['version'], version)
+                self.assertEqual(action['data'], (repo / 'src/updateActions.js').read_text().strip())
                 return version
 
             git('init', '--quiet')
@@ -79,30 +76,35 @@ class BuildTests(unittest.TestCase):
                 self.assertEqual(yaml_data, json_data)
                 self.assertEqual(json_data['actions']['updateActions']['releaseVersion'], version)
                 source = json_data['actions']['updateActions']['data']
-                self.assertIn('const INSTALLED_VERSION = ' + json.dumps(version) + ';', source)
+                self.assertEqual(json_data['version'], version)
+                self.assertEqual(source, (ROOT / 'src/updateActions.js').read_text().strip())
                 # Execute the generated import body, with no record or an obsolete record.
                 script = r"""
 const assert = require('node:assert/strict');
 const vm = require('node:vm');
 const fs = require('node:fs');
-const { source, version } = JSON.parse(fs.readFileSync(0, 'utf8'));
+const { action, version } = JSON.parse(fs.readFileSync(0, 'utf8'));
 (async () => {
     for (const record of [undefined, 'v2.6.0']) {
         let requests = 0;
         const Zotero = {
             Prefs: { get: () => record, set: () => assert.fail('No update was applied') },
+            ActionsTags: { api: { actionManager: { getActions: key => {
+                assert.equal(key, 'updateActions');
+                return action;
+            } } } },
             HTTP: { request: async () => {
                 assert.equal(++requests, 1, 'Matching imported version must not download actions');
                 return { response: { tag_name: version, assets: [] } };
             } },
         };
-        await new vm.Script('(async () => {' + source + '\n})()')
+        await new vm.Script('(async () => {' + action.data + '\n})()')
             .runInNewContext({ require: () => Zotero });
         assert.equal(requests, 1);
     }
 })().catch(error => { console.error(error); process.exitCode = 1; });
 """
-                subprocess.run(['node', '-e', script], input=json.dumps({'source': source, 'version': version}),
+                subprocess.run(['node', '-e', script], input=json.dumps({'action': json_data['actions']['updateActions'], 'version': version}),
                                text=True, check=True)
 
 

@@ -7,7 +7,7 @@ win[listenerKey]?.dispose();
 let busy = false;
 const onKeyDown = event => {
     if (event.key !== 'Delete' || event.ctrlKey || event.altKey || event.metaKey
-        || event.shiftKey || event.defaultPrevented || event.isComposing)
+        || event.defaultPrevented || event.isComposing)
         return;
     // Check the live setting so disabling/deleting the action takes effect immediately.
     const action = Zotero.ActionsTags?.api.actionManager.getActions('trashOnDelete');
@@ -32,14 +32,15 @@ const onKeyDown = event => {
     if (!selected.length || selected.some(item => item.deleted || item.isAnnotation()))
         return;
 
-    // Suppress native collection removal synchronously, before starting async work.
+    // Swap Delete and Shift+Delete; suppress the native operation before async work.
     event.preventDefault();
     event.stopImmediatePropagation();
     if (busy || event.repeat)
         return;
     busy = true;
+    const toTrash = !event.shiftKey;
     // Use Zotero's permission checks, confirmation, child handling, and Undo support.
-    Promise.resolve().then(() => pane.deleteSelectedItems(true, true))
+    Promise.resolve().then(() => pane.deleteSelectedItems(toTrash, true))
         .catch(error => Zotero.logError(error))
         .finally(() => { busy = false; });
 };

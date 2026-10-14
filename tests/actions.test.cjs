@@ -83,6 +83,23 @@ test('collection Delete blocks native removal and invokes confirmed Zotero trash
     assert.equal(env.calls.length, 1);
 });
 
+test('collection Shift+Delete blocks native trash and invokes collection removal', async () => {
+    const env = deleteEnvironment();
+    await run('trashOnDelete', env, { window: env.window });
+    const event = env.press({ shiftKey: true });
+    assert.equal(event.prevented, true);
+    assert.equal(event.stopped, true);
+    await flushDelete();
+    assert.deepEqual(env.calls, [[false, true]]);
+    env.action.enabled = false;
+    assert.equal(env.press({ shiftKey: true }).prevented, undefined);
+    assert.equal(env.press().prevented, undefined);
+    env.action.enabled = true;
+    env.press();
+    await flushDelete();
+    assert.deepEqual(env.calls, [[false, true], [true, true]]);
+});
+
 test('collection Delete leaves editing, modified keys, and other contexts untouched', async () => {
     for (const change of [
         env => { env.action.enabled = false; },
@@ -102,13 +119,16 @@ test('collection Delete leaves editing, modified keys, and other contexts untouc
         await run('trashOnDelete', env, { window: env.window });
         change(env);
         assert.equal(env.press().prevented, undefined);
+        assert.equal(env.press({ shiftKey: true }).prevented, undefined);
         await flushDelete();
         assert.equal(env.calls.length, 0);
     }
     const env = deleteEnvironment();
     await run('trashOnDelete', env, { window: env.window });
-    for (const override of [{ key: 'Backspace' }, ...['ctrlKey', 'altKey', 'metaKey', 'shiftKey', 'isComposing', 'defaultPrevented'].map(key => ({ [key]: true }))])
+    for (const override of [{ key: 'Backspace' }, ...['ctrlKey', 'altKey', 'metaKey', 'isComposing', 'defaultPrevented'].map(key => ({ [key]: true }))]) {
         assert.equal(env.press(override).prevented, undefined);
+        assert.equal(env.press({ ...override, shiftKey: true }).prevented, undefined);
+    }
 });
 
 test('collection Delete replaces listeners, cleans up, and recovers after a failure', async () => {

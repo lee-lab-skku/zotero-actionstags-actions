@@ -50,16 +50,22 @@ See [Local link API](docs/action-links.md) for pairing, requests, responses, and
 
 ### Trash on Delete (`trashOnDelete.js`)
 
-- **Purpose**: Moves selected items to the library trash when pressing Delete in a collection's item list.
+- **Purpose**: Swaps Zotero's default Delete and Shift+Delete behavior in a collection's item list.
 - **Context**: Automatically installed when each Zotero main window loads.
 - **Features**:
   - Shows Zotero's normal trash confirmation and supports Undo, including selections across multiple collections.
   - Handles regular items, notes, and attachments using Zotero's permission checks.
-  - Applies only to plain Delete in the collection item list; text editing, modified keys, other views, and annotation selections retain their usual behavior.
-  - Disable this action in Actions & Tags to restore the usual collection removal behavior immediately.
+  - Applies to Delete and Shift+Delete in the collection item list; text editing, Ctrl/Alt/Meta combinations, other views, and annotation selections retain their usual behavior.
+
+| Actions & Tags Enable | Delete | Shift+Delete |
+| --- | --- | --- |
+| On | Move to library trash | Remove from collection; keep the item in the library |
+| Off (Zotero defaults) | Remove from collection | Move to library trash |
 
 After importing, restart Zotero to activate this action.
-Leave its shortcut field empty; the action handles Delete directly to prevent simultaneous collection removal.
+In Settings &rightarrow; Actions & Tags, use the **Enable** checkbox for **Move collection items to trash with Delete** to turn the swap on or off.
+Disabling takes effect immediately; enabling takes effect immediately if the action was already loaded in this window, otherwise restart Zotero after enabling it.
+Leave its shortcut field empty; the action handles both keys directly.
 
 ### Set Preferences (`setPreferences.js`)
 

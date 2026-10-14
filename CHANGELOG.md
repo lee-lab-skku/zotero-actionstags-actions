@@ -8,6 +8,11 @@ Dates use GitHub release publication dates where available; `2.4.0` and `2.4.1` 
 
 ## [Unreleased]
 
+### Changed
+
+- Trash on Delete now swaps both collection shortcuts: Delete moves items to the library trash, and Shift+Delete removes them from the collection.
+  Use the action's Enable checkbox in Actions & Tags to switch between swapped and default behavior.
+
 ### Removed
 
 - **Breaking:** Remove the legacy `tara.groupID` fallback during preference setup.

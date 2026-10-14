@@ -25,7 +25,7 @@ jobs:
         run: pip install PyYAML
         
       - name: Build YAML files
-        run: python build.py
+        run: python build.py --version "$GITHUB_REF_NAME"
         
       - name: Create release
         uses: softprops/action-gh-release@v2

@@ -1,9 +1,30 @@
 from pathlib import Path
+import argparse
 import json
+import re
+import subprocess
 import yaml
 from typing import Dict, Any
 
+parser = argparse.ArgumentParser(description='Build Actions & Tags backups.')
+parser.add_argument('--version', help='Explicit release tag; otherwise derive the build ID from Git.')
+args = parser.parse_args()
+if args.version is not None and not args.version.strip():
+    parser.error('--version must not be empty')
+
 root_dir = Path(__file__).resolve().parent
+build_version = args.version
+if build_version is None:
+    try:
+        build_version = subprocess.run(
+            ['git', 'describe', '--tags', '--long', '--dirty', '--always', '--match', 'v[0-9]*'],
+            cwd=root_dir, check=True, capture_output=True, text=True,
+        ).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        parser.error('Cannot derive a Git build ID; provide --version explicitly')
+    exact_tag = re.fullmatch(r'(.+)-0-g[0-9a-f]+', build_version)
+    if exact_tag:
+        build_version = exact_tag.group(1)
 dist_dir = root_dir / 'dist'
 src_dir = root_dir / 'src'
 meta_dir = root_dir / 'meta'
@@ -24,7 +45,14 @@ for meta in metas:
     if src.is_file():
         with open(src, 'r', encoding='utf-8') as f:
             src_code = f.read().strip()
+        if action == 'updateActions':
+            marker = "const INSTALLED_VERSION = 'dev';"
+            if src_code.count(marker) != 1:
+                raise ValueError('Missing or ambiguous updater version marker')
+            src_code = src_code.replace(marker, 'const INSTALLED_VERSION = ' + json.dumps(build_version) + ';', 1)
         meta_data['data'] = src_code
+        if action == 'updateActions':
+            meta_data['releaseVersion'] = build_version
     elif meta_data.get('operation') == 4:
         raise ValueError(f'Missing script for action: {action}')
 

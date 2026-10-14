@@ -1,7 +1,7 @@
 event: 8
 operation: 4
 shortcut: ''
-enabled: false
+enabled: true
 menu: Update custom actions
 name: Update actions
 showInMenu:

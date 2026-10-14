@@ -30,8 +30,11 @@ function environment() {
     // Match A&T 2.6.2's event-8 script inputs: require and triggerType, no item/items.
     const context = vm.createContext({});
     const AsyncFunction = vm.runInContext('Object.getPrototypeOf(async () => {}).constructor', context);
-    const run = (key, triggerType = 8) => new AsyncFunction('require', 'triggerType', source(key))(
-        name => ({ Zotero, Services })[name], triggerType);
+    const run = (key, triggerType = 8) => {
+        let body = source(key);
+        if (key === 'updateActions') body = body.replace('const INSTALLED_VERSION = null;', 'const INSTALLED_VERSION = "v1.0.0";');
+        return new AsyncFunction('require', 'triggerType', body)(name => ({ Zotero, Services })[name], triggerType);
+    };
     const manager = {
         getActions: () => ({ releaseVersion: 'v1.0.0', repository: 'example/actions' }),
         async dispatchActionByKey(key, args) {

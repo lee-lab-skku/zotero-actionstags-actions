@@ -1,5 +1,8 @@
 const Zotero = require('Zotero');
 const Services = require('Services');
+// Build-time provenance stays inside data, which A&T preserves when editing.
+const INSTALLED_VERSION = null;
+const SOURCE_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';
 
 // Startup scripts receive no item context. Filter menu follow-up calls at dispatch.
 const guardKey = 'updateActions';
@@ -20,7 +23,6 @@ if (typeof previousDispatch === 'function' && !previousDispatch[guardSymbol]) {
 if (guardState.running.has(guardKey)) return;
 guardState.running.add(guardKey);
 try {
-    const DEFAULT_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';
     const PREF_KEY = 'actionsTags.actions.versionTag';
     const PRERELEASE_KEY = 'actionsTags.actions.includePrereleases';
 
@@ -99,12 +101,11 @@ try {
     }
 
     const manager = Zotero.ActionsTags.api.actionManager;
-    const installed = manager.getActions('updateActions');
-    const repository = installed?.repository ?? DEFAULT_REPOSITORY;
+    const repository = SOURCE_REPOSITORY;
     if (typeof repository !== 'string' || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)
         || repository.split('/').some(part => part === '.' || part === '..'))
         throw new Error('Invalid source repository; expected GitHub owner/repo.');
-    const installedVersion = installed?.releaseVersion || Zotero.Prefs.get(PREF_KEY);
+    const installedVersion = INSTALLED_VERSION ?? Zotero.Prefs.get(PREF_KEY);
     const current = parseVersion(installedVersion);
     if (!current) return 'Installed version is unknown. Import a versioned YAML backup first.';
     const candidates = await findCandidates(repository, current, Zotero.Prefs.get(PRERELEASE_KEY) === true);

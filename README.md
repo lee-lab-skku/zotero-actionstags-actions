@@ -87,7 +87,8 @@ Leave its shortcut field empty; the action handles both keys directly.
 - **Purpose**: Check the installed source repository for newer releases and let the user choose one.
 - **Context**: Disabled by default. Enable it for startup checks; dispatch it manually in Actions & Tags or use **Tools → Update custom actions**.
 - **Features**:
-  - Reads the source from installed `repository` metadata; old imports use `lee-lab-skku/zotero-actionstags-actions` as the default.
+  - Uses version and source constants embedded in the updater code at build time, so A&T editor saves retain them.
+    Backup-root `version` and `repository` remain available for file inspection and validation; no custom action fields are required.
   - Shows a selection dialog only when an allowed release has a newer SemVer tag than the installed version.
   - Local Git build IDs are displayed intact, but comparison uses their base tag, ignoring commit distance, hash, and dirty state.
   - Lists all newer allowed releases, newest first, including intermediate releases. Drafts are excluded.

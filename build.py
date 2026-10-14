@@ -66,10 +66,16 @@ for meta in metas:
     if src.is_file():
         with open(src, 'r', encoding='utf-8') as f:
             src_code = f.read().strip()
-        meta_data['data'] = src_code
         if action == 'updateActions':
-            meta_data['releaseVersion'] = build_version
-            meta_data['repository'] = repository
+            for marker, value in [
+                ('const INSTALLED_VERSION = null;', build_version),
+                ("const SOURCE_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';", repository),
+            ]:
+                if src_code.count(marker) != 1:
+                    raise ValueError('Missing or ambiguous updater provenance marker: ' + marker)
+                declaration = marker.split(' = ', 1)[0]
+                src_code = src_code.replace(marker, declaration + ' = ' + json.dumps(value) + ';', 1)
+        meta_data['data'] = src_code
     elif meta_data.get('operation') == 4:
         raise ValueError(f'Missing script for action: {action}')
 

@@ -14,6 +14,8 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ### Changed
 
+- Embed updater version and source repository in script constants instead of custom action fields, so editing activation or menu settings in Actions & Tags retains this information.
+  Keep the backup-root `version` and `repository` fields unchanged.
 - Run global preference, update, and VPN menu commands once per selection, filtering item-level follow-up calls without changing other action dispatches.
   Suppress overlapping executions of the same command and release the guard after completion, cancellation, or failure.
 

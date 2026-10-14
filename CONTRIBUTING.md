@@ -16,9 +16,11 @@ git diff --check
 The build resolves paths relative to `build.py`, so it can run from another working directory.
 Use `python build.py --version <tag>` to embed a release tag in Update Actions for direct YAML/JSON installation.
 Without an explicit version, `python build.py` derives a Git build ID: a clean tagged commit uses its tag, and later commits use `<tag>-<distance>-g<hash>`, adding `-dirty` for tracked edits.
-The same ID is stored in the backup’s top-level `version` and Update Actions `releaseVersion` field; the updater reads its installed metadata through the action manager.
+The same ID is stored in the backup’s top-level `version` and the updater’s `INSTALLED_VERSION` code constant.
+The source is stored in the backup-root `repository` and the updater’s `SOURCE_REPOSITORY` constant.
+These values stay inside standard action `data`, which A&T preserves during editor saves; do not depend on custom action metadata.
 Without a reachable version tag, Git falls back to the commit hash; outside a Git checkout, pass `--version` explicitly.
-Use `--repository <owner/repo>` to identify the source in the backup root and updater metadata.
+Use `--repository <owner/repo>` to identify the source in the backup root and updater code.
 Local builds infer the source from a GitHub `origin` (HTTPS, scp-style SSH, or `ssh://`); without an origin they fall back to `lee-lab-skku/zotero-actionstags-actions`.
 For a non-GitHub origin, specify `--repository` explicitly.
 The release workflow passes its tag and `GITHUB_REPOSITORY` automatically.

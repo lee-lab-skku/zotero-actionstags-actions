@@ -5,10 +5,17 @@ const vm = require('node:vm');
 const { test } = require('node:test');
 
 function run(name, env, triggerType = 8) {
-    const source = fs.readFileSync(path.join(__dirname, '..', 'src', name + '.js'), 'utf8');
+    let source = fs.readFileSync(path.join(__dirname, '..', 'src', name + '.js'), 'utf8');
+    if (name === 'updateActions' && env.build) source = embed(source, env.build.version, env.build.repository);
     return new vm.Script(`(async () => {${source}\n})()`).runInNewContext({
         require: key => env[key], triggerType,
     });
+}
+
+function embed(source, version, repository) {
+    return source.replace('const INSTALLED_VERSION = null;', `const INSTALLED_VERSION = ${JSON.stringify(version)};`)
+        .replace("const SOURCE_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';",
+            `const SOURCE_REPOSITORY = ${JSON.stringify(repository)};`);
 }
 
 const repository = 'example-lab/actions';
@@ -23,7 +30,8 @@ function release(tag, options = {}) {
 function environment({ current = 'v1.0.0', releases = [release('v2.0.0')], pages,
     prereleases = false, choice = 0, cancel = false, failKey, backup } = {}) {
     const prefs = new Map([[preference, prereleases], ['actionsTags.actions.versionTag', 'v0.9.0']]);
-    const installed = new Map([['updateActions', { releaseVersion: current, repository, enabled: false, shortcut: 'mine' }]]);
+    const updaterSource = fs.readFileSync(path.join(__dirname, '..', 'src/updateActions.js'), 'utf8');
+    const installed = new Map([['updateActions', { data: embed(updaterSource, current, repository), enabled: false, shortcut: 'mine' }]]);
     const requests = [], prompts = [], writes = [];
     const Zotero = {
         Prefs: { get: key => prefs.get(key), set: (key, value) => prefs.set(key, value) },
@@ -42,7 +50,7 @@ function environment({ current = 'v1.0.0', releases = [release('v2.0.0')], pages
                 return { response: pages ? pages[Number(parsed.searchParams.get('page')) - 1] || [] : releases };
             const tag = parsed.pathname.split('/').at(-2);
             return { response: backup || { type: 'ActionsTagsBackup', version: tag, repository, actions: {
-                updateActions: { event: 8, operation: 4, data: 'return;', releaseVersion: tag, repository },
+                updateActions: { event: 8, operation: 4, data: embed(updaterSource, tag, repository) },
                 first: { event: 0, operation: 4, data: 'return;' },
             } } };
         } },
@@ -54,7 +62,7 @@ function environment({ current = 'v1.0.0', releases = [release('v2.0.0')], pages
         selected.value = choice;
         return !cancel;
     } } };
-    return { Zotero, Services, prefs, installed, requests, prompts, writes };
+    return { Zotero, Services, prefs, installed, requests, prompts, writes, build: { version: current, repository } };
 }
 
 test('startup and manual dispatch stay quiet for equal/older tags and local Git builds', async () => {
@@ -86,7 +94,7 @@ test('dialog lists all intervening allowed versions and installs the chosen inte
     assert.deepEqual(env.prompts[0].choices, ['Not now', 'v2.0.0-beta.1 (prerelease)',
         'v1.2.0 (stable)', 'v1.1.0 (stable)']);
     assert.match(env.prompts[0].message, /Installed: v1.0.0/);
-    assert.equal(env.installed.get('updateActions').releaseVersion, 'v1.1.0');
+    assert.ok(env.installed.get('updateActions').data.includes('const INSTALLED_VERSION = "v1.1.0";'));
     assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v1.1.0');
     assert.equal(env.installed.get('updateActions').enabled, false);
     assert.equal(env.installed.get('updateActions').shortcut, 'mine');
@@ -147,15 +155,15 @@ test('mismatched backup provenance/version fails before writes', async () => {
     }
 });
 
-test('partial write failure leaves updater metadata and success record unchanged', async () => {
+test('partial write failure leaves installed updater code and success record unchanged', async () => {
     const env = environment({ choice: 1, failKey: 'second', backup: { type: 'ActionsTagsBackup', actions: {
-        updateActions: { event: 8, operation: 4, data: 'return;', releaseVersion: 'v2.0.0' },
+        updateActions: { event: 8, operation: 4, data: 'return;' },
         first: { event: 0, operation: 4, data: 'return;' },
         second: { event: 0, operation: 4, data: 'return;' },
     } } });
     await assert.rejects(run('updateActions', env), /write failed/);
     assert.deepEqual(env.writes, ['first']);
-    assert.equal(env.installed.get('updateActions').releaseVersion, 'v1.0.0');
+    assert.ok(env.installed.get('updateActions').data.includes('const INSTALLED_VERSION = "v1.0.0";'));
     assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v0.9.0');
 });
 

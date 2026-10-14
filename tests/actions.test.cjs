@@ -13,7 +13,12 @@ async function run(name, globals, args = {}) {
         },
         item: null, items: [], collection: false, ...args,
     });
-    return new vm.Script(`(async () => {${fs.readFileSync(path.join(sourceDir, name + '.js'), 'utf8')}\n})()`)
+    let source = fs.readFileSync(path.join(sourceDir, name + '.js'), 'utf8');
+    if (name === 'updateActions' && globals.build)
+        source = source.replace('const INSTALLED_VERSION = null;', `const INSTALLED_VERSION = ${JSON.stringify(globals.build.version)};`)
+            .replace("const SOURCE_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';",
+                `const SOURCE_REPOSITORY = ${JSON.stringify(globals.build.repository)};`);
+    return new vm.Script(`(async () => {${source}\n})()`)
         .runInContext(context);
 }
 
@@ -313,13 +318,13 @@ function updateEnvironment({ invalid = false, fail = false, previousTag } = {}) 
         ? [{ tag_name: 'v2.0.0', assets: [{ name: 'actions-zotero.json', browser_download_url: 'https://github.com/lee-lab-skku/zotero-actionstags-actions/releases/download/v2.0.0/actions-zotero.json' }] }]
         : backup }) };
     env.Zotero.ActionsTags = { api: { actionManager: {
-        getActions: key => ({ enabled: false, shortcut: 'user', ...(key === 'updateActions' ? { releaseVersion: previousTag || 'v1.0.0' } : {}) }),
+        getActions: () => ({ enabled: false, shortcut: 'user' }),
         updateAction: async (action, key) => {
             if (fail && key === 'second') throw new Error('write failed');
             changes.push(action);
         },
     } } };
-    return { ...env, changes };
+    return { ...env, changes, build: { version: previousTag || 'v1.0.0', repository: 'lee-lab-skku/zotero-actionstags-actions' } };
 }
 
 test('updater applies initial updates and preserves user enable/shortcut choices', async () => {
@@ -331,12 +336,10 @@ test('updater applies initial updates and preserves user enable/shortcut choices
     assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v2.0.0');
 });
 
-test('updater follows the installed source repository including other owners', async () => {
+test('updater follows the embedded source repository including other owners', async () => {
     const env = updateEnvironment();
     const repository = 'example-lab/custom-actions';
-    const manager = env.Zotero.ActionsTags.api.actionManager;
-    const getActions = manager.getActions;
-    manager.getActions = key => key === 'updateActions' ? { ...getActions(key), repository } : getActions(key);
+    env.build.repository = repository;
     const request = env.Zotero.HTTP.request;
     const urls = [];
     env.Zotero.HTTP.request = async (method, url) => {
@@ -354,7 +357,7 @@ test('updater follows the installed source repository including other owners', a
 
 test('updater rejects malformed source paths before HTTP', async () => {
     const env = updateEnvironment();
-    env.Zotero.ActionsTags.api.actionManager.getActions = () => ({ repository: '../actions' });
+    env.build.repository = '../actions';
     env.Zotero.HTTP.request = () => assert.fail('Malformed repository must not be contacted');
     await assert.rejects(run('updateActions', env), /expected GitHub owner\/repo/);
     assert.equal(env.changes.length, 0);

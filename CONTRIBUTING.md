@@ -17,7 +17,7 @@ CI runs these checks on Ubuntu 24.04 with Python 3.12 and Node.js 22 for branch 
 Tag releases call the same test workflow and publish only after it succeeds; tests and release builds check out the triggering commit SHA.
 Tag pushes do not start a second standalone test run.
 Superseded branch/PR test runs are cancelled, while release runs are serialized per tag without cancelling an active release.
-External actions are pinned to release commit SHAs.
+External actions use major version tags to receive compatible updates.
 
 The build resolves paths relative to `build.py`, so it can run from another working directory.
 Use `python build.py --version <tag>` to embed a release tag in Update Actions for direct YAML/JSON installation.

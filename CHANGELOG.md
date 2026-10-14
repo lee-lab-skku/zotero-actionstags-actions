@@ -12,6 +12,19 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ## [Unreleased]
 
+## [3.0.0-beta.4] &mdash; 2026-10-14
+
+### Added
+
+- Version and source repository metadata in generated YAML/JSON backups, both at the file root and inside Update Actions.
+- A prerelease opt-in question in Set preferences.
+  Startup remembers the choice.
+
+### Changed
+
+- Update Actions now offers an interactive selection only when an aligned release has a newer SemVer tag than the installed base tag.
+- Fetch releases from the installed source repository and apply the selected JSON backup after validation.
+
 ## [3.0.0-beta.3] &mdash; 2026-10-14
 
 ### Changed
@@ -148,7 +161,8 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - YAML backup generation and tag-triggered release builds.
 - Optional `/unread` tagging actions, disabled by default.
 
-[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.3...main
+[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.4...main
+[3.0.0-beta.4]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.3...v3.0.0-beta.4
 [3.0.0-beta.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.2...v3.0.0-beta.3
 [3.0.0-beta.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.1...v3.0.0-beta.2
 [3.0.0-beta.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.6.0...v3.0.0-beta.1

@@ -1,95 +1,6 @@
 const assert = require('node:assert/strict');
 const { test } = require('node:test');
-const fs = require('node:fs');
-const path = require('node:path');
-const vm = require('node:vm');
-const http = require('node:http');
-
-async function run(name, env, args = {}) {
-    const context = vm.createContext({
-        require: key => env[key], item: null, items: [], collection: false,
-        triggerType: 'menu', ...args,
-    });
-    const script = fs.readFileSync(path.join(__dirname, '../src', name + '.js'), 'utf8');
-    return new vm.Script(`(async () => {${script}\n})()`).runInContext(context);
-}
-
-function environment() {
-    const prefs = new Map();
-    const actions = Object.fromEntries(['linkBridge', 'copySelectionLink', 'copyAnnotationLink', 'copyNoteLink']
-        .map(key => [key, { enabled: true }]));
-    const copied = [];
-    const calls = [];
-    const errors = [];
-    const shutdown = [];
-    const library = id => id === 7 ? { libraryType: 'user' }
-        : id === 24 ? { libraryType: 'group', groupID: 100 } : false;
-    const make = (id, key, kind, libraryID = 7) => ({
-        id, key, libraryID, library: library(libraryID), deleted: false,
-        isRegularItem: () => kind === 'regular', isAttachment: () => kind === 'pdf',
-        isPDFAttachment: () => kind === 'pdf', isAnnotation: () => kind === 'annotation',
-        isNote: () => kind === 'note', getCollections: () => [20],
-        getField: field => field === 'citationKey' && kind === 'regular' ? 'Smith26' : 'Title < & >',
-    });
-    const parent = make(1, 'ITEM0001', 'regular');
-    const pdf = make(2, 'PDF00001', 'pdf'); pdf.parentItem = parent;
-    const annotation = make(3, 'ANN00001', 'annotation'); annotation.parentItem = pdf;
-    annotation.annotationPosition = JSON.stringify({ pageIndex: 2 });
-    annotation.annotationText = 'a < b & c';
-    const note = make(4, 'NOTE0001', 'note'); note.parentItem = parent;
-    const groupItem = make(5, 'ITEM0001', 'regular', 24);
-    const targets = [parent, pdf, annotation, note, groupItem];
-    const collection = { id: 20, key: 'COLL0001', libraryID: 7 };
-    class ClipboardHelper {
-        addText(text, type) { copied.push([type, text]); }
-        copy() { copied.push('copy'); }
-    }
-    const Zotero = {
-        Prefs: { get: key => prefs.get(key), set: (key, value) => prefs.set(key, value) },
-        Server: { Endpoints: {} }, Libraries: { userLibraryID: 7, get: library },
-        Groups: { get: id => id === 100 ? { libraryID: 24 } : false },
-        Items: {
-            getByLibraryAndKeyAsync: async (id, key) => targets.find(item => item.libraryID === id && item.key === key),
-            getTopLevel: items => items.map(item => item.parentItem?.parentItem || item.parentItem || item),
-        },
-        Collections: { getByLibraryAndKey: (id, key) => id === 7 && key === collection.key ? collection : false },
-        getActiveZoteroPane: () => ({ getSelectedCollections: () => [collection], getCollectionTreeRows: () => [collection] }),
-        getMainWindow: () => ({ Zotero_Tabs: { selectedType: 'library' } }),
-        BetterNotes: { api: { convert: { note2link: target => 'zotero://note/u/' + target.key } } },
-        addShutdownListener: callback => shutdown.push(callback),
-        logError: error => errors.push(error),
-        ActionsTags: { api: { utils: { ClipboardHelper }, actionManager: {
-            getActions: key => actions[key],
-            // Mirrors applyAction: no returned result, exceptions caught by the plugin.
-            dispatchActionByKey: async (key, args) => {
-                calls.push([key, args]);
-                const item = targets.find(target => target.id === args.itemID) || null;
-                const items = (args.itemIDs || []).map(id => targets.find(target => target.id === id));
-                try {
-                    await run(key, env, { item, items, collection: args.collectionID ? collection : false,
-                        triggerType: args.triggerType });
-                } catch (error) { errors.push(error); }
-            },
-        } } },
-    };
-    const env = { Zotero, Services: { uuid: { generateUUID: () => '{00112233-4455-6677-8899-aabbccddeeff}' } },
-        actions, targets, collection, copied, calls, errors, prefs, shutdown };
-    return env;
-}
-async function start() {
-    const env = environment();
-    await run('linkBridge', env);
-    env.request = async (data, headers = {}) => {
-        const Endpoint = env.Zotero.Server.Endpoints['/action-links'];
-        const [status, contentType, text] = await new Endpoint().init({
-            data, headers: { 'x-action-link-token': env.prefs.get('actionsTags.actions.linkBridgeToken'), ...headers },
-        });
-        assert.equal(contentType, 'application/json');
-        return { status, ...JSON.parse(text) };
-    };
-    return env;
-}
-const selection = { action: 'copySelectionLink', library: { type: 'user' }, itemKeys: ['ITEM0001'] };
+const { run, start, selection } = require('../support/link-bridge.cjs');
 
 test('agent selection uses API once, returns raw labels and escaped HTML, and leaves clipboard/UI untouched', async () => {
     const env = await start();
@@ -121,7 +32,7 @@ test('annotation and note links preserve page, parent labels, escaping, and per-
     assert.equal(annotation.links[0].label, 'a < b & c... (Smith26)');
     assert.match(annotation.links[0].html, /a &lt; b &amp; c/);
     const note = await env.request({ ...selection, action: 'copyNoteLink', itemKeys: ['NOTE0001'] });
-    assert.equal(note.links[0].uri, 'zotero://note/u/NOTE0001');
+    assert.equal(note.links[0].uri, 'zotero://note/u/NOTE0001/');
     assert.equal(note.links[0].label, 'Title < & > (Smith26)');
     assert.match(note.links[0].html, /Title &lt; &amp; &gt;/);
     assert.equal(env.calls[0][1].itemID, 3);
@@ -223,24 +134,80 @@ test('startup reuses the token and shutdown listener, replaces its endpoint, and
     assert.ok(env.Zotero.Server.Endpoints['/other']);
 });
 
-test('HTTP client receives the endpoint JSON contract through a real socket with a return-dropping dispatcher', async t => {
+
+test('request validation distinguishes library, collection and item lookup failures before dispatch', async () => {
     const env = await start();
-    const Endpoint = env.Zotero.Server.Endpoints['/action-links'];
-    const server = http.createServer(async (req, res) => {
-        let body = '';
-        for await (const chunk of req) body += chunk;
-        const [status, type, text] = await new Endpoint().init({ headers: req.headers, data: JSON.parse(body) });
-        res.writeHead(status, { 'content-type': type }); res.end(text);
-    });
-    await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-    t.after(() => new Promise(resolve => server.close(resolve)));
-    const reply = await fetch(`http://127.0.0.1:${server.address().port}/action-links`, {
-        method: 'POST', headers: { 'content-type': 'application/json',
-            'x-action-link-token': env.prefs.get('actionsTags.actions.linkBridgeToken') },
-        body: JSON.stringify(selection),
-    });
-    assert.equal(reply.status, 200);
-    const result = await reply.json();
-    assert.equal(result.links[0].uri, 'zotero://select/library/items/ITEM0001');
-    assert.deepEqual(env.copied, []);
+    for (const library of [{ type: 'user', id: 7 }, { type: 'group', id: '100' },
+        { type: 'group', id: 0 }, { type: 'group', id: 1.5 }, { type: 'group', id: Number.MAX_SAFE_INTEGER + 1 }]) {
+        const result = await env.request({ ...selection, library });
+        assert.equal(result.status, 400); assert.equal(result.error.code, 'INVALID_LIBRARY');
+    }
+    for (const itemKeys of [['lowercas'], [3], ['ITEM0001', 'bad']]) {
+        const result = await env.request({ ...selection, itemKeys });
+        assert.equal(result.status, 400); assert.equal(result.error.code, 'INVALID_REQUEST');
+    }
+    assert.equal((await env.request({ ...selection, collectionKey: 'bad' })).error.code, 'INVALID_COLLECTION');
+    assert.equal((await env.request({ ...selection, collectionKey: 'MISSING1' })).error.code, 'COLLECTION_NOT_FOUND');
+    env.collection.deleted = true;
+    assert.equal((await env.request({ ...selection, collectionKey: 'COLL0001' })).error.code, 'COLLECTION_NOT_FOUND');
+    assert.deepEqual(env.calls, []);
+});
+
+test('malformed action results return structured errors and permit a later request', async () => {
+    const env = await start();
+    const manager = env.Zotero.ActionsTags.api.actionManager;
+    const original = manager.dispatchActionByKey;
+    for (const links of [null, [], [null], [{ uri: 'x', label: 'x' }], [{ uri: 3, label: 'x', html: 'x' }]]) {
+        manager.dispatchActionByKey = async key => {
+            env.Zotero.ActionLinkBridge.capture(key, null, [env.targets[0]], null, 'unknown').complete(links);
+        };
+        const result = await env.request(selection);
+        assert.equal(result.status, 500); assert.equal(result.error.code, 'INVALID_RESULT');
+        assert.equal(env.Zotero.ActionLinkBridge.active, null);
+    }
+    manager.dispatchActionByKey = original;
+    assert.equal((await env.request(selection)).status, 200);
+});
+
+test('unexpected Zotero lookup errors are logged and do not leak details or block retries', async () => {
+    const env = await start();
+    const original = env.Zotero.Items.getByLibraryAndKeyAsync;
+    const failure = Error('private database path');
+    env.Zotero.Items.getByLibraryAndKeyAsync = async () => { throw failure; };
+    const result = await env.request(selection);
+    assert.equal(result.status, 500); assert.equal(result.error.code, 'ACTION_FAILED');
+    assert.ok(!result.error.message.includes('private database path'));
+    assert.deepEqual(env.errors, [failure]);
+    env.Zotero.Items.getByLibraryAndKeyAsync = original;
+    assert.equal((await env.request(selection)).status, 200);
+});
+
+test('replacing a bridge during dispatch rejects the old request and leaves the replacement usable', async () => {
+    const env = await start();
+    const original = env.Zotero.ActionsTags.api.actionManager.dispatchActionByKey;
+    let resume, entered;
+    const waiting = new Promise(resolve => { entered = resolve; });
+    env.Zotero.ActionsTags.api.actionManager.dispatchActionByKey = async (...args) => {
+        entered(); await new Promise(resolve => { resume = resolve; }); await original(...args);
+    };
+    const request = env.request(selection);
+    await waiting;
+    await run('linkBridge', env);
+    resume();
+    const result = await request;
+    assert.equal(result.status, 503); assert.equal(result.error.code, 'BRIDGE_UNAVAILABLE');
+    env.Zotero.ActionsTags.api.actionManager.dispatchActionByKey = original;
+    assert.equal((await env.request(selection)).status, 200);
+});
+
+test('bridge startup fails clearly when Zotero has no local server', async () => {
+    await assert.rejects(run('linkBridge', { Zotero: {}, Services: {} }), /local HTTP server is unavailable/);
+});
+
+test('Better Notes converter failures become action errors with no clipboard or partial links', async () => {
+    const env = await start();
+    env.Zotero.BetterNotes.api.convert.note2link = async () => { throw Error('converter failed'); };
+    const result = await env.request({ ...selection, action: 'copyNoteLink', itemKeys: ['NOTE0001'] });
+    assert.equal(result.status, 422); assert.equal(result.error.code, 'ACTION_FAILED');
+    assert.equal(result.links, undefined); assert.deepEqual(env.copied, []);
 });

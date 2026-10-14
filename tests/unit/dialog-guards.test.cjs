@@ -1,7 +1,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const vm = require('node:vm');
+const { compileAction } = require('../support/action-runner.cjs');
 const { test } = require('node:test');
 
 function environment() {
@@ -26,14 +26,12 @@ function environment() {
         select: () => { counts.selection++; return false; },
     } };
     const originals = [];
-    const source = key => fs.readFileSync(path.join(__dirname, '..', 'src', key + '.js'), 'utf8');
+    const source = key => fs.readFileSync(path.join(__dirname, '../..', 'src', key + '.js'), 'utf8');
     // Match A&T 2.6.2's event-8 script inputs: require and triggerType, no item/items.
-    const context = vm.createContext({});
-    const AsyncFunction = vm.runInContext('Object.getPrototypeOf(async () => {}).constructor', context);
     const run = (key, triggerType = 8) => {
         let body = source(key);
         if (key === 'updateActions') body = body.replace('const INSTALLED_VERSION = null;', 'const INSTALLED_VERSION = "v1.0.0";');
-        return new AsyncFunction('require', 'triggerType', body)(name => ({ Zotero, Services })[name], triggerType);
+        return compileAction(key, body)({ Zotero, Services }, { triggerType });
     };
     const manager = {
         getActions: () => ({ releaseVersion: 'v1.0.0', repository: 'example/actions' }),

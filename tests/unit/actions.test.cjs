@@ -2,24 +2,17 @@ const assert = require('node:assert/strict');
 const { test } = require('node:test');
 const fs = require('node:fs');
 const path = require('node:path');
+const { compileAction } = require('../support/action-runner.cjs');
 const vm = require('node:vm');
 
-const sourceDir = path.join(__dirname, '..', 'src');
+const sourceDir = path.join(__dirname, '../..', 'src');
 async function run(name, globals, args = {}) {
-    const context = vm.createContext({
-        require: key => {
-            assert.ok(key in globals, `Unexpected global: ${key}`);
-            return globals[key];
-        },
-        item: null, items: [], collection: false, ...args,
-    });
     let source = fs.readFileSync(path.join(sourceDir, name + '.js'), 'utf8');
     if (name === 'updateActions' && globals.build)
         source = source.replace('const INSTALLED_VERSION = null;', `const INSTALLED_VERSION = ${JSON.stringify(globals.build.version)};`)
             .replace("const SOURCE_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';",
                 `const SOURCE_REPOSITORY = ${JSON.stringify(globals.build.repository)};`);
-    return new vm.Script(`(async () => {${source}\n})()`)
-        .runInContext(context);
+    return compileAction(name, source)(globals, args);
 }
 
 function deleteEnvironment() {
@@ -319,9 +312,10 @@ function updateEnvironment({ invalid = false, fail = false, previousTag } = {}) 
         : backup }) };
     env.Zotero.ActionsTags = { api: { actionManager: {
         getActions: () => ({ enabled: false, shortcut: 'user' }),
-        updateAction: async (action, key) => {
+        updateAction: (action, key) => {
             if (fail && key === 'second') throw new Error('write failed');
             changes.push(action);
+            return key;
         },
     } } };
     return { ...env, changes, build: { version: previousTag || 'v1.0.0', repository: 'lee-lab-skku/zotero-actionstags-actions' } };
@@ -411,4 +405,287 @@ test('update download failure and unavailable JSON never change installed action
         assert.equal(env.changes.length, 0);
         assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v1.0.0');
     }
+});
+
+// Expected URIs follow Zotero's protocol handlers; see tests/API-contracts.md.
+test('selection labels fall back from citation key to title to item key across libraries', async () => {
+    const env = linkEnvironment();
+    const make = (id, key, libraryID, fields) => linkItem({ id, key, libraryID,
+        getField: field => fields[field] || '' });
+    await run('copySelectionLink', env, { items: [
+        make(1, 'USER0001', 7, { citationKey: 'Cite"<&', title: 'Unused' }),
+        make(2, 'GROUP001', 8, { title: 'Group "<&' }),
+        make(3, 'EMPTY001', 7, {}),
+    ] });
+    assert.deepEqual(env.copied, [
+        ['text/unicode', 'zotero://select/library/items/USER0001\nzotero://select/groups/100/items/GROUP001\nzotero://select/library/items/EMPTY001'],
+        ['text/html', '<a href="zotero://select/library/items/USER0001">Cite&quot;&lt;&amp;</a><br><a href="zotero://select/groups/100/items/GROUP001">Group &quot;&lt;&amp;</a><br><a href="zotero://select/library/items/EMPTY001">EMPTY001</a>'],
+        ['copy'],
+    ]);
+});
+
+test('selection without an active pane or main window still copies library-scoped links', async () => {
+    for (const absent of ['pane', 'window']) {
+        const env = linkEnvironment();
+        if (absent === 'pane') env.Zotero.getActiveZoteroPane = () => null;
+        else env.Zotero.getMainWindow = () => null;
+        await run('copySelectionLink', env, { items: [linkItem()] });
+        assert.equal(env.copied[0][1], 'zotero://select/library/items/ITEM');
+    }
+});
+
+function annotationItem(libraryType = 'user', standalone = false) {
+    const top = linkItem({ key: 'TOP00001', getField: field => field === 'title' ? 'PDF title <&' : '' });
+    const pdf = { key: 'PDF00001', isPDFAttachment: () => true,
+        isRegularItem: () => false, getField: field => field === 'title' ? 'Standalone PDF' : '',
+        ...(standalone ? {} : { parentItem: top }) };
+    return { key: 'ANN00001', libraryID: libraryType === 'user' ? 7 : 8,
+        library: { libraryType }, isAnnotation: () => true, parentItem: pdf,
+        annotationPosition: '{"pageIndex":0}',
+        annotationText: 'one two three four five six seven eight nine <&' };
+}
+function topLevel(items) {
+    return [...new Set(items.map(item => {
+        while (item.parentItem) item = item.parentItem;
+        return item;
+    }))];
+}
+
+test('PDF clipboard links use one-based pages, group IDs and top-level labels', async () => {
+    for (const [kind, standalone, scope, label] of [
+        ['user', false, 'library', 'PDF title &lt;&amp;'],
+        ['group', false, 'groups/100', 'PDF title &lt;&amp;'],
+        ['user', true, 'library', 'Standalone PDF'],
+    ]) {
+        const env = linkEnvironment();
+        env.Zotero.Items = { getTopLevel: topLevel };
+        await run('copyAnnotationLink', env, { item: annotationItem(kind, standalone) });
+        const uri = `zotero://open-pdf/${scope}/items/PDF00001?page=1&annotation=ANN00001`;
+        assert.deepEqual(env.copied, [['text/unicode', uri],
+            ['text/html', `<a href="${uri}">one two three four five six seven eight... (${label})</a>`], ['copy']]);
+    }
+});
+
+test('annotations reject absent/non-PDF parents and non-integer page indices without copying', async () => {
+    const env = linkEnvironment();
+    assert.equal(await run('copyAnnotationLink', env), undefined);
+    for (const parentItem of [undefined, { isPDFAttachment: () => false }])
+        assert.match(await run('copyAnnotationLink', env, { item: { ...annotationItem(), parentItem } }), /Select an annotation/);
+    for (const pageIndex of [0.5, '1', null])
+        assert.match(await run('copyAnnotationLink', env, { item: {
+            ...annotationItem(), annotationPosition: JSON.stringify({ pageIndex }) } }), /valid PDF page/);
+    assert.equal(env.copied.length, 0);
+});
+
+test('annotation empty previews fall back to the top-level item key', async () => {
+    const env = linkEnvironment();
+    const item = annotationItem();
+    item.annotationText = '';
+    item.parentItem.parentItem.getField = () => '';
+    env.Zotero.Items = { getTopLevel: topLevel };
+    await run('copyAnnotationLink', env, { item });
+    assert.match(env.copied[1][1], />\.\.\. \(TOP00001\)<\/a>$/);
+});
+
+test('note actions reject non-notes and a missing Better Notes API without clipboard writes', async () => {
+    const env = linkEnvironment();
+    assert.equal(await run('copyNoteLink', env), undefined);
+    assert.match(await run('copyNoteLink', env, { item: { isNote: () => false } }), /not a note/);
+    assert.match(await run('copyNoteLink', env, { item: { isNote: () => true } }), /not detected/);
+    assert.equal(env.copied.length, 0);
+});
+
+test('Better Notes supplies the URI unchanged and parent citation keys only decorate labels', async () => {
+    const env = linkEnvironment();
+    const note = { isNote: () => true, parentItem: linkItem({ getField: () => 'Parent26' }),
+        getField: () => 'A "quoted" note <&' };
+    const uri = 'zotero://note/8/NOTE0001/?line=4&section=Intro';
+    env.Zotero.Items = { getTopLevel: topLevel };
+    env.Zotero.BetterNotes = { api: { convert: { note2link: async received => {
+        assert.equal(received, note); return uri;
+    } } } };
+    await run('copyNoteLink', env, { item: note });
+    assert.deepEqual(env.copied, [['text/unicode', uri], ['text/html',
+        '<a href="zotero://note/8/NOTE0001/?line=4&amp;section=Intro">A &quot;quoted&quot; note &lt;&amp; (Parent26)</a>'], ['copy']]);
+});
+
+test('menu copy failures propagate to the A&T error handler', async () => {
+    for (const name of ['copySelectionLink', 'copyAnnotationLink', 'copyNoteLink']) {
+        const env = linkEnvironment();
+        const failure = new Error('clipboard unavailable');
+        env.Zotero.ActionsTags.api.utils.ClipboardHelper = class {
+            addText() {} copy() { throw failure; }
+        };
+        env.Zotero.Items = { getTopLevel: topLevel };
+        env.Zotero.BetterNotes = { api: { convert: { note2link: () => 'zotero://note/u/NOTE0001/' } } };
+        const args = name === 'copySelectionLink' ? { items: [linkItem()] }
+            : { item: name === 'copyAnnotationLink' ? annotationItem()
+                : { isNote: () => true, isRegularItem: () => false, getField: () => 'Note' } };
+        await assert.rejects(run(name, env, args), error => error === failure);
+    }
+});
+
+function reviewEnvironment({ date = [2026, 11, 31, 23, 59], selected = 0, cancel = false } = {}) {
+    const env = prefsEnvironment({ 'actionsTags.actions.groupID': 100,
+        'actionsTags.actions.reviewCollectionKey': 'REVIEW', 'actionsTags.actions.reviewerName': ' Reviewer ' });
+    env.Zotero.Groups = { get: () => ({ libraryID: 8 }) };
+    env.Zotero.Collections = { getByLibraryAndKey: () => ({ id: 10 }) };
+    const saved = [], prompts = [];
+    env.Zotero.Item = class {
+        constructor(type) { assert.equal(type, 'note'); }
+        setNote(html) { this.html = html; }
+        async saveTx() { saved.push(this); }
+    };
+    env.Services = { prompt: { select: (win, title, message, choices, result) => {
+        prompts.push([...choices]); result.value = selected; return !cancel;
+    } } };
+    class LocalDate extends Date {
+        constructor(...args) { super(...(args.length ? args : date)); }
+        toISOString() { assert.fail('Review dates must remain local'); }
+    }
+    const item = { id: 12, libraryID: 8, isRegularItem: () => true,
+        isEditable: () => true, getCollections: () => [10] };
+    return { ...env, saved, prompts, item, Date: LocalDate };
+}
+
+test('review notes avoid prompts and writes for ineligible items or incomplete setup', async () => {
+    const changes = [
+        env => { env.item = null; }, env => { env.item.isRegularItem = () => false; },
+        env => { env.item.deleted = true; }, env => { env.Zotero.Groups.get = () => false; },
+        env => { env.prefs.delete('actionsTags.actions.reviewCollectionKey'); },
+        env => { env.Zotero.Collections.getByLibraryAndKey = () => false; },
+        env => { env.item.getCollections = () => [11]; }, env => { env.item.isEditable = () => false; },
+        env => { env.prefs.set('actionsTags.actions.reviewerName', '   '); },
+    ];
+    for (const change of changes) {
+        const env = reviewEnvironment(); change(env);
+        await run('reviewNote', env, { item: env.item, Date: env.Date });
+        assert.deepEqual(env.saved, []); assert.deepEqual(env.prompts, []);
+    }
+});
+
+test('review date cancellation and invalid selection never create a note', async () => {
+    for (const options of [{ cancel: true }, { selected: -1 }, { selected: 15 }]) {
+        const env = reviewEnvironment(options);
+        await run('reviewNote', env, { item: env.item, Date: env.Date });
+        assert.equal(env.prompts.length, 1); assert.deepEqual(env.saved, []);
+    }
+});
+
+test('review date choices cross local year and leap-day boundaries', async () => {
+    for (const [date, selected, firstChoices, title] of [
+        [[2026, 11, 31, 23, 59], 1, ['12-31', '01-01', '01-02'], '270101 Reviewer'],
+        [[2028, 1, 28, 0, 1], 2, ['02-28', '02-29', '03-01'], '280301 Reviewer'],
+    ]) {
+        const env = reviewEnvironment({ date, selected });
+        await run('reviewNote', env, { item: env.item, Date: env.Date });
+        assert.deepEqual(env.prompts[0].slice(0, 3), firstChoices);
+        assert.equal(env.saved.length, 1); assert.equal(env.saved[0].html, `<h1>${title}</h1>`);
+        assert.equal(env.saved[0].libraryID, 8); assert.equal(env.saved[0].parentID, 12);
+    }
+});
+
+test('review transaction failures propagate instead of reporting success', async () => {
+    const env = reviewEnvironment();
+    env.Zotero.Item.prototype.saveTx = async () => { throw Error('transaction failed'); };
+    await assert.rejects(run('reviewNote', env, { item: env.item, Date: env.Date }), /transaction failed/);
+    assert.deepEqual(env.saved, []);
+});
+
+function setupEnvironment() {
+    const env = prefsEnvironment({ 'actionsTags.actions.includePrereleases': false,
+        'actionsTags.actions.groupID': 999, 'actionsTags.actions.reviewCollectionKey': 'STALE' });
+    const group = { id: 100, libraryID: 8, name: 'Organization' };
+    const collection = { key: 'REVIEW', name: 'Review' };
+    env.Zotero.Groups = { get: id => id === 100 ? group : false, getAll: () => [group] };
+    env.Zotero.Collections = { getByLibrary: (id, recursive) => {
+        assert.equal(id, 8); assert.equal(recursive, true); return [collection];
+    }, getByLibraryAndKey: (id, key) => id === 8 && key === 'REVIEW' ? collection : false };
+    const prompts = [];
+    env.Services = { prompt: {
+        select: (win, title, message, choices, result) => { prompts.push(title); result.value = 0; return true; },
+        prompt: (win, title, message, result) => { prompts.push(title); result.value = ' Reviewer '; return true; },
+    } };
+    return { ...env, prompts };
+}
+
+test('preference setup replaces stale groups and collections using library-scoped APIs', async () => {
+    const env = setupEnvironment();
+    await run('setPreferences', env, { triggerType: 8 });
+    assert.deepEqual(env.prompts, ['Organization', 'Review', 'Name']);
+    assert.equal(env.prefs.get('actionsTags.actions.groupID'), 100);
+    assert.equal(env.prefs.get('actionsTags.actions.reviewCollectionKey'), 'REVIEW');
+    assert.equal(env.prefs.get('actionsTags.actions.reviewerName'), 'Reviewer');
+});
+
+test('preference setup respects group/collection/name cancellation and invalid choices', async () => {
+    for (const stop of ['Organization', 'Review', 'Name', 'invalid-group', 'invalid-collection', 'blank-name']) {
+        const env = setupEnvironment();
+        const select = env.Services.prompt.select;
+        env.Services.prompt.select = (...args) => {
+            const title = args[1];
+            if (title === stop) return false;
+            const accepted = select(...args);
+            if ((stop === 'invalid-group' && title === 'Organization')
+                || (stop === 'invalid-collection' && title === 'Review')) args[4].value = 99;
+            return accepted;
+        };
+        env.Services.prompt.prompt = (win, title, message, result) => {
+            if (stop === 'Name') return false;
+            result.value = stop === 'blank-name' ? '  ' : 'Reviewer'; return true;
+        };
+        await run('setPreferences', env, { triggerType: 8 });
+        assert.equal(env.prefs.has('actionsTags.actions.reviewerName'), false, stop);
+        if (stop === 'Organization' || stop === 'invalid-group')
+            assert.equal(env.prefs.get('actionsTags.actions.groupID'), 999);
+        if (['Organization', 'invalid-group', 'Review', 'invalid-collection'].includes(stop))
+            assert.equal(env.prefs.get('actionsTags.actions.reviewCollectionKey'), 'STALE');
+    }
+});
+
+test('preference setup with an empty group collection list does not open an empty selector', async () => {
+    const env = setupEnvironment();
+    env.Zotero.Collections.getByLibrary = () => [];
+    assert.match(await run('setPreferences', env, { triggerType: 8 }), /Create and sync/);
+    assert.deepEqual(env.prompts, ['Organization']);
+});
+
+test('VPN checks skip unsupported configurations and accept HTTP error responses as reachable', async () => {
+    for (const [values, expectedRequests, expectedResult] of [
+        [{ 'sync.storage.protocol': 'zotero' }, 0, undefined],
+        [{ 'sync.storage.protocol': 'webdav' }, 0, undefined],
+        [{ 'sync.storage.protocol': 'webdav', 'sync.storage.url': 'dav.example', 'sync.storage.scheme': 'ftp' }, 0, /http or https/],
+        [{ 'sync.storage.protocol': 'webdav', 'sync.storage.url': 'dav.example' }, 1, undefined],
+    ]) {
+        const env = prefsEnvironment(values); let requests = 0;
+        env.Services = { prompt: { alert: () => assert.fail('HTTP response proves reachability') } };
+        env.Zotero.HTTP = { request: async (method, url, options) => {
+            requests++; assert.equal(method, 'HEAD'); assert.equal(url, 'https://dav.example');
+            assert.equal(options.successCodes, false); assert.equal(options.errorDelayMax, 0);
+            return { status: 503 };
+        } };
+        const result = await run('checkVPN', env, { triggerType: 8 });
+        if (expectedResult instanceof RegExp) assert.match(result, expectedResult);
+        else assert.equal(result, expectedResult);
+        assert.equal(requests, expectedRequests);
+    }
+});
+
+test('Delete listeners and running guards belong to each main window', async () => {
+    const first = deleteEnvironment(), second = deleteEnvironment();
+    second.Zotero = first.Zotero; // Main windows share Zotero but not their listener state.
+    await run('trashOnDelete', first, { window: first.window });
+    await run('trashOnDelete', second, { window: second.window });
+    let finish;
+    first.window.ZoteroPane.deleteSelectedItems = async (...args) => {
+        first.calls.push(args); await new Promise(resolve => { finish = resolve; });
+    };
+    first.press(); second.press({ shiftKey: true });
+    await flushDelete();
+    assert.deepEqual(first.calls, [[true, true]]); assert.deepEqual(second.calls, [[false, true]]);
+    first.press(); await flushDelete(); assert.equal(first.calls.length, 1);
+    finish(); await flushDelete();
+    first.listeners.get('unload')();
+    second.press(); await flushDelete();
+    assert.equal(second.calls.length, 2);
 });

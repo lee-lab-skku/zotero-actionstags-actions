@@ -8,10 +8,36 @@ There are no Node package dependencies.
 ```sh
 python -m pip install PyYAML
 python build.py
-python -m unittest discover -s tests -p 'test_*.py'
-node --test tests/*.test.cjs
+python -m unittest discover -s tests/build -p 'test_*.py'
+node --test tests/unit/*.test.cjs tests/tooling/*.test.cjs
 git diff --check
 ```
+
+The default local suite includes action units, build checks, and test-tooling checks; it needs no Zotero installation, display, network connection, or socket binding.
+See [test suites](tests/README.md) for their purposes and execution requirements.
+The HTTP socket check is separate: `node --test tests/integration/http/*.test.cjs`.
+CI runs the default local checks and the HTTP socket suite.
+A separate manual [real Zotero PoC](tests/integration/zotero/README.md#ci-poc) runs one fixed app/plugin pair in a disposable profile under Xvfb.
+
+For local coverage, install the optional Python tool and run:
+
+```sh
+python -m pip install "coverage>=7.10,<8"
+python tests/tooling/run-coverage.py
+```
+
+JavaScript uses Node's built-in experimental coverage with source maps; there are no Node package dependencies.
+The report measures every original `src/*.js` action body and writes `coverage/actions.lcov`.
+Python coverage includes subprocess builds and merges temporary checkout copies into `build.py`, with HTML at `coverage/python/index.html` and JSON at `coverage/build.json`.
+Generated test wrappers and reports stay in ignored `coverage/`.
+Coverage is an aid to finding missing cases; it does not establish API compatibility or replace behavioral assertions.
+See [API contracts and test oracles](tests/API-contracts.md) for the source-backed expectations and remaining integration boundaries.
+
+CI runs these checks on Ubuntu 24.04 with Python 3.12 and Node.js 22 for branch pushes, pull requests, and manual runs.
+Tag releases call the same test workflow and publish only after it succeeds; tests and release builds check out the triggering commit SHA.
+Tag pushes do not start a second standalone test run.
+Superseded branch/PR test runs are cancelled, while release runs are serialized per tag without cancelling an active release.
+External actions use major version tags to receive compatible updates.
 
 The build resolves paths relative to `build.py`, so it can run from another working directory.
 Use `python build.py --version <tag>` to embed a release tag in Update Actions for direct YAML/JSON installation.
@@ -66,14 +92,15 @@ Preserve users' enabled settings and shortcuts when updating existing actions.
 
 Automated tests execute the actual action bodies with mocked Zotero/Actions & Tags APIs.
 They verify selection contexts, escaping, preference setup, network failures, and update failures.
-The bridge suite also uses a real localhost HTTP socket with mocked Zotero/Actions & Tags APIs; the test environment must allow binding to loopback.
-They do not prove that a real Zotero database, filesystem, plugin UI, or sync server behaves correctly.
+The separate integration suite uses a real localhost HTTP socket with mocked Zotero/Actions & Tags APIs; that suite requires loopback binding.
+The manual real-app PoC checks a limited path through the actual database, plugin dispatcher, and HTTP server.
+It does not cover the plugin UI, clipboard, reader UI, shared libraries, or sync server.
 
 Before releasing, test in a disposable Zotero 10 profile with compatible Actions & Tags and optional Better Notes/Better BibTeX versions:
 
 1. Import the generated YAML and verify menu actions and startup events.
 1. Copy links from a single collection, mixed collection/search selection, multiple libraries, and a reader; include standalone attachments and notes.
-1. Verify the bridge's authenticated requests and returned links using the [disposable profile fixture](tests/manual/README.md); also open the returned URIs and check shared-library targets manually.
+1. Verify the bridge's authenticated requests and returned links using the [disposable profile fixture](tests/integration/zotero/README.md); also open the returned URIs and check shared-library targets manually.
 1. Verify Delete moves collection items to trash and Shift+Delete removes them from the collection, including confirmation, Undo, and multiple selected collections. Check Enable transitions and that editing, modified keys, and other views retain their usual behavior.
 1. Verify review dates around local midnight and preference setup with missing or stale groups/collections.
 1. Verify WebDAV failures and a release update with a failed download or write.

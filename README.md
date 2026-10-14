@@ -85,7 +85,9 @@ Leave its shortcut field empty; the action handles both keys directly.
 ### Update Actions (`updateActions.js`)
 
 - **Purpose**: Check the installed source repository for newer releases and let the user choose one.
-- **Context**: Disabled by default. Enable it for startup checks; dispatch it manually in Actions & Tags or use **Tools → Update custom actions**.
+- **Context**: Enabled by default and checks for updates at startup.
+  Dispatch it manually in Actions & Tags or use **Tools &rightarrow; Update custom actions** to check again.
+  Clear its **Enable** checkbox in Settings &rightarrow; Actions & Tags to disable startup checks.
 - **Features**:
   - Uses version and source constants embedded in the updater code at build time, so A&T editor saves retain them.
     Backup-root `version` and `repository` remain available for file inspection and validation; no custom action fields are required.
@@ -95,6 +97,7 @@ Leave its shortcut field empty; the action handles both keys directly.
   - Starts with **Not now** selected; cancelling does not download or change actions.
   - Labels YAML-only releases for manual import. JSON releases can be applied after selection.
   - Validates the complete backup before writing, preserves enabled settings and shortcuts, and applies the updater last.
+    If Update Actions was already disabled, updating it keeps it disabled.
   - Records the chosen tag only after all writes succeed. Partial failures can leave earlier actions changed, but retain the old updater version for retry.
   - Does not automatically remove actions absent from a release or downgrade a beta when prereleases are disabled.
 

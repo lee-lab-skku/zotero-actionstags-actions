@@ -63,7 +63,8 @@ Place behavior changes under `Changed`, reserve `Fixed` for corrections, and pre
 The release workflow marks tags containing a prerelease suffix as GitHub prereleases.
 
 Install the new interactive updater initially by importing its YAML file manually.
-Update Actions is disabled by default; enable it for startup checks. Set preferences controls prerelease inclusion and defaults to No.
+Update Actions is enabled by default for startup checks; updates preserve its existing enabled setting.
+Set preferences controls prerelease inclusion and defaults to No.
 The updater compares release SemVer tags with the installed base tag, asks before applying a newer release, and never offers equal or older versions.
 
 ## Action contracts

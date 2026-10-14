@@ -1,5 +1,5 @@
 const Zotero = require('Zotero');
-const TARGET_URL = 'https://api.github.com/repos/lee-lab-skku/zotero-actionstags-actions/releases/latest';
+const DEFAULT_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';
 const PREF_KEY = 'actionsTags.actions.versionTag';
 
 async function getJSON(url) {
@@ -9,20 +9,25 @@ async function getJSON(url) {
     return response.response;
 }
 
-const latest = await getJSON(TARGET_URL);
+const manager = Zotero.ActionsTags.api.actionManager;
+const installed = manager.getActions('updateActions');
+const repository = installed?.repository ?? DEFAULT_REPOSITORY;
+if (typeof repository !== 'string' || !/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository)
+    || repository.split('/').some(part => part === '.' || part === '..'))
+    throw new Error('Invalid source repository; expected GitHub owner/repo.');
+const latest = await getJSON(`https://api.github.com/repos/${repository}/releases/latest`);
 if (!latest || typeof latest.tag_name !== 'string' || !latest.tag_name || !Array.isArray(latest.assets))
     throw new Error('GitHub returned an invalid release.');
 const latestVersion = latest.tag_name;
-const manager = Zotero.ActionsTags.api.actionManager;
 // Imported action metadata identifies the installation independently of old update records.
-const installedVersion = manager.getActions('updateActions')?.releaseVersion;
+const installedVersion = installed?.releaseVersion;
 const prevVersion = typeof installedVersion === 'string' && installedVersion
     ? installedVersion : Zotero.Prefs.get(PREF_KEY);
 if (prevVersion === latestVersion)
     return;
 
 const asset = latest.assets.find(asset => asset.name === 'actions-zotero.json');
-if (!asset?.browser_download_url?.startsWith('https://github.com/lee-lab-skku/zotero-actionstags-actions/releases/download/'))
+if (!asset?.browser_download_url?.startsWith(`https://github.com/${repository}/releases/download/`))
     return 'This release has no JSON action backup. Import its YAML file manually.';
 const backup = await getJSON(asset.browser_download_url);
 if (backup?.type !== 'ActionsTagsBackup' || !backup.actions

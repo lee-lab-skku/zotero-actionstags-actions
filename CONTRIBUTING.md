@@ -18,7 +18,10 @@ Use `python build.py --version <tag>` to embed a release tag in Update Actions f
 Without an explicit version, `python build.py` derives a Git build ID: a clean tagged commit uses its tag, and later commits use `<tag>-<distance>-g<hash>`, adding `-dirty` for tracked edits.
 The same ID is stored in the backup’s top-level `version` and Update Actions `releaseVersion` field; the updater reads its installed metadata through the action manager.
 Without a reachable version tag, Git falls back to the commit hash; outside a Git checkout, pass `--version` explicitly.
-The release workflow passes its tag automatically.
+Use `--repository <owner/repo>` to identify the source in the backup root and updater metadata.
+Local builds infer the source from a GitHub `origin` (HTTPS, scp-style SSH, or `ssh://`); without an origin they fall back to `lee-lab-skku/zotero-actionstags-actions`.
+For a non-GitHub origin, specify `--repository` explicitly.
+The release workflow passes its tag and `GITHUB_REPOSITORY` automatically.
 Generated release files belong in the ignored `dist/` directory.
 Publish both YAML and JSON assets together; both must contain the same action definitions.
 The tag release workflow uploads both files.

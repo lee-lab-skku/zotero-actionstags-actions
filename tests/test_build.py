@@ -22,6 +22,8 @@ class BuildTests(unittest.TestCase):
         self.assertEqual(yaml_data['type'], 'ActionsTagsBackup')
         self.assertEqual(yaml_data['version'], yaml_data['actions']['updateActions']['releaseVersion'])
         self.assertTrue((ROOT / 'dist/actions-zotero.yml').read_text().startswith('version: '))
+        self.assertEqual(yaml_data['repository'], 'lee-lab-skku/zotero-actionstags-actions')
+        self.assertEqual(yaml_data['repository'], yaml_data['actions']['updateActions']['repository'])
         self.assertTrue({'shareItem', 'retrieveItem'}.isdisjoint(yaml_data['actions']))
         self.assertEqual(set(yaml_data['actions']), {meta.stem for meta in (ROOT / 'meta').glob('*.yml')})
         for key, action in yaml_data['actions'].items():
@@ -49,6 +51,8 @@ class BuildTests(unittest.TestCase):
                 action = data['actions']['updateActions']
                 version = action['releaseVersion']
                 self.assertEqual(data['version'], version)
+                self.assertEqual(data['repository'], 'example-lab/custom-actions')
+                self.assertEqual(action['repository'], data['repository'])
                 self.assertEqual(action['data'], (repo / 'src/updateActions.js').read_text().strip())
                 return version
 
@@ -56,8 +60,13 @@ class BuildTests(unittest.TestCase):
             git('add', '.')
             git('commit', '--quiet', '-m', 'Build fixture',
                 '-m', 'Co-authored-by: Codex <codex@openai.com>')
+            git('remote', 'add', 'origin', 'git@github.com:example-lab/custom-actions.git')
             git('tag', 'v1.2.3-beta.1')
             self.assertEqual(build(), 'v1.2.3-beta.1')
+            for url in ['https://github.com/example-lab/custom-actions.git',
+                        'ssh://git@github.com/example-lab/custom-actions.git']:
+                git('remote', 'set-url', 'origin', url)
+                self.assertEqual(build(), 'v1.2.3-beta.1')
             git('commit', '--quiet', '--allow-empty', '-m', 'Advance fixture',
                 '-m', 'Co-authored-by: Codex <codex@openai.com>')
             version = build()
@@ -67,9 +76,11 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(build(), version + '-dirty')
 
     def test_release_build_embeds_version_and_direct_import_uses_it(self):
-        for version in ['v3.0.0', 'v3.0.0-beta.4']:
+        for version, repository in [('v3.0.0', 'lee-lab-skku/zotero-actionstags-actions'),
+                                    ('v3.0.0-beta.4', 'example-lab/custom-actions')]:
             with self.subTest(version=version), tempfile.TemporaryDirectory() as directory:
-                subprocess.run([sys.executable, str(ROOT / 'build.py'), '--version', version],
+                subprocess.run([sys.executable, str(ROOT / 'build.py'), '--version', version,
+                                '--repository', repository],
                                cwd=directory, check=True)
                 yaml_data = yaml.safe_load((ROOT / 'dist/actions-zotero.yml').read_text(encoding='utf-8'))
                 json_data = json.loads((ROOT / 'dist/actions-zotero.json').read_text(encoding='utf-8'))
@@ -77,6 +88,8 @@ class BuildTests(unittest.TestCase):
                 self.assertEqual(json_data['actions']['updateActions']['releaseVersion'], version)
                 source = json_data['actions']['updateActions']['data']
                 self.assertEqual(json_data['version'], version)
+                self.assertEqual(json_data['repository'], repository)
+                self.assertEqual(json_data['actions']['updateActions']['repository'], repository)
                 self.assertEqual(source, (ROOT / 'src/updateActions.js').read_text().strip())
                 # Execute the generated import body, with no record or an obsolete record.
                 script = r"""
@@ -93,7 +106,8 @@ const { action, version } = JSON.parse(fs.readFileSync(0, 'utf8'));
                 assert.equal(key, 'updateActions');
                 return action;
             } } } },
-            HTTP: { request: async () => {
+            HTTP: { request: async (method, url) => {
+                assert.equal(url, `https://api.github.com/repos/${action.repository}/releases/latest`);
                 assert.equal(++requests, 1, 'Matching imported version must not download actions');
                 return { response: { tag_name: version, assets: [] } };
             } },

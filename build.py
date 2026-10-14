@@ -8,11 +8,30 @@ from typing import Dict, Any
 
 parser = argparse.ArgumentParser(description='Build Actions & Tags backups.')
 parser.add_argument('--version', help='Explicit release tag; otherwise derive the build ID from Git.')
+parser.add_argument('--repository', help='Source GitHub owner/repo; otherwise infer from origin.')
 args = parser.parse_args()
 if args.version is not None and not args.version.strip():
     parser.error('--version must not be empty')
 
 root_dir = Path(__file__).resolve().parent
+repository = args.repository
+if repository is None:
+    try:
+        origin = subprocess.run(['git', 'remote', 'get-url', 'origin'], cwd=root_dir,
+                                check=True, capture_output=True, text=True).stdout.strip()
+    except (OSError, subprocess.CalledProcessError):
+        origin = None
+    if origin:
+        source = re.fullmatch(r'(?:https://github\.com/|git@github\.com:|ssh://git@github\.com/)([^/]+/[^/]+?)(?:\.git)?/?', origin)
+        if not source:
+            parser.error('Cannot infer a GitHub source from origin; provide --repository explicitly')
+        repository = source.group(1)
+    else:
+        repository = 'lee-lab-skku/zotero-actionstags-actions'
+if (not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repository)
+        or any(part in {'.', '..'} for part in repository.split('/'))):
+    parser.error('--repository must be a GitHub owner/repo path')
+
 build_version = args.version
 if build_version is None:
     try:
@@ -32,6 +51,7 @@ dist_dir.mkdir(exist_ok=True)
 
 datas: Dict[str, Any] = {
     'version': build_version,
+    'repository': repository,
     'type': 'ActionsTagsBackup',
     'actions': {}
 }
@@ -49,6 +69,7 @@ for meta in metas:
         meta_data['data'] = src_code
         if action == 'updateActions':
             meta_data['releaseVersion'] = build_version
+            meta_data['repository'] = repository
     elif meta_data.get('operation') == 4:
         raise ValueError(f'Missing script for action: {action}')
 

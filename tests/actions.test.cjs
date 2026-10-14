@@ -326,6 +326,35 @@ test('updater applies initial updates and preserves user enable/shortcut choices
     assert.equal(env.prefs.get('actionsTags.actions.versionTag'), 'v2');
 });
 
+test('updater follows the installed source repository including other owners', async () => {
+    const env = updateEnvironment();
+    const repository = 'example-lab/custom-actions';
+    const manager = env.Zotero.ActionsTags.api.actionManager;
+    const getActions = manager.getActions;
+    manager.getActions = key => key === 'updateActions' ? { repository } : getActions(key);
+    const request = env.Zotero.HTTP.request;
+    const urls = [];
+    env.Zotero.HTTP.request = async (method, url) => {
+        urls.push(url);
+        const result = await request(method, url);
+        if (url.includes('api.github.com'))
+            result.response.assets[0].browser_download_url = `https://github.com/${repository}/releases/download/v2/actions-zotero.json`;
+        return result;
+    };
+    await run('updateActions', env);
+    assert.deepEqual(urls, [`https://api.github.com/repos/${repository}/releases/latest`,
+        `https://github.com/${repository}/releases/download/v2/actions-zotero.json`]);
+    assert.equal(env.changes.length, 2);
+});
+
+test('updater rejects malformed source paths before HTTP', async () => {
+    const env = updateEnvironment();
+    env.Zotero.ActionsTags.api.actionManager.getActions = () => ({ repository: '../actions' });
+    env.Zotero.HTTP.request = () => assert.fail('Malformed repository must not be contacted');
+    await assert.rejects(run('updateActions', env), /expected GitHub owner\/repo/);
+    assert.equal(env.changes.length, 0);
+});
+
 test('updater validates the entire backup and does not advance version on failed writes', async () => {
     for (const options of [{ invalid: true }, { fail: true }]) {
         const env = updateEnvironment({ ...options, previousTag: 'v1' });

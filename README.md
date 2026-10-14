@@ -87,7 +87,8 @@ Leave its shortcut field empty; the action handles both keys directly.
 - **Purpose**: Automatically updates all actions from a specified GitHub repository release.
 - **Context**: Disabled by default; when enabled, this action runs when Zotero starts.
 - **Features**:
-  - Fetches the latest stable release from the `lee-lab-skku/zotero-actionstags-actions` repository.
+  - Reads the source repository from its installed `repository` metadata and fetches that repository’s latest stable release.
+    Legacy actions without this field use `lee-lab-skku/zotero-actionstags-actions` as the script default.
   - YAML/JSON builds carry the same version in the top-level `version` and Update Actions `releaseVersion` fields, so direct installation needs no initial version preference.
   - Downloads and applies its actions when the release tag differs from that installed action version. Local builds identify the nearest version tag, commit distance, and hash, with a `-dirty` suffix for tracked edits; these IDs are not used for SemVer ordering.
   - Uses the release's `actions-zotero.json` asset and records the version only after all updates succeed.

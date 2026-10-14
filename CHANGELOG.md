@@ -12,6 +12,11 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ## [Unreleased]
 
+### Changed
+
+- Run global preference, update, and VPN menu commands once per selection, filtering item-level follow-up calls without changing other action dispatches.
+  Suppress overlapping executions of the same command and release the guard after completion, cancellation, or failure.
+
 ## [3.0.0-beta.4] &mdash; 2026-10-14
 
 ### Added

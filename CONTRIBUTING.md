@@ -45,6 +45,8 @@ Use the plugin's injected `require` to obtain Zotero and Mozilla globals.
 Selection actions run with `items` and no `item`; per-item actions must ignore that selection-level invocation.
 When dispatching a selection action explicitly, pass `itemIDs` without `itemID`.
 Startup scripts must not assume that item or collection arguments exist.
+Global actions guard their own item-level menu follow-up dispatches at the public action manager boundary; keep other actions and non-menu dispatches unchanged.
+Per-action running guards must be released in `finally`, including early returns and failures.
 
 Keep persisted action keys and numeric event/operation values stable.
 Script actions require a matching source file and an explicit event, including `event: 0` for menu-only actions.

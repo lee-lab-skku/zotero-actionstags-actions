@@ -102,6 +102,8 @@ The choice is saved at `extensions.zotero.actionsTags.actions.includePrereleases
 Use **Tools → Configure action preferences** or manually dispatch Set preferences to change it.
 An unknown installed version requires a versioned YAML import before the updater can determine which releases are newer.
 
+Global preference, update, and VPN menu commands run once for the selection; concurrent invocations of the same command are ignored until it finishes.
+
 ### Check VPN (`checkVPN.js`)
 
 - **Purpose**: Checks whether the configured WebDAV server responds within five seconds.

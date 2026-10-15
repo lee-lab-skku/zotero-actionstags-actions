@@ -10,7 +10,7 @@ The default local checks are `unit/`, `build/`, and `tooling/`; they require no 
 | `tooling/` | Coverage runner and checks of the action harness and source-map reporting | Node.js for tooling tests; optional coverage.py for the coverage command |
 | `support/` | Shared action runner and bridge test doubles | Imported by suites; not a test suite |
 | `integration/http/` | A real HTTP client/socket against the bridge endpoint with mocked Zotero/A&T | Node.js and loopback binding; separate local command and CI step |
-| `integration/zotero/` | Disposable-profile fixture with actual Zotero data objects and plugins | Fixed app/plugin pair in manual CI, or installed Zotero and supplied XPIs; [PoC/profile instructions](integration/zotero/README.md) |
+| `integration/zotero/` | Disposable-profile fixture with actual Zotero data objects and plugins | Fixed app/plugin pair in manual and release CI, or installed Zotero and supplied XPIs; [verification/profile instructions](integration/zotero/README.md) |
 
 ## Local checks
 
@@ -28,7 +28,7 @@ node --test tests/integration/http/*.test.cjs
 ```
 
 CI executes the local suites and the HTTP socket suite.
-The real Zotero PoC has a separate manual CI workflow; see [execution and scope](integration/zotero/README.md).
+Real Zotero integration verification is a separate workflow invoked manually and required for releases; see [execution and scope](integration/zotero/README.md).
 Its automated checks do not replace UI import, URI-opening or shared-library checks.
 
 ## Coverage and expectations

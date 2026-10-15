@@ -14,19 +14,19 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ### Added
 
-- Standard Actions & Tags backup fields for an explicitly supplied Zotero/plugin pair, and a shared UTC creation timestamp in YAML and JSON builds.
+- Standard Actions & Tags backup fields for Zotero and plugin versions in verified release assets, and a shared UTC creation timestamp in YAML and JSON builds.
 - Local coverage reports for original action sources and subprocess builds, with JavaScript LCOV and Python HTML/JSON output.
 - Expanded regression tests grounded in documented API contracts, covering action dispatch, links, preferences, review dates, update failures, and bridge lifecycle behavior.
-- A manually triggered real Zotero integration PoC using Zotero 10.0.6 and Actions & Tags 2.6.2 in a disposable profile under Xvfb.
+- Real Zotero integration verification, available manually and required for releases, using Zotero 10.0.6 and Actions & Tags 2.6.2 in a disposable profile under Xvfb.
   It checks actual startup dispatch and authenticated bridge requests, requires matching installed versions and a successful exit within 120 seconds, and retains reports and logs.
 
 ### Changed
 
 - Tag releases now run the shared test workflow before publishing and build the same triggering commit that was tested.
-  Publishing requires both YAML and JSON assets.
+  Publishing also requires successful real-app verification and uses its exact YAML and JSON backups without rebuilding.
 - CI now builds backups and checks build behavior, action logic, test tooling, the HTTP bridge socket, and commit whitespace; the shared workflow also supports manual runs.
 - Separate unit, build, tooling, and integration suites so default local checks require no Zotero installation or socket binding.
-  The real Zotero PoC remains a separate manual workflow and does not gate releases.
+  Real-app verification runs separately; its current automation covers bridge/copylink behavior and does not replace the remaining manual release checks.
 - Run CI on Ubuntu 24.04 with updated external actions; cancel superseded branch/PR test runs and serialize releases per tag without cancelling active releases.
 
 ### Fixed

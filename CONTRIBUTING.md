@@ -17,7 +17,7 @@ The default local suite includes action units, build checks, and test-tooling ch
 See [test suites](tests/README.md) for their purposes and execution requirements.
 The HTTP socket check is separate: `node --test tests/integration/http/*.test.cjs`.
 CI runs the default local checks and the HTTP socket suite.
-A separate manual [real Zotero PoC](tests/integration/zotero/README.md#ci-poc) runs one fixed app/plugin pair in a disposable profile under Xvfb.
+The [real Zotero integration workflow](tests/integration/zotero/README.md#ci-verification) runs one fixed app/plugin pair in a disposable profile under Xvfb, on manual invocation and as a release requirement.
 
 For local coverage, install the optional Python tool and run:
 
@@ -34,7 +34,8 @@ Coverage is an aid to finding missing cases; it does not establish API compatibi
 See [API contracts and test oracles](tests/API-contracts.md) for the source-backed expectations and remaining integration boundaries.
 
 CI runs these checks on Ubuntu 24.04 with Python 3.12 and Node.js 22 for branch pushes, pull requests, and manual runs.
-Tag releases call the same test workflow and publish only after it succeeds; tests and release builds check out the triggering commit SHA.
+Tag releases require both the shared test workflow and real Zotero integration verification to succeed on the triggering commit SHA.
+The integration workflow builds the release YAML/JSON once, verifies their action definitions in the actual app, and uploads them for publication without rebuilding.
 Tag pushes do not start a second standalone test run.
 Superseded branch/PR test runs are cancelled, while release runs are serialized per tag without cancelling an active release.
 External actions use major version tags to receive compatible updates.
@@ -52,11 +53,14 @@ For a non-GitHub origin, specify `--repository` explicitly.
 The release workflow passes its tag and `GITHUB_REPOSITORY` automatically.
 Generated release files belong in the ignored `dist/` directory.
 Publish both YAML and JSON assets together; both must contain the same action definitions.
-The tag release workflow uploads both files.
+The tag release workflow publishes both files from the successful integration job.
 
 Every build records a single UTC ISO 8601 creation time in A&T's standard backup-root `timestamp`, shared by YAML and JSON.
 Use `--platform-version <Zotero version> --plugin-version <Actions & Tags version>` together to record the pair being verified in the standard `platformVersion` and `pluginVersion` fields.
 Local builds omit those version fields unless explicitly supplied; supplying them alone does not establish successful verification.
+Release CI supplies the fixed pair, requires matching actual runtime versions, and publishes only after verification succeeds.
+These fields describe the checked environment, not a compatibility range or coverage of every action and optional plugin.
+See [verification scope and artifact handling](tests/integration/zotero/README.md#ci-verification).
 
 ## Versioning and prereleases
 
@@ -98,7 +102,8 @@ Preserve users' enabled settings and shortcuts when updating existing actions.
 Automated tests execute the actual action bodies with mocked Zotero/Actions & Tags APIs.
 They verify selection contexts, escaping, preference setup, network failures, and update failures.
 The separate integration suite uses a real localhost HTTP socket with mocked Zotero/Actions & Tags APIs; that suite requires loopback binding.
-The manual real-app PoC checks a limited path through the actual database, plugin dispatcher, and HTTP server.
+Real-app behavioral verification is required before release.
+Its current automation is an initial, PoC-level implementation checking a limited path through the actual database, plugin dispatcher, and HTTP server.
 It does not cover the plugin UI, clipboard, reader UI, shared libraries, or sync server.
 
 Before releasing, test in a disposable Zotero 10 profile with compatible Actions & Tags and optional Better Notes/Better BibTeX versions:

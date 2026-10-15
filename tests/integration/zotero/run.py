@@ -1,4 +1,4 @@
-"""Run the Linux Zotero PoC in a fresh profile under Xvfb."""
+"""Run the Linux Zotero integration checks in a fresh profile under Xvfb."""
 import argparse
 import json
 import os
@@ -8,6 +8,20 @@ import signal
 import subprocess
 import sys
 import tempfile
+
+import yaml
+
+
+def validate_backups(root, expected):
+    """Require equivalent backups for the exact app/plugin pair about to run."""
+    dist = root / 'dist'
+    backup = json.loads((dist / 'actions-zotero.json').read_text(encoding='utf-8'))
+    yaml_backup = yaml.safe_load((dist / 'actions-zotero.yml').read_text(encoding='utf-8'))
+    if backup != yaml_backup:
+        raise SystemExit('YAML and JSON backups differ.')
+    if (backup.get('platformVersion') != expected['zotero']
+            or backup.get('pluginVersion') != expected['actionsTags']):
+        raise SystemExit('Backup app/plugin metadata differs from the requested runtime pair.')
 
 
 def main():
@@ -21,11 +35,12 @@ def main():
     args = parser.parse_args()
     if args.timeout <= 0:
         parser.error('Timeout must be positive.')
+    expected = {'zotero': args.expected_zotero, 'actionsTags': args.expected_actions_tags}
+    validate_backups(Path(__file__).resolve().parents[3], expected)
     if not shutil.which('xvfb-run'):
-        parser.error('Install xvfb and xauth before running the Linux PoC.')
+        parser.error('Install xvfb and xauth before running the Linux integration checks.')
     output = args.output.resolve()
     output.mkdir(parents=True, exist_ok=False)
-    expected = {'zotero': args.expected_zotero, 'actionsTags': args.expected_actions_tags}
     (output / 'expected-versions.json').write_text(json.dumps(expected, indent=2) + '\n')
     with tempfile.TemporaryDirectory(prefix='zotero-action-links-') as directory:
         profile = Path(directory) / 'profile'
@@ -57,10 +72,10 @@ def main():
     result = json.loads((output / 'report.json').read_text())
     print(json.dumps(result, indent=2))
     if returncode != 0 or result.get('ok') is not True or not result.get('checks'):
-        raise SystemExit(f'Zotero PoC failed (exit {returncode}); see {output}/report.json and zotero.log')
+        raise SystemExit(f'Zotero integration failed (exit {returncode}); see {output}/report.json and zotero.log')
     if result.get('versions') != expected:
         raise SystemExit(f'Runtime versions differ from the requested pair: {result.get("versions")} != {expected}')
-    print(f'Zotero PoC passed: {len(result["checks"])} checks, versions {expected}')
+    print(f'Zotero integration passed: {len(result["checks"])} checks, versions {expected}')
 
 
 if __name__ == '__main__':

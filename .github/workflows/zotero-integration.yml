@@ -1,7 +1,13 @@
-name: Zotero integration PoC
+name: Zotero integration
 
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      version:
+        description: Release tag embedded in the backups to test and publish
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -12,6 +18,7 @@ jobs:
     timeout-minutes: 10
     env:
       ZOTERO_VERSION: '10.0.6'
+      BUILD_VERSION: ${{ inputs.version || format('integration-{0}', github.sha) }}
       ACTIONS_TAGS_VERSION: '2.6.2'
     steps:
       - name: Checkout tested commit
@@ -43,7 +50,9 @@ jobs:
             --output "$RUNNER_TEMP/zotero-tools/actions-tags.xpi"
 
       - name: Build the tested action definitions
-        run: python build.py --version "poc-${GITHUB_SHA}" --repository "$GITHUB_REPOSITORY"
+        run: |
+          python build.py --version "$BUILD_VERSION" --repository "$GITHUB_REPOSITORY" \
+            --platform-version "$ZOTERO_VERSION" --plugin-version "$ACTIONS_TAGS_VERSION"
 
       - name: Run the real app in a disposable profile
         run: |
@@ -52,13 +61,23 @@ jobs:
             --actions-tags-xpi "$RUNNER_TEMP/zotero-tools/actions-tags.xpi" \
             --expected-zotero "$ZOTERO_VERSION" \
             --expected-actions-tags "$ACTIONS_TAGS_VERSION" \
-            --output "$RUNNER_TEMP/zotero-poc-results"
+            --output "$RUNNER_TEMP/zotero-integration-results"
 
       - name: Save report and app log
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: zotero-poc-${{ github.sha }}
-          path: ${{ runner.temp }}/zotero-poc-results/
+          name: zotero-integration-${{ github.sha }}
+          path: ${{ runner.temp }}/zotero-integration-results/
           if-no-files-found: warn
+          retention-days: 7
+
+      - name: Save verified release backups
+        uses: actions/upload-artifact@v7
+        with:
+          name: verified-backups-${{ github.sha }}
+          path: |
+            dist/actions-zotero.yml
+            dist/actions-zotero.json
+          if-no-files-found: error
           retention-days: 7

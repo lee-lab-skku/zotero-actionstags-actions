@@ -124,6 +124,8 @@ Global preference, update, and VPN menu commands run once for the selection; con
 
 For the first upgrade to these Zotero 10 actions, import the YAML manually, especially if an older updater already recorded a release without applying it.
 The JSON file is intended for subsequent automatic updates.
+Release backups record the Zotero and Actions & Tags versions used for automated real-app verification and their UTC creation time in the plugin’s standard import details.
+The current automated checks cover bridge/copylink behavior on that pair; they do not establish full coverage of all actions or optional plugins.
 
 When upgrading from a release with Share Item and Retrieve Item, delete those two actions in Settings &rightarrow; Actions & Tags.
 The updater only adds or updates actions included in a release; it does not remove previously installed actions that are absent from the backup.

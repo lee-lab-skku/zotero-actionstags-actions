@@ -1,31 +1,42 @@
-# Real Zotero integration PoC
+# Real Zotero integration verification
 
 The fixture creates synthetic local items in an empty profile, installs the four bridge/copylink definitions, runs the real Actions & Tags startup script, and calls the real HTTP endpoint. It writes `link-bridge-report.json` in that profile and exits Zotero.
 
-## CI PoC
+## CI verification
 
-Run **Zotero integration PoC** manually from GitHub Actions, selecting the branch to test.
-The [workflow](../../../.github/workflows/zotero-poc.yml) downloads the official Linux tarball and Actions & Tags XPI for one fixed pair: Zotero 10.0.6 and A&T 2.6.2.
+Run **Zotero integration** manually from GitHub Actions, selecting the branch to test.
+The [workflow](../../../.github/workflows/zotero-integration.yml) is also required by tag releases, alongside the regular test workflow.
+It downloads the official Linux tarball and Actions & Tags XPI for one fixed pair: Zotero 10.0.6 and A&T 2.6.2.
 It builds the selected commit's actions, starts Zotero under Xvfb with a fresh profile, and requires a successful fixture report, the expected installed versions, and a zero exit code within 120 seconds.
-This workflow is an experiment invoked with `workflow_dispatch`; it does not run on ordinary pushes/PRs or gate releases.
+It does not run on ordinary pushes or PRs.
+
+Real-app behavioral verification is a release requirement; the current automation is an initial, PoC-level implementation with the limited coverage below.
+Passing it establishes only those checked behaviors on that app/plugin pair.
+The remaining [manual release checks](../../../CONTRIBUTING.md#verification-boundaries) still apply.
+
+The build writes A&T's standard backup-root `platformVersion` (Zotero), `pluginVersion` (Actions & Tags), and `timestamp` (UTC creation time) fields into both YAML and JSON.
+The runner requires equivalent backups and metadata matching the requested pair, then checks the actual runtime versions against that pair.
+Only after success does the workflow upload `verified-backups-<commit SHA>`.
+The release workflow publishes those exact files without rebuilding, after both required workflows succeed.
+The timestamp identifies file generation, before verification; it is neither the test completion time nor the publication time.
 
 The fixture checks persisted action definitions and their actual startup event, real item/collection/annotation objects, parent deduplication, returned links and escaping, authenticated localhost requests, error responses, and bridge replacement/disposal.
-Better Notes is omitted for this PoC, so the missing-dependency response is checked.
-YAML import dialogs, clipboard behavior, reader UI, Delete/Undo, shared libraries, sync, and other actions remain outside this PoC.
+Better Notes is omitted from the current automated checks, so the missing-dependency response is checked.
+YAML import dialogs, clipboard behavior, reader UI, Delete/Undo, shared libraries, sync, and other actions remain outside the current automated checks.
 
 The artifact contains `report.json`, `expected-versions.json`, `zotero.log`, and `xvfb.log`, including reports/logs available after a failure.
 The temporary profile and database are removed; profile preferences containing the trial token are never uploaded.
 A missing report, timeout, failed assertion, version mismatch, or abnormal exit fails the workflow.
 
-To run the same PoC locally on Linux after downloading the fixed app/plugin pair:
+To run the same verification locally on Linux after downloading the fixed app/plugin pair:
 
 ```sh
-python build.py
+python build.py --platform-version 10.0.6 --plugin-version 2.6.2
 python tests/integration/zotero/run.py \
   --zotero /path/to/Zotero_linux-x86_64/zotero \
   --actions-tags-xpi /path/to/actions-and-tags-for-zotero.xpi \
   --expected-zotero 10.0.6 --expected-actions-tags 2.6.2 \
-  --output /tmp/zotero-poc-results
+  --output /tmp/zotero-integration-results
 ```
 
 Install `xvfb` and `xauth` first, and choose a new output directory for each run.

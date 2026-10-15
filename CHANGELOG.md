@@ -12,6 +12,20 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ## [Unreleased]
 
+### Added
+
+- A bundled `zot-jot` agent skill for generating item, PDF annotation, and Better Notes links through Agent Link Bridge, with setup and troubleshooting guidance.
+  Releases include a validated `zot-jot.zip`, a direct download link, and a skill-directory link pinned to the release tag.
+  Install or update the skill separately from the Zotero actions.
+- Manual release previews with an intended tag, the same tests and real Zotero verification as tag releases, and a downloadable bundle containing the release body, YAML/JSON backups, and skill ZIP.
+  The run summary shows the rendered release body and asset sizes; preview runs do not create tags or GitHub Releases.
+
+### Changed
+
+- Release publication now consumes a prepared bundle containing the verified backups, tested skill ZIP, and release body without rebuilding assets or rendering the body again.
+- Move the link API reference into the installable skill and add agent link setup instructions to README.
+- The Update Actions version selection dialog now clarifies that updating actions does not replace installed agent skills.
+
 ## [3.0.0-rc.2] &mdash; 2026-10-16
 
 ### Added

@@ -151,9 +151,11 @@ Better Notes is required for note links; Better BibTeX is optional, with link la
    Store its value in the client's private configuration or `ACTION_LINK_TOKEN` environment variable.
    Keep it out of shared documents, command output, and agent answers.
    The client must reach the Zotero instance and profile that owns this token; Windows and WSL may need different localhost routing.
-1. For agent use, install the entire [`skills/zotero-action-links`](skills/zotero-action-links/SKILL.md) directory with your agent's skill manager, including `references/`.
-   With AEM, select that repository subdirectory as the skill payload in your catalog.
-   Importing the action YAML does not install the agent skill.
+1. For agent use, download `zotero-action-links.zip` from the same [release](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) as the action backup.
+   Extract it and install the resulting `zotero-action-links/` directory in your agent's skill location, keeping `SKILL.md` and `references/` together.
+   If your agent's installer accepts a ZIP directly, provide that file.
+   You can also install the complete [`skills/zotero-action-links`](skills/zotero-action-links/SKILL.md) directory from a checkout of the matching release tag using an installer that supports repository subdirectories.
+   Importing the action YAML does not install or update the agent skill; install the matching skill when upgrading the actions.
 
 Restarting Zotero retains the token.
 To rotate it, clear the token preference, restart Zotero, then update the client configuration.
@@ -171,6 +173,7 @@ Its [API reference](skills/zotero-action-links/references/api.md) covers direct 
 - `src/`: Contains the raw JavaScript files for each action.
 - `meta/`: Contains the YAML definitions that describe the actions for the Actions & Tags plugin.
 - `skills/`: Bundled agent skills and their self-contained references.
+- `build_skill.py`: Validates the action-link skill and builds `dist/zotero-action-links.zip`.
 - `build.py`: Combines `src/` and `meta/` into `dist/actions-zotero.yml` for import and `dist/actions-zotero.json` for automatic updates.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development, testing, and compatibility notes.

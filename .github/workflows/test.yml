@@ -44,6 +44,9 @@ jobs:
       - name: Build backups
         run: python build.py
 
+      - name: Validate and package the agent skill
+        run: python build_skill.py
+
       - name: Test build and generated backups
         run: python -m unittest discover -s tests/build -p 'test_*.py'
 
@@ -58,3 +61,12 @@ jobs:
 
       - name: Check commit whitespace
         run: git show --format= --check --diff-merges=first-parent HEAD
+
+      - name: Save verified release skill
+        if: github.ref_type == 'tag'
+        uses: actions/upload-artifact@v7
+        with:
+          name: verified-skill-${{ github.sha }}
+          path: dist/zotero-action-links.zip
+          if-no-files-found: error
+          retention-days: 7

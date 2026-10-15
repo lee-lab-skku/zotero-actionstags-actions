@@ -34,11 +34,18 @@ jobs:
           name: verified-backups-${{ github.sha }}
           path: dist
 
+      - name: Download verified release skill
+        uses: actions/download-artifact@v8
+        with:
+          name: verified-skill-${{ github.sha }}
+          path: dist
+
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
           files: |
             dist/actions-zotero.yml
             dist/actions-zotero.json
+            dist/zotero-action-links.zip
           fail_on_unmatched_files: true
           prerelease: ${{ contains(github.ref_name, '-') }}

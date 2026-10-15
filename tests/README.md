@@ -6,7 +6,7 @@ The default local checks are `unit/`, `build/`, and `tooling/`; they require no 
 | Directory | Purpose | Execution requirements |
 | --- | --- | --- |
 | `unit/` | Action logic and API-boundary behavior, using Zotero/A&T test doubles | Node.js; local and CI |
-| `build/` | CLI validation, Git provenance, backup equivalence and generated updater behavior | Python, PyYAML, Git and Node.js; local and CI |
+| `build/` | CLI validation, Git provenance, backup equivalence, generated updater behavior, and standalone skill packaging | Python, PyYAML, Git and Node.js; local and CI |
 | `tooling/` | Coverage runner and checks of the action harness and source-map reporting | Node.js for tooling tests; optional coverage.py for the coverage command |
 | `support/` | Shared action runner and bridge test doubles | Imported by suites; not a test suite |
 | `integration/http/` | A real HTTP client/socket against the bridge endpoint with mocked Zotero/A&T | Node.js and loopback binding; separate local command and CI step |

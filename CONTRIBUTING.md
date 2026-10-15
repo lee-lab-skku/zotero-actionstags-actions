@@ -8,6 +8,7 @@ There are no Node package dependencies.
 ```sh
 python -m pip install PyYAML
 python build.py
+python build_skill.py
 python -m unittest discover -s tests/build -p 'test_*.py'
 node --test tests/unit/*.test.cjs tests/tooling/*.test.cjs
 git diff --check
@@ -36,6 +37,8 @@ See [API contracts and test oracles](tests/API-contracts.md) for the source-back
 CI runs these checks on Ubuntu 24.04 with Python 3.12 and Node.js 22 for branch pushes, pull requests, and manual runs.
 Tag releases require both the shared test workflow and real Zotero integration verification to succeed on the triggering commit SHA.
 The integration workflow builds the release YAML/JSON once, verifies their action definitions in the actual app, and uploads them for publication without rebuilding.
+The shared test workflow validates and packages the agent skill, checks the standalone archive in its build tests, and uploads the ZIP for tag releases.
+Publication downloads that tested ZIP alongside the verified backups; all three assets come from the same triggering commit.
 Tag pushes do not start a second standalone test run.
 Superseded branch/PR test runs are cancelled, while release runs are serialized per tag without cancelling an active release.
 External actions use major version tags to receive compatible updates.
@@ -61,6 +64,16 @@ Local builds omit those version fields unless explicitly supplied; supplying the
 Release CI supplies the fixed pair, requires matching actual runtime versions, and publishes only after verification succeeds.
 These fields describe the checked environment, not a compatibility range or coverage of every action and optional plugin.
 See [verification scope and artifact handling](tests/integration/zotero/README.md#ci-verification).
+
+## Agent skill packaging
+
+Run `python build_skill.py` to validate and package `skills/zotero-action-links` as `dist/zotero-action-links.zip`.
+The archive contains a top-level `zotero-action-links/` directory with `SKILL.md` and its resources, preserving paths relative to the skill entry.
+Validation checks the skill name and description, local Markdown document targets, and self-contained resources; it rejects missing references and symbolic links.
+Packaging checks archive entries and bytes, with stable timestamps and permissions so unchanged payloads produce identical archives.
+The build tests also extract the archive and validate the resulting standalone skill.
+These checks establish package integrity, not actual agent discovery or link generation behavior.
+Publish the ZIP with the YAML and JSON from the same release tag; skill installation remains separate from Zotero action import and updates.
 
 ## Versioning and prereleases
 

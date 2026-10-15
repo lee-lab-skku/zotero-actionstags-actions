@@ -152,10 +152,10 @@ Better Notes is required for note links; Better BibTeX is optional, with link la
    Store its value in the client's private configuration or `ACTION_LINK_TOKEN` environment variable.
    Keep it out of shared documents, command output, and agent answers.
    The client must reach the Zotero instance and profile that owns this token.
-1. For agent use, download `zotero-action-links.zip` from the same [release](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) as the action backup.
-   Extract it and install the resulting `zotero-action-links/` directory in your agent's skill location, keeping `SKILL.md` and `references/` together.
+1. For agent use, download `zot-jot.zip` from the same [release](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) as the action backup.
+   Extract it and install the resulting `zot-jot/` directory in your agent's skill location, keeping `SKILL.md` and `references/` together.
    If your agent's installer accepts a ZIP directly, provide that file.
-   You can also install the complete [`skills/zotero-action-links`](skills/zotero-action-links/SKILL.md) directory from a checkout of the matching release tag using an installer that supports repository subdirectories.
+   You can also install the complete [`skills/zot-jot`](skills/zot-jot/SKILL.md) directory from a checkout of the matching release tag using an installer that supports repository subdirectories.
    Each release description provides both the ZIP download link and the skill-directory URL pinned to that release tag.
    For installers that accept GitHub directory URLs, provide the tagged directory URL instead of the ZIP download URL.
    Importing the action YAML does not install or update the agent skill; install the matching skill when upgrading the actions.
@@ -168,15 +168,15 @@ An authentication failure usually means the client token does not match this pro
 If an old copylink action returns `MISSING_RESULT`, import the updated bridge and all three copylink actions together and restart.
 For note failures, check Better Notes is installed and compatible.
 
-The [bundled skill](skills/zotero-action-links/SKILL.md) owns the agent workflow.
-Its [API reference](skills/zotero-action-links/references/api.md) covers direct shell requests, request/response fields, and detailed failures for human clients as well.
+The bundled [zot-jot skill](skills/zot-jot/SKILL.md) (Zotero &mdash; Jump, Open, Trace) owns the agent workflow.
+Its [API reference](skills/zot-jot/references/api.md) covers direct shell requests, request/response fields, and detailed failures for human clients as well.
 
 ## Project Structure
 
 - `src/`: Contains the raw JavaScript files for each action.
 - `meta/`: Contains the YAML definitions that describe the actions for the Actions & Tags plugin.
 - `skills/`: Bundled agent skills and their self-contained references.
-- `build_skill.py`: Validates the action-link skill and builds `dist/zotero-action-links.zip`.
+- `build_skill.py`: Validates the action-link skill and builds `dist/zot-jot.zip`.
 - `build.py`: Combines `src/` and `meta/` into `dist/actions-zotero.yml` for import and `dist/actions-zotero.json` for automatic updates.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development, testing, and compatibility notes.

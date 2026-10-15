@@ -1,9 +1,9 @@
 ---
-name: zotero-action-links
+name: zot-jot
 description: Generate links to Zotero items, PDF annotations, and Better Notes notes through the Actions & Tags Agent Link Bridge when those links are needed. Also use for bridge setup checks and link-request failures. Library searches, metadata edits, and acquisition are outside this skill.
 ---
 
-# Zotero action links
+# Zotero &mdash; Jump, Open, Trace
 
 Use the installed copylink actions to obtain links without changing the clipboard or UI selection.
 Respect the user's library scope and citation policy; this skill does not choose a default library or impose a citation style on formal deliverables.

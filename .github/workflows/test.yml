@@ -67,6 +67,6 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: verified-skill-${{ github.sha }}
-          path: dist/zotero-action-links.zip
+          path: dist/zot-jot.zip
           if-no-files-found: error
           retention-days: 7

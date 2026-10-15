@@ -17,18 +17,18 @@ class SkillPackageTests(unittest.TestCase):
         directory = tempfile.TemporaryDirectory(prefix='skill-package-')
         self.addCleanup(directory.cleanup)
         self.root = Path(directory.name)
-        self.skill = self.root / 'zotero-action-links'
-        shutil.copytree(ROOT / 'skills/zotero-action-links', self.skill)
-        self.output = self.root / 'dist/zotero-action-links.zip'
+        self.skill = self.root / 'zot-jot'
+        shutil.copytree(ROOT / 'skills/zot-jot', self.skill)
+        self.output = self.root / 'dist/zot-jot.zip'
 
     def test_archive_extracts_as_a_complete_standalone_skill(self):
         builder.build_skill(self.skill, self.output)
         with zipfile.ZipFile(self.output) as archive:
             archive.extractall(self.root / 'installed')
-            expected = {f'zotero-action-links/{p.relative_to(self.skill).as_posix()}'
+            expected = {f'zot-jot/{p.relative_to(self.skill).as_posix()}'
                         for p in self.skill.rglob('*') if p.is_file()}
             self.assertEqual(set(archive.namelist()), expected)
-        installed = self.root / 'installed/zotero-action-links'
+        installed = self.root / 'installed/zot-jot'
         builder.validate_skill(installed)
         self.assertEqual((installed / 'references/api.md').read_bytes(),
                          (self.skill / 'references/api.md').read_bytes())
@@ -42,8 +42,8 @@ class SkillPackageTests(unittest.TestCase):
         entry = self.skill / 'SKILL.md'
         original = entry.read_text()
         for text in ['No frontmatter', '---\n[]\n---\n',
-                     original.replace('name: zotero-action-links', 'name: wrong-name'),
-                     '---\nname: zotero-action-links\ndescription: ""\n---\n']:
+                     original.replace('name: zot-jot', 'name: wrong-name'),
+                     '---\nname: zot-jot\ndescription: ""\n---\n']:
             with self.subTest(text=text[:50]):
                 entry.write_text(text)
                 with self.assertRaises(ValueError):

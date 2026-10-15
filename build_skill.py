@@ -9,7 +9,7 @@ import yaml
 
 
 ROOT = Path(__file__).resolve().parent
-SKILL_NAME = 'zotero-action-links'
+SKILL_NAME = 'zot-jot'
 
 
 def validate_skill(skill_dir):

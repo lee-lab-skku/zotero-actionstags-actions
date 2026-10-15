@@ -67,8 +67,8 @@ See [verification scope and artifact handling](tests/integration/zotero/README.m
 
 ## Agent skill packaging
 
-Run `python build_skill.py` to validate and package `skills/zotero-action-links` as `dist/zotero-action-links.zip`.
-The archive contains a top-level `zotero-action-links/` directory with `SKILL.md` and its resources, preserving paths relative to the skill entry.
+Run `python build_skill.py` to validate and package `skills/zot-jot` as `dist/zot-jot.zip`.
+The archive contains a top-level `zot-jot/` directory with `SKILL.md` and its resources, preserving paths relative to the skill entry.
 Validation checks the skill name and description, local Markdown document targets, and self-contained resources; it rejects missing references and symbolic links.
 Packaging checks archive entries and bytes, with stable timestamps and permissions so unchanged payloads produce identical archives.
 The build tests also extract the archive and validate the resulting standalone skill.
@@ -133,7 +133,7 @@ Before releasing, test in a disposable Zotero 10 profile with compatible Actions
 
 ## Link bridge documentation and dispatch boundary
 
-The agent workflow and public HTTP contract live in [`skills/zotero-action-links`](skills/zotero-action-links/SKILL.md); update the skill and its API reference when the interface changes.
+The agent workflow and public HTTP contract live in [`skills/zot-jot`](skills/zot-jot/SKILL.md); update the skill and its API reference when the interface changes.
 Keep user setup instructions in README and preserve references inside the installable skill directory.
 
 The bridge uses the public `Zotero.ActionsTags.api.actionManager.dispatchActionByKey()` API.

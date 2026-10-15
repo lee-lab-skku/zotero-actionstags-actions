@@ -105,8 +105,7 @@ See [release workflow](docs/releases.md) for CI behavior, preview instructions, 
 
 Versions are recorded in Git tags and `CHANGELOG.md`; there is no separate package version file.
 Use `vMAJOR.MINOR.PATCH` for stable releases and a SemVer suffix such as `v3.0.0-beta.1` for prereleases.
-Move completed changes from `Unreleased` into the matching version section, then tag that release commit.
-Place behavior changes under `Changed`, reserve `Fixed` for corrections, and prefix incompatible entries with **Breaking:**.
+Make sure the changelog reflects the changes before release.
 The release workflow marks tags containing a prerelease suffix as GitHub prereleases.
 
 ## API references

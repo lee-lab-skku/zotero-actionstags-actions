@@ -116,6 +116,18 @@ Before releasing, test in a disposable Zotero 10 profile with compatible Actions
 1. Verify WebDAV failures and a release update with a failed download or write.
 1. Verify Set preferences focuses No for prerelease opt-in, remembers the startup choice, and permits changing it manually. Check startup/manual updater dispatch, no dialog for equal or older releases, intermediate-version selection, cancellation, and YAML-only labels in a disposable profile.
 
+## Link bridge documentation and dispatch boundary
+
+The agent workflow and public HTTP contract live in [`skills/zotero-action-links`](skills/zotero-action-links/SKILL.md); update the skill and its API reference when the interface changes.
+Keep user setup instructions in README and preserve references inside the installable skill directory.
+
+The bridge uses the public `Zotero.ActionsTags.api.actionManager.dispatchActionByKey()` API.
+That dispatcher consumes script return values and catches exceptions, so the copylink actions report through a temporary result receiver bound to the action, target IDs, collection, and agent trigger.
+Menu calls and sharing calls keep their ordinary behavior.
+This endpoint does not expose arbitrary action execution, script evaluation, metadata writes, or Better BibTeX settings.
+
+Shutdown removes the bridge endpoint without stopping Zotero's shared server.
+
 ## API references
 
 - [Zotero 10 migration guide](https://www.zotero.org/support/dev/zotero_10_for_developers)

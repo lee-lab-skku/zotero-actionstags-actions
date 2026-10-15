@@ -118,7 +118,7 @@ try {
         return `${release.tag_name} (${kind})${manual}`;
     })];
     if (!Services.prompt.select(Zotero.getMainWindow(), 'Action updates',
-        `Source: ${repository}\nInstalled: ${installedVersion}\nChoose a newer release to install:`, choices, selected)
+        `Source: ${repository}\nInstalled: ${installedVersion}\nThis updates actions only; installed agent skills are not replaced.\nChoose a newer release to install:`, choices, selected)
         || selected.value === 0) return;
     const release = candidates[selected.value - 1];
     if (!release) return;

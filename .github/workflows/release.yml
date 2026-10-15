@@ -43,6 +43,15 @@ jobs:
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
+          body: |
+            ### Agent skill
+
+            - [Download the skill ZIP](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/zotero-action-links.zip)
+            - [Skill directory at this release tag](${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}/skills/zotero-action-links)
+
+            Extract the ZIP and install the complete `zotero-action-links/` directory, including `references/`.
+            For installers that accept GitHub skill-directory URLs, such as `skill-installer`, provide the tagged directory link above rather than the ZIP download link.
+            Install the skill separately from the Zotero action backup; both links target this release.
           files: |
             dist/actions-zotero.yml
             dist/actions-zotero.json

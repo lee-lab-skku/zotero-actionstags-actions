@@ -156,6 +156,8 @@ Better Notes is required for note links; Better BibTeX is optional, with link la
    Extract it and install the resulting `zotero-action-links/` directory in your agent's skill location, keeping `SKILL.md` and `references/` together.
    If your agent's installer accepts a ZIP directly, provide that file.
    You can also install the complete [`skills/zotero-action-links`](skills/zotero-action-links/SKILL.md) directory from a checkout of the matching release tag using an installer that supports repository subdirectories.
+   Each release description provides both the ZIP download link and the skill-directory URL pinned to that release tag.
+   For installers that accept GitHub directory URLs, provide the tagged directory URL instead of the ZIP download URL.
    Importing the action YAML does not install or update the agent skill; install the matching skill when upgrading the actions.
 
 Restarting Zotero retains the token.

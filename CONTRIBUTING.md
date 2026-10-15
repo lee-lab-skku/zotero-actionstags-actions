@@ -74,6 +74,8 @@ Packaging checks archive entries and bytes, with stable timestamps and permissio
 The build tests also extract the archive and validate the resulting standalone skill.
 These checks establish package integrity, not actual agent discovery or link generation behavior.
 Publish the ZIP with the YAML and JSON from the same release tag; skill installation remains separate from Zotero action import and updates.
+The release description includes a direct ZIP download link and a tagged skill-directory link, derived from the publishing server, repository, and tag.
+Keep both links aligned with the uploaded asset name and installable skill path.
 
 ## Versioning and prereleases
 

@@ -43,17 +43,18 @@ test('annotation and note links preserve page, parent labels, escaping, and per-
 
 test('annotation bridge previews distinguish complete, truncated and empty text', async () => {
     const env = await start();
-    for (const [text, label] of [
-        ['one two three four five six seven eight', 'one two three four five six seven eight (Smith26)'],
-        ['one two three four five six seven eight <&', 'one two three four five six seven eight... (Smith26)'],
-        ['one two three four five six seven eight   ', 'one two three four five six seven eight (Smith26)'],
-        ['', '(Smith26)'],
+    for (const [text, label, totalWords] of [
+        ['one two three four five six seven eight', 'one two three four five six seven eight (Smith26)', 8],
+        ['one two three four five six seven eight <&', 'one two three four five six seven eight... (Smith26)', 9],
+        ['one two three four five six seven eight   ', 'one two three four five six seven eight (Smith26)', 8],
+        ['', '(Smith26)', 0],
     ]) {
         env.targets[2].annotationText = text;
         const result = await env.request({ ...selection, action: 'copyAnnotationLink', itemKeys: ['ANN00001'] });
         assert.equal(result.status, 200);
         const uri = 'zotero://open-pdf/library/items/PDF00001?page=3&annotation=ANN00001';
-        assert.deepEqual(result.links, [{ uri, label, html: `<a href="${uri}">${label}</a>` }]);
+        assert.deepEqual(result.links, [{ uri, label, html: `<a href="${uri}">${label}</a>`,
+            itemKey: 'ANN00001', wordRange: { start: 0, end: Math.min(8, totalWords), totalWords } }]);
     }
     assert.deepEqual(env.copied, []);
 });

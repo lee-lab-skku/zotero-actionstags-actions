@@ -25,6 +25,7 @@ Replace the example group ID and item keys with locally available values. For My
 | `library` | `{ "type": "group", "id": groupID }` or `{ "type": "user" }`; a group ID is not Zotero's internal library ID |
 | `itemKeys` | Nonempty array of eight-character uppercase Zotero item keys, all in the specified library; duplicate keys are removed |
 | `collectionKey` | Optional, only for `copySelectionLink`; an existing collection in that library |
+| `wordRanges` | Optional, only for `copyAnnotationLink`; maps keys from `itemKeys` to `{ "start": integer, "end": optional integer }` as described below |
 
 A selection request runs once for the supplied items.
 Child attachment targets resolve to their parent and duplicate parent links are removed.
@@ -35,6 +36,62 @@ An annotation request requires PDF annotation keys and includes the attachment, 
 A note request requires note keys and a compatible Better Notes installation.
 Both run sequentially per item.
 Better BibTeX is optional; labels fall back to titles or keys.
+
+## Annotation word ranges
+
+Annotation previews, including menu calls and requests without ranges, show at most the first eight words.
+A word is a maximal non-whitespace sequence, as matched by JavaScript `/\S+/gu`; repeated spaces, tabs and line breaks separate words without adding empty words.
+Punctuation stays attached: `don't` and `state-of-the-art` each count as one word.
+The preview preserves the original whitespace between selected words and excludes whitespace before the first and after the last selected word.
+Empty and whitespace-only annotations show only the citation key, title, or item key in parentheses.
+
+Use `wordRanges` to select different passages from annotations in one batch:
+
+```json
+{
+  "action": "copyAnnotationLink",
+  "library": { "type": "user" },
+  "itemKeys": ["ANN00001", "ANN00002", "ANN00003"],
+  "wordRanges": {
+    "ANN00001": { "start": 2, "end": 5 },
+    "ANN00002": { "start": 5 }
+  }
+}
+```
+
+`start` is a required zero-based word index, included in the selection.
+`end` is an optional exclusive word index; omission selects through the last word.
+Thus `{ "start": 2, "end": 5 }` selects the third, fourth and fifth words, and `{ "start": 0 }` selects the entire annotation without the default eight-word limit.
+All indices must be nonnegative safe integers, and a supplied `end` must be greater than `start`.
+Each range key must appear in `itemKeys`.
+Keys absent from `wordRanges`, including all keys when the map is empty, use the default first eight words.
+Duplicate item keys still produce one link, in first-occurrence request order; requesting several passages from the same annotation requires separate requests.
+
+An omitted prefix adds `... ` before the selected text; an omitted suffix adds `...` after it.
+For `The quick brown fox jumps over the lazy dog.`, selecting `[2, 5)` produces `... brown fox jumps... (citationKey)`.
+Only the label changes; the URI still opens the original annotation, not a new PDF text selection.
+
+Every updated annotation action returns `itemKey` and the actual applied `wordRange` alongside `uri`, `label`, and `html`:
+
+```json
+{
+  "itemKey": "ANN00001",
+  "wordRange": { "start": 2, "end": 5, "totalWords": 9 }
+}
+```
+
+The response resolves an omitted `end` to the actual word count.
+Default previews report `start: 0` and `end: min(8, totalWords)`; empty default previews report all three numbers as zero.
+Explicit ranges must select at least one word and fit entirely within the annotation.
+They are never clamped or replaced with a default preview, and one invalid target fails the batch without partial links.
+
+Compute indices programmatically from the same annotation text using the word rule above; do not estimate character offsets or count words from a normalized PDF transcription.
+An edit to the annotation text can change which words occupy a range.
+For explicit requests, verify each returned `itemKey`, `wordRange.start`, and `wordRange.end` against the request, resolving an omitted end using `totalWords`.
+Old bridges can ignore `wordRanges`, so HTTP 200 alone does not confirm that the requested passage was selected.
+Treat missing or mismatched metadata as unsupported or invalid, and do not use the result as the requested passage.
+The updated bridge rejects explicit ranges from old annotation actions with `UNSUPPORTED_WORD_RANGE`; default requests can still work with old actions.
+Import the updated bridge and annotation action together, restart Zotero, and update the separately installed skill when upgrading.
 
 ## Response and failures
 
@@ -62,11 +119,11 @@ Errors have `{ "ok": false, "error": { "code": "…", "message": "…" } }`:
 
 | HTTP status | Meaning |
 | --- | --- |
-| 400 | Unsupported action or invalid request, library, or collection scope |
+| 400 | Unsupported action or invalid request, library, collection scope, or word range |
 | 403 | Missing/incorrect token, or a browser Origin header |
 | 404 | Item or collection missing/deleted in the specified library |
 | 409 | Another request is running; retry after it finishes |
-| 422 | Copylink action rejected its target, or its conversion failed |
+| 422 | Copylink action rejected its target or word range, or its conversion failed |
 | 500 | Unexpected failure, malformed result, or old copylink script that does not report a result |
 | 503 | Bridge or requested action missing/disabled, or bridge replaced during a request |
 
@@ -74,6 +131,11 @@ A batch returns all links or an error; it never returns partial results.
 There is no request queue.
 Browser access is not enabled.
 Unsupported methods or content types can be rejected by Zotero's server before the bridge runs, with Zotero's own response format.
+
+Word-range errors use `INVALID_WORD_RANGE` (400) for malformed maps, keys outside `itemKeys`, wrong-action use, invalid numbers, or reversed/empty ranges.
+`WORD_RANGE_OUT_OF_BOUNDS` (422) means a structurally valid range exceeds the annotation word count, including an explicit range on empty text.
+`UNSUPPORTED_WORD_RANGE` (500) means the action did not report the metadata needed to confirm an explicit range.
+`INVALID_RESULT` (500) includes mismatched annotation keys or inconsistent applied ranges.
 
 If you receive `MISSING_RESULT`, import the updated three copylink actions together with the bridge.
 If the connection is refused, check the server preference, port, startup action, and profile.

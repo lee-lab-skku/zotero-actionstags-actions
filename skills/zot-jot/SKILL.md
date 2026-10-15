@@ -33,15 +33,23 @@ Read [API contract](references/api.md) for the exact request, response, and erro
 - Specify the library explicitly.
   A web group ID is not Zotero's internal library ID.
   For selection links, include `collectionKey` when the task identifies a relevant collection and the requested items belong to it; do not infer collection scope from the UI selection.
+- For a requested annotation passage, use `wordRanges` keyed by annotation key.
+  Compute zero-based, end-exclusive word indices from the same annotation text, following the API's whitespace rule; omit `end` for the rest of the annotation.
+  Do not estimate indices or calculate them from a different or normalized PDF transcription.
+  Omit the range when the default first eight words meet the task.
 - Keep requests sequential and inspect both the HTTP result and response body.
   A batch is all-or-error, with no partial links or request queue.
+- For explicit annotation ranges, verify the returned `itemKey` and applied `wordRange` against each request before using the link.
+  An omitted `end` must resolve to `totalWords`.
+  HTTP 200 is insufficient because old bridges can ignore range fields; missing or mismatched metadata must not be presented as the requested passage.
 - For `ok: true`, return links in the requested output format using the returned `uri`, plain-text `label`, and escaped `html` fields.
   For Markdown, use `[label](uri)` with appropriate escaping; for HTML, use the returned `html`; for a plain URL, use `uri`.
   Do not reconstruct URIs or replace action-generated labels with guessed citation keys.
 
 ## Handle failures
 
-Use the API reference to distinguish connection, authentication, scope, target, dependency, and busy errors.
+Use the API reference to distinguish connection, authentication, scope, target, range, dependency, and busy errors.
+Report unsupported ranges or invalid applied metadata rather than silently falling back to the default annotation preview.
 A timeout does not cancel the running action; wait before retrying, and retry only after the relevant condition changes or a busy request finishes.
 Do not repeatedly probe a missing or disabled bridge, or expand a link request into installation or open-ended diagnosis.
 Report the concrete blocker and follow the user's requested fallback behavior when a link cannot be obtained.

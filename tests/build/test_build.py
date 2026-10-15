@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timezone
 import shutil
 from pathlib import Path
 import subprocess
@@ -22,12 +23,19 @@ def updater_source(version, repository, root=ROOT):
 
 class BuildTests(unittest.TestCase):
     def test_build_from_another_directory_produces_equivalent_backups(self):
+        before = datetime.now(timezone.utc)
         with tempfile.TemporaryDirectory() as directory:
             subprocess.run([sys.executable, str(ROOT / 'build.py')], cwd=directory, check=True)
         yaml_data = yaml.safe_load((ROOT / 'dist/actions-zotero.yml').read_text(encoding='utf-8'))
         json_data = json.loads((ROOT / 'dist/actions-zotero.json').read_text(encoding='utf-8'))
         self.assertEqual(yaml_data, json_data)
         self.assertEqual(yaml_data['type'], 'ActionsTagsBackup')
+        self.assertTrue(json_data['timestamp'].endswith('Z'))
+        generated = datetime.fromisoformat(json_data['timestamp'].replace('Z', '+00:00'))
+        self.assertGreaterEqual(generated, before.replace(microsecond=(before.microsecond // 1000) * 1000))
+        self.assertLessEqual(generated, datetime.now(timezone.utc))
+        self.assertNotIn('platformVersion', json_data)
+        self.assertNotIn('pluginVersion', json_data)
         self.assertNotIn('releaseVersion', yaml_data['actions']['updateActions'])
         self.assertTrue((ROOT / 'dist/actions-zotero.yml').read_text().startswith('version: '))
         self.assertEqual(yaml_data['repository'], 'lee-lab-skku/zotero-actionstags-actions')
@@ -163,6 +171,25 @@ class BuildValidationTests(unittest.TestCase):
                 result = self.build(option, value)
                 self.assertNotEqual(result.returncode, 0)
                 self.assertFalse((self.root / 'dist/actions-zotero.json').exists())
+
+    def test_standard_app_plugin_metadata_is_paired_and_backups_remain_equivalent(self):
+        result = self.build('--platform-version', '10.0.6', '--plugin-version', '2.6.2')
+        self.assertEqual(result.returncode, 0, result.stderr)
+        backup = json.loads((self.root / 'dist/actions-zotero.json').read_text())
+        self.assertEqual(backup, yaml.safe_load((self.root / 'dist/actions-zotero.yml').read_text()))
+        self.assertEqual(backup['platformVersion'], '10.0.6')
+        self.assertEqual(backup['pluginVersion'], '2.6.2')
+
+    def test_incomplete_or_empty_app_plugin_metadata_preserves_existing_backups(self):
+        self.assertEqual(self.build().returncode, 0)
+        originals = {path: path.read_bytes() for path in (self.root / 'dist').iterdir()}
+        for options in [('--platform-version', '10.0.6'), ('--plugin-version', '2.6.2'),
+                        ('--platform-version', '', '--plugin-version', '2.6.2'),
+                        ('--platform-version', '10.0.6', '--plugin-version', '  ')]:
+            with self.subTest(options=options):
+                self.assertNotEqual(self.build(*options).returncode, 0)
+                for path, content in originals.items():
+                    self.assertEqual(path.read_bytes(), content)
 
     def test_non_git_build_requires_an_explicit_version(self):
         result = self.build(explicit_version=False)

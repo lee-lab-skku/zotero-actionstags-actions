@@ -54,6 +54,10 @@ Generated release files belong in the ignored `dist/` directory.
 Publish both YAML and JSON assets together; both must contain the same action definitions.
 The tag release workflow uploads both files.
 
+Every build records a single UTC ISO 8601 creation time in A&T's standard backup-root `timestamp`, shared by YAML and JSON.
+Use `--platform-version <Zotero version> --plugin-version <Actions & Tags version>` together to record the pair being verified in the standard `platformVersion` and `pluginVersion` fields.
+Local builds omit those version fields unless explicitly supplied; supplying them alone does not establish successful verification.
+
 ## Versioning and prereleases
 
 Versions are recorded in Git tags and `CHANGELOG.md`; there is no separate package version file.

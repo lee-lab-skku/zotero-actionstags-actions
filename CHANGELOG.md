@@ -14,6 +14,7 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ### Added
 
+- Standard Actions & Tags backup fields for an explicitly supplied Zotero/plugin pair, and a shared UTC creation timestamp in YAML and JSON builds.
 - Local coverage reports for original action sources and subprocess builds, with JavaScript LCOV and Python HTML/JSON output.
 - Expanded regression tests grounded in documented API contracts, covering action dispatch, links, preferences, review dates, update failures, and bridge lifecycle behavior.
 - A manually triggered real Zotero integration PoC using Zotero 10.0.6 and Actions & Tags 2.6.2 in a disposable profile under Xvfb.

@@ -37,8 +37,10 @@ See [API contracts and test oracles](tests/API-contracts.md) for the source-back
 CI runs these checks on Ubuntu 24.04 with Python 3.12 and Node.js 22 for branch pushes, pull requests, and manual runs.
 Tag releases require both the shared test workflow and real Zotero integration verification to succeed on the triggering commit SHA.
 The integration workflow builds the release YAML/JSON once, verifies their action definitions in the actual app, and uploads them for publication without rebuilding.
-The shared test workflow validates and packages the agent skill, checks the standalone archive in its build tests, and uploads the ZIP for tag releases.
-Publication downloads that tested ZIP alongside the verified backups; all three assets come from the same triggering commit.
+The shared test workflow validates and packages the agent skill, checks the standalone archive in its build tests, and uploads the ZIP for tag releases and manual runs.
+Release preparation downloads that tested ZIP alongside the verified backups; all three assets come from the same triggering commit.
+It renders the release body once, shows the body and asset sizes in the run summary, and uploads the body and assets together.
+Tag publication consumes this prepared bundle without rebuilding or rendering the body again.
 Tag pushes do not start a second standalone test run.
 Superseded branch/PR test runs are cancelled, while release runs are serialized per tag without cancelling an active release.
 External actions use major version tags to receive compatible updates.
@@ -64,6 +66,17 @@ Local builds omit those version fields unless explicitly supplied; supplying the
 Release CI supplies the fixed pair, requires matching actual runtime versions, and publishes only after verification succeeds.
 These fields describe the checked environment, not a compatibility range or coverage of every action and optional plugin.
 See [verification scope and artifact handling](tests/integration/zotero/README.md#ci-verification).
+
+## Release preview
+
+Run **Build and Release** manually, selecting the branch and an intended `preview_tag` (default `v0.0.0-preview`).
+Manual runs execute the same tests and real Zotero verification as tag releases, using the intended tag as the backup version and in the release-body links.
+After verification, inspect the rendered body and asset sizes in the run summary and download `release-bundle-<commit SHA>` from the run artifacts.
+The bundle contains `release-body.md`, `actions-zotero.yml`, `actions-zotero.json`, and `zot-jot.zip`, retained for seven days.
+The links preview the intended release URLs; they may not resolve before that tag and release exist.
+Dispatch never creates a tag or GitHub Release, including when dispatched against an existing tag.
+Only tag pushes can run the publication job, which uses the same body and assets prepared by that run.
+The standalone **Test** workflow also uploads the skill ZIP on manual runs, without preparing the full release bundle.
 
 ## Agent skill packaging
 

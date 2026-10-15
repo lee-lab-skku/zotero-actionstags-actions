@@ -4,6 +4,13 @@ on:
   push:
     tags:
       - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      preview_tag:
+        description: Intended release tag for preview links and backup version; no tag is created
+        required: true
+        default: v0.0.0-preview
+        type: string
 
 permissions:
   contents: read
@@ -19,14 +26,14 @@ jobs:
   zotero:
     uses: ./.github/workflows/zotero-integration.yml
     with:
-      version: ${{ github.ref_name }}
+      version: ${{ inputs.preview_tag || github.ref_name }}
 
-  publish:
+  prepare:
     needs: [test, zotero]
     runs-on: ubuntu-24.04
     timeout-minutes: 10
-    permissions:
-      contents: write
+    env:
+      RELEASE_TAG: ${{ inputs.preview_tag || github.ref_name }}
     steps:
       - name: Download verified release backups
         uses: actions/download-artifact@v8
@@ -40,18 +47,68 @@ jobs:
           name: verified-skill-${{ github.sha }}
           path: dist
 
+      - name: Prepare release body and summary
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+
+          base = f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}"
+          tag = os.environ['RELEASE_TAG']
+          body = (
+              "### Agent skill\n\n"
+              f"- [Download the skill ZIP]({base}/releases/download/{tag}/zot-jot.zip)\n"
+              f"- [Skill directory at this release tag]({base}/tree/{tag}/skills/zot-jot)\n\n"
+              "Extract the ZIP and install the complete `zot-jot/` directory, including `references/`.\n"
+              "For installers that accept GitHub skill-directory URLs, such as `skill-installer`, "
+              "provide the tagged directory link above rather than the ZIP download link.\n"
+              "Install the skill separately from the Zotero action backup; both links target this release.\n"
+          )
+          assets = [Path('dist') / name for name in
+                    ('actions-zotero.yml', 'actions-zotero.json', 'zot-jot.zip')]
+          inventory = ''.join(f'- `{path.name}` ({path.stat().st_size:,} bytes)\n' for path in assets)
+          Path('dist/release-body.md').write_text(body, encoding='utf-8')
+          preview = os.environ['GITHUB_EVENT_NAME'] == 'workflow_dispatch'
+          heading = 'Release preview' if preview else 'Release contents'
+          note = (
+              'Preview only: no tag or GitHub Release is created. Links show the intended tag '
+              'and may not resolve until it is published. Download the body and assets from '
+              'this run\'s release-bundle artifact.\n\n' if preview else ''
+          )
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a', encoding='utf-8') as summary:
+              summary.write(f'## {heading}\n\n{note}{body}\n### Assets\n\n{inventory}')
+          PY
+
+      - name: Save release body and assets
+        uses: actions/upload-artifact@v7
+        with:
+          name: release-bundle-${{ github.sha }}
+          path: |
+            dist/release-body.md
+            dist/actions-zotero.yml
+            dist/actions-zotero.json
+            dist/zot-jot.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    if: github.event_name == 'push' && github.ref_type == 'tag'
+    needs: prepare
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Download prepared release body and assets
+        uses: actions/download-artifact@v8
+        with:
+          name: release-bundle-${{ github.sha }}
+          path: dist
+
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
-          body: |
-            ### Agent skill
-
-            - [Download the skill ZIP](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/zot-jot.zip)
-            - [Skill directory at this release tag](${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}/skills/zot-jot)
-
-            Extract the ZIP and install the complete `zot-jot/` directory, including `references/`.
-            For installers that accept GitHub skill-directory URLs, such as `skill-installer`, provide the tagged directory link above rather than the ZIP download link.
-            Install the skill separately from the Zotero action backup; both links target this release.
+          body_path: dist/release-body.md
           files: |
             dist/actions-zotero.yml
             dist/actions-zotero.json

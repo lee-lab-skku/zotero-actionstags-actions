@@ -5,7 +5,7 @@ The fixture creates synthetic local items in an empty profile, installs the four
 ## CI verification
 
 Run **Zotero integration** manually from GitHub Actions, selecting the branch to test.
-The [workflow](../../../.github/workflows/zotero-integration.yml) is also required by tag releases, alongside the regular test workflow.
+The [workflow](../../../.github/workflows/zotero-integration.yml) is also required by tag releases and [manual release previews](../../../CONTRIBUTING.md#release-preview), alongside the regular test workflow.
 It downloads the official Linux tarball and Actions & Tags XPI for one fixed pair: Zotero 10.0.6 and A&T 2.6.2.
 It builds the selected commit's actions, starts Zotero under Xvfb with a fresh profile, and requires a successful fixture report, the expected installed versions, and a zero exit code within 120 seconds.
 It does not run on ordinary pushes or PRs.
@@ -17,7 +17,8 @@ The remaining [manual release checks](../../../CONTRIBUTING.md#verification-boun
 The build writes A&T's standard backup-root `platformVersion` (Zotero), `pluginVersion` (Actions & Tags), and `timestamp` (UTC creation time) fields into both YAML and JSON.
 The runner requires equivalent backups and metadata matching the requested pair, then checks the actual runtime versions against that pair.
 Only after success does the workflow upload `verified-backups-<commit SHA>`.
-The release workflow publishes those exact files without rebuilding, after both required workflows succeed.
+After both required workflows succeed, the release workflow bundles those exact files with the tested skill ZIP and rendered release body.
+A manual release preview retains this bundle for inspection; a tag push publishes it without rebuilding.
 The timestamp identifies file generation, before verification; it is neither the test completion time nor the publication time.
 
 The fixture checks persisted action definitions and their actual startup event, real item/collection/annotation objects, parent deduplication, returned links and escaping, authenticated localhost requests, error responses, and bridge replacement/disposal.

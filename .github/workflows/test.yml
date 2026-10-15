@@ -63,7 +63,7 @@ jobs:
         run: git show --format= --check --diff-merges=first-parent HEAD
 
       - name: Save verified release skill
-        if: github.ref_type == 'tag'
+        if: github.ref_type == 'tag' || github.event_name == 'workflow_dispatch'
         uses: actions/upload-artifact@v7
         with:
           name: verified-skill-${{ github.sha }}

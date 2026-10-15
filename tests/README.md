@@ -28,6 +28,7 @@ node --test tests/integration/http/*.test.cjs
 ```
 
 CI executes the local suites and the HTTP socket suite.
+See [CI and release workflow](../docs/releases.md#ci-workflows) for the current execution environment and triggers.
 Real Zotero integration verification is a separate workflow invoked manually and required for releases; see [execution and scope](integration/zotero/README.md).
 Its automated checks do not replace UI import, URI-opening or shared-library checks.
 
@@ -40,6 +41,24 @@ python tests/tooling/run-coverage.py
 
 Coverage runs `unit/`, `tooling/`, and `build/`, reporting original action sources and `build.py`.
 Integration suites are excluded from this local coverage command.
-Generated wrappers, LCOV, and Python HTML/JSON reports are written to ignored `coverage/`.
+JavaScript uses Node's built-in experimental coverage with source maps to measure every original `src/*.js` action body.
+Python coverage includes subprocess builds and maps temporary checkout copies back to `build.py`.
+Generated wrappers and reports stay in ignored `coverage/`: action coverage at `actions.lcov`, Python HTML at `python/index.html`, and Python JSON at `build.json`.
+Coverage helps identify missing cases; it does not establish API compatibility or replace behavioral assertions.
 [API contracts and test oracles](API-contracts.md) records the basis for expected results and the limits of the doubles.
 [CONTRIBUTING.md](../CONTRIBUTING.md) contains the complete setup and validation commands.
+
+## Manual release checks
+
+Test in a disposable Zotero 10 profile with compatible Actions & Tags and optional Better Notes/Better BibTeX versions:
+
+1. Import the generated YAML and verify menu actions and startup events.
+1. Copy links from a single collection, mixed collection/search selection, multiple libraries, and a reader; include standalone attachments and notes.
+1. Verify authenticated bridge requests and returned links using the [disposable profile fixture](integration/zotero/README.md).
+   Open returned URIs and check shared-library targets manually.
+1. Verify Delete moves collection items to trash and Shift+Delete removes them from the collection, including confirmation, Undo, and multiple selected collections.
+   Check Enable transitions and that editing, modified keys, and other views keep their usual behavior.
+1. Verify review dates around local midnight and preference setup with missing or stale groups/collections.
+1. Verify WebDAV failures and a release update with a failed download or write.
+1. Verify Set Preferences focuses No for prerelease opt-in, remembers the startup choice, and permits changing it manually.
+   Check startup/manual updater dispatch, no dialog for equal or older releases, intermediate-version selection, cancellation, and YAML-only labels.

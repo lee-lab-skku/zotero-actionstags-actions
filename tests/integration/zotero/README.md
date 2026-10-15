@@ -5,14 +5,14 @@ The fixture creates synthetic local items in an empty profile, installs the four
 ## CI verification
 
 Run **Zotero integration** manually from GitHub Actions, selecting the branch to test.
-The [workflow](../../../.github/workflows/zotero-integration.yml) is also required by tag releases and [manual release previews](../../../CONTRIBUTING.md#release-preview), alongside the regular test workflow.
+The [workflow](../../../.github/workflows/zotero-integration.yml) is also required by tag releases and [manual release previews](../../../docs/releases.md#release-preview), alongside the regular test workflow.
 It downloads the official Linux tarball and Actions & Tags XPI for one fixed pair: Zotero 10.0.6 and A&T 2.6.2.
 It builds the selected commit's actions, starts Zotero under Xvfb with a fresh profile, and requires a successful fixture report, the expected installed versions, and a zero exit code within 120 seconds.
 It does not run on ordinary pushes or PRs.
 
 Real-app behavioral verification is a release requirement; the current automation is an initial, PoC-level implementation with the limited coverage below.
 Passing it establishes only those checked behaviors on that app/plugin pair.
-The remaining [manual release checks](../../../CONTRIBUTING.md#verification-boundaries) still apply.
+The remaining [manual release checks](../../README.md#manual-release-checks) still apply.
 
 The build writes A&T's standard backup-root `platformVersion` (Zotero), `pluginVersion` (Actions & Tags), and `timestamp` (UTC creation time) fields into both YAML and JSON.
 The runner requires equivalent backups and metadata matching the requested pair, then checks the actual runtime versions against that pair.

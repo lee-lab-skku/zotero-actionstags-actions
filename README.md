@@ -137,7 +137,8 @@ An unused legacy preference can remain in the profile without affecting these ac
 ## Agent link setup
 
 The bridge lets a local shell or agent obtain the same item, PDF annotation, and Better Notes links as the copylink menu actions.
-It leaves the clipboard and UI selection untouched and needs no CLI/MCP or Actions & Tags plugin fork.
+It leaves the clipboard and UI selection untouched and needs no Actions & Tags plugin fork.
+With known library and target identifiers, an ordinary authenticated HTTP client is sufficient; no dedicated Zotero CLI or MCP server is required.
 Ordinary menu copying does not require the bridge or the agent skill.
 Better Notes is required for note links; Better BibTeX is optional, with link labels falling back to titles or keys.
 
@@ -150,7 +151,7 @@ Better Notes is required for note links; Better BibTeX is optional, with link la
 1. Find `extensions.zotero.actionsTags.actions.linkBridgeToken`, created once per profile at startup.
    Store its value in the client's private configuration or `ACTION_LINK_TOKEN` environment variable.
    Keep it out of shared documents, command output, and agent answers.
-   The client must reach the Zotero instance and profile that owns this token; Windows and WSL may need different localhost routing.
+   The client must reach the Zotero instance and profile that owns this token.
 1. For agent use, download `zotero-action-links.zip` from the same [release](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) as the action backup.
    Extract it and install the resulting `zotero-action-links/` directory in your agent's skill location, keeping `SKILL.md` and `references/` together.
    If your agent's installer accepts a ZIP directly, provide that file.

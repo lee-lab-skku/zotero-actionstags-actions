@@ -53,8 +53,8 @@ A successful request returns HTTP 200:
 }
 ```
 
-Use `uri` and the plain-text `label` to render the link in an answer.
-`html` is the action's escaped HTML representation.
+Choose the returned fields to match the requested output format.
+Use `uri` for a plain URL, `uri` and the plain-text `label` for a formatted link, or `html` for the action's escaped HTML representation.
 Requests do not copy to the clipboard or show action messages.
 Existing menu invocations continue to copy their usual plain URL and HTML content.
 

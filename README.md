@@ -46,7 +46,7 @@ This repository contains some useful JavaScript actions for the [Zotero Actions 
 - **Features**: Requires a profile-specific token, uses explicit item keys and library scope, and leaves the clipboard and UI selection untouched.
 
 Import the updated copylink actions together with this action, then restart Zotero.
-See [Local link API](docs/action-links.md) for pairing, requests, responses, and troubleshooting.
+See [Agent link setup](#agent-link-setup) for pairing and the bundled agent skill.
 
 ### Trash on Delete (`trashOnDelete.js`)
 
@@ -134,10 +134,49 @@ Keep the group, review collection, and reviewer name preferences for Review Note
 Preference setup no longer imports `tara.groupID`; users with only that legacy setting must select their organization once.
 An unused legacy preference can remain in the profile without affecting these actions.
 
+## Agent link setup
+
+The bridge lets a local shell or agent obtain the same item, PDF annotation, and Better Notes links as the copylink menu actions.
+It leaves the clipboard and UI selection untouched and needs no Actions & Tags plugin fork.
+With known library and target identifiers, an ordinary authenticated HTTP client is sufficient; no dedicated Zotero CLI or MCP server is required.
+Ordinary menu copying does not require the bridge or the agent skill.
+Better Notes is required for note links; Better BibTeX is optional, with link labels falling back to titles or keys.
+
+1. Follow [Installation](#installation), importing the updated copylink actions together with Agent Link Bridge.
+1. Keep Agent Link Bridge and the required copylink actions enabled, then restart Zotero.
+   Restart again after importing or re-enabling the bridge.
+   During a manual trial, disable Update Actions so a published release cannot replace the trial scripts.
+1. In Zotero's Advanced Config Editor, verify `extensions.zotero.httpServer.enabled` is true.
+   The usual address is `http://127.0.0.1:23119`; use the port in `extensions.zotero.httpServer.port` if different.
+1. Find `extensions.zotero.actionsTags.actions.linkBridgeToken`, created once per profile at startup.
+   Store its value in the client's private configuration or `ACTION_LINK_TOKEN` environment variable.
+   Keep it out of shared documents, command output, and agent answers.
+   The client must reach the Zotero instance and profile that owns this token.
+1. For agent use, download `zot-jot.zip` from the same [release](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) as the action backup.
+   Extract it and install the resulting `zot-jot/` directory in your agent's skill location, keeping `SKILL.md` and `references/` together.
+   If your agent's installer accepts a ZIP directly, provide that file.
+   You can also install the complete [`skills/zot-jot`](skills/zot-jot/SKILL.md) directory from a checkout of the matching release tag using an installer that supports repository subdirectories.
+   Each release description provides both the ZIP download link and the skill-directory URL pinned to that release tag.
+   For installers that accept GitHub directory URLs, provide the tagged directory URL instead of the ZIP download URL.
+   Importing the action YAML does not install or update the agent skill; install the matching skill when upgrading the actions.
+
+Restarting Zotero retains the token.
+To rotate it, clear the token preference, restart Zotero, then update the client configuration.
+Disabling Agent Link Bridge stops link requests.
+If the connection is refused, check Zotero is running, the server setting and port, and the bridge's startup state.
+An authentication failure usually means the client token does not match this profile.
+If an old copylink action returns `MISSING_RESULT`, import the updated bridge and all three copylink actions together and restart.
+For note failures, check Better Notes is installed and compatible.
+
+The bundled [zot-jot skill](skills/zot-jot/SKILL.md) (Zotero &mdash; Jump, Open, Trace) owns the agent workflow.
+Its [API reference](skills/zot-jot/references/api.md) covers direct shell requests, request/response fields, and detailed failures for human clients as well.
+
 ## Project Structure
 
 - `src/`: Contains the raw JavaScript files for each action.
 - `meta/`: Contains the YAML definitions that describe the actions for the Actions & Tags plugin.
+- `skills/`: Bundled agent skills and their self-contained references.
+- `build_skill.py`: Validates the action-link skill and builds `dist/zot-jot.zip`.
 - `build.py`: Combines `src/` and `meta/` into `dist/actions-zotero.yml` for import and `dist/actions-zotero.json` for automatic updates.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development, testing, and compatibility notes.

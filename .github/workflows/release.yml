@@ -34,11 +34,27 @@ jobs:
           name: verified-backups-${{ github.sha }}
           path: dist
 
+      - name: Download verified release skill
+        uses: actions/download-artifact@v8
+        with:
+          name: verified-skill-${{ github.sha }}
+          path: dist
+
       - name: Create release
         uses: softprops/action-gh-release@v3
         with:
+          body: |
+            ### Agent skill
+
+            - [Download the skill ZIP](${{ github.server_url }}/${{ github.repository }}/releases/download/${{ github.ref_name }}/zot-jot.zip)
+            - [Skill directory at this release tag](${{ github.server_url }}/${{ github.repository }}/tree/${{ github.ref_name }}/skills/zot-jot)
+
+            Extract the ZIP and install the complete `zot-jot/` directory, including `references/`.
+            For installers that accept GitHub skill-directory URLs, such as `skill-installer`, provide the tagged directory link above rather than the ZIP download link.
+            Install the skill separately from the Zotero action backup; both links target this release.
           files: |
             dist/actions-zotero.yml
             dist/actions-zotero.json
+            dist/zot-jot.zip
           fail_on_unmatched_files: true
           prerelease: ${{ contains(github.ref_name, '-') }}

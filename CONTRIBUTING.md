@@ -8,6 +8,7 @@ There are no Node package dependencies.
 ```sh
 python -m pip install PyYAML
 python build.py
+python build_skill.py
 python -m unittest discover -s tests/build -p 'test_*.py'
 node --test tests/unit/*.test.cjs tests/tooling/*.test.cjs
 git diff --check
@@ -36,6 +37,8 @@ See [API contracts and test oracles](tests/API-contracts.md) for the source-back
 CI runs these checks on Ubuntu 24.04 with Python 3.12 and Node.js 22 for branch pushes, pull requests, and manual runs.
 Tag releases require both the shared test workflow and real Zotero integration verification to succeed on the triggering commit SHA.
 The integration workflow builds the release YAML/JSON once, verifies their action definitions in the actual app, and uploads them for publication without rebuilding.
+The shared test workflow validates and packages the agent skill, checks the standalone archive in its build tests, and uploads the ZIP for tag releases.
+Publication downloads that tested ZIP alongside the verified backups; all three assets come from the same triggering commit.
 Tag pushes do not start a second standalone test run.
 Superseded branch/PR test runs are cancelled, while release runs are serialized per tag without cancelling an active release.
 External actions use major version tags to receive compatible updates.
@@ -61,6 +64,18 @@ Local builds omit those version fields unless explicitly supplied; supplying the
 Release CI supplies the fixed pair, requires matching actual runtime versions, and publishes only after verification succeeds.
 These fields describe the checked environment, not a compatibility range or coverage of every action and optional plugin.
 See [verification scope and artifact handling](tests/integration/zotero/README.md#ci-verification).
+
+## Agent skill packaging
+
+Run `python build_skill.py` to validate and package `skills/zot-jot` as `dist/zot-jot.zip`.
+The archive contains a top-level `zot-jot/` directory with `SKILL.md` and its resources, preserving paths relative to the skill entry.
+Validation checks the skill name and description, local Markdown document targets, and self-contained resources; it rejects missing references and symbolic links.
+Packaging checks archive entries and bytes, with stable timestamps and permissions so unchanged payloads produce identical archives.
+The build tests also extract the archive and validate the resulting standalone skill.
+These checks establish package integrity, not actual agent discovery or link generation behavior.
+Publish the ZIP with the YAML and JSON from the same release tag; skill installation remains separate from Zotero action import and updates.
+The release description includes a direct ZIP download link and a tagged skill-directory link, derived from the publishing server, repository, and tag.
+Keep both links aligned with the uploaded asset name and installable skill path.
 
 ## Versioning and prereleases
 
@@ -115,6 +130,18 @@ Before releasing, test in a disposable Zotero 10 profile with compatible Actions
 1. Verify review dates around local midnight and preference setup with missing or stale groups/collections.
 1. Verify WebDAV failures and a release update with a failed download or write.
 1. Verify Set preferences focuses No for prerelease opt-in, remembers the startup choice, and permits changing it manually. Check startup/manual updater dispatch, no dialog for equal or older releases, intermediate-version selection, cancellation, and YAML-only labels in a disposable profile.
+
+## Link bridge documentation and dispatch boundary
+
+The agent workflow and public HTTP contract live in [`skills/zot-jot`](skills/zot-jot/SKILL.md); update the skill and its API reference when the interface changes.
+Keep user setup instructions in README and preserve references inside the installable skill directory.
+
+The bridge uses the public `Zotero.ActionsTags.api.actionManager.dispatchActionByKey()` API.
+That dispatcher consumes script return values and catches exceptions, so the copylink actions report through a temporary result receiver bound to the action, target IDs, collection, and agent trigger.
+Menu calls and sharing calls keep their ordinary behavior.
+This endpoint does not expose arbitrary action execution, script evaluation, metadata writes, or Better BibTeX settings.
+
+Shutdown removes the bridge endpoint without stopping Zotero's shared server.
 
 ## API references
 

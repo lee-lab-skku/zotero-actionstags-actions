@@ -29,7 +29,7 @@ test('annotation and note links preserve page, parent labels, escaping, and per-
     const env = await start();
     const annotation = await env.request({ ...selection, action: 'copyAnnotationLink', itemKeys: ['ANN00001'] });
     assert.equal(annotation.links[0].uri, 'zotero://open-pdf/library/items/PDF00001?page=3&annotation=ANN00001');
-    assert.equal(annotation.links[0].label, 'a < b & c... (Smith26)');
+    assert.equal(annotation.links[0].label, 'a < b & c (Smith26)');
     assert.match(annotation.links[0].html, /a &lt; b &amp; c/);
     const note = await env.request({ ...selection, action: 'copyNoteLink', itemKeys: ['NOTE0001'] });
     assert.equal(note.links[0].uri, 'zotero://note/u/NOTE0001/');
@@ -38,6 +38,23 @@ test('annotation and note links preserve page, parent labels, escaping, and per-
     assert.equal(env.calls[0][1].itemID, 3);
     assert.equal(env.calls[1][1].itemID, 4);
     assert.equal(env.calls[0][1].itemIDs, undefined);
+    assert.deepEqual(env.copied, []);
+});
+
+test('annotation bridge previews distinguish complete, truncated and empty text', async () => {
+    const env = await start();
+    for (const [text, label] of [
+        ['one two three four five six seven eight', 'one two three four five six seven eight (Smith26)'],
+        ['one two three four five six seven eight <&', 'one two three four five six seven eight... (Smith26)'],
+        ['one two three four five six seven eight   ', 'one two three four five six seven eight (Smith26)'],
+        ['', '(Smith26)'],
+    ]) {
+        env.targets[2].annotationText = text;
+        const result = await env.request({ ...selection, action: 'copyAnnotationLink', itemKeys: ['ANN00001'] });
+        assert.equal(result.status, 200);
+        const uri = 'zotero://open-pdf/library/items/PDF00001?page=3&annotation=ANN00001';
+        assert.deepEqual(result.links, [{ uri, label, html: `<a href="${uri}">${label}</a>` }]);
+    }
     assert.deepEqual(env.copied, []);
 });
 

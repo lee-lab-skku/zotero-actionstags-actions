@@ -58,6 +58,8 @@ Use the corresponding item, reader, or annotation menu command.
 Copy Selection Link supports standalone attachments and avoids duplicate links when both a parent and its attachments are selected.
 In the library tab, it preserves a single selected collection when the item belongs to it; multiple or mixed collection/search selections use library-level links.
 
+Annotation previews include `...` only when text is omitted; empty previews show only the citation key, title, or item key in parentheses.
+
 Copy Note Link requires Better Notes.
 Better BibTeX is optional for link copying.
 

@@ -35,11 +35,13 @@ try {
     uri += `/items/${item.parentItem.key}`;
     uri += `?page=${position.pageIndex + 1}&annotation=${item.key}`;
 
-    let text = item.annotationText || "";
-    text = text.split(" ", 8).join(" ");
+    const annotationText = item.annotationText || "";
+    let text = annotationText.split(" ", 8).join(" ");
+    if (annotationText.slice(text.length).trim())
+        text += "...";
     const top = Zotero.Items.getTopLevel([item])[0];
     const label = (top.isRegularItem() && top.getField('citationKey')) || top.getField('title') || top.key;
-    text = `${text}... (${label})`;
+    text = text ? `${text} (${label})` : `(${label})`;
     const labelText = text;
     text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 

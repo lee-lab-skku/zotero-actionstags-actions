@@ -466,6 +466,24 @@ test('PDF clipboard links use one-based pages, group IDs and top-level labels', 
     }
 });
 
+test('annotation clipboard previews add ellipses only for omitted text', async () => {
+    for (const [annotationText, preview] of [
+        ['short < & >', 'short &lt; &amp; &gt;'],
+        ['one two three four five six seven eight', 'one two three four five six seven eight'],
+        ['one two three four five six seven eight nine', 'one two three four five six seven eight...'],
+        ['one two three four five six seven eight   ', 'one two three four five six seven eight'],
+        ['one  two three four five six seven eight', 'one  two three four five six seven...'],
+        ['', ''],
+        [undefined, ''],
+    ]) {
+        const env = linkEnvironment();
+        env.Zotero.Items = { getTopLevel: topLevel };
+        await run('copyAnnotationLink', env, { item: { ...annotationItem(), annotationText } });
+        const label = `${preview ? preview + ' ' : ''}(PDF title &lt;&amp;)`;
+        assert.equal(env.copied[1][1], `<a href="zotero://open-pdf/library/items/PDF00001?page=1&annotation=ANN00001">${label}</a>`);
+    }
+});
+
 test('annotations reject absent/non-PDF parents and non-integer page indices without copying', async () => {
     const env = linkEnvironment();
     assert.equal(await run('copyAnnotationLink', env), undefined);
@@ -484,7 +502,7 @@ test('annotation empty previews fall back to the top-level item key', async () =
     item.parentItem.parentItem.getField = () => '';
     env.Zotero.Items = { getTopLevel: topLevel };
     await run('copyAnnotationLink', env, { item });
-    assert.match(env.copied[1][1], />\.\.\. \(TOP00001\)<\/a>$/);
+    assert.match(env.copied[1][1], />\(TOP00001\)<\/a>$/);
 });
 
 test('note actions reject non-notes and a missing Better Notes API without clipboard writes', async () => {

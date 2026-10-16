@@ -21,7 +21,7 @@ After both required workflows succeed, the release workflow bundles those exact 
 A manual release preview retains this bundle for inspection; a tag push publishes it without rebuilding.
 The timestamp identifies file generation, before verification; it is neither the test completion time nor the publication time.
 
-The fixture checks persisted action definitions and their actual startup event, real item/collection/annotation objects, parent deduplication, returned links and escaping, authenticated localhost requests, error responses, and bridge replacement/disposal.
+The fixture checks persisted action definitions and their actual startup event, real item/collection/annotation objects, parent deduplication, returned links and escaping, default and explicit annotation word ranges with applied metadata, authenticated localhost requests, error responses, and bridge replacement/disposal.
 Better Notes is omitted from the current automated checks, so the missing-dependency response is checked.
 YAML import dialogs, clipboard behavior, reader UI, Delete/Undo, shared libraries, sync, and other actions remain outside the current automated checks.
 

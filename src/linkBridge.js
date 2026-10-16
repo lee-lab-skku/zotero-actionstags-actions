@@ -47,6 +47,7 @@ const bridge = {
             context.settled = true;
         };
         return {
+            wordRange: context.wordRange,
             complete: links => settle({ ok: true, links }),
             fail: (code, message) => settle(failure(code, message)),
         };
@@ -66,6 +67,21 @@ async function resolveRequest(data) {
         throw new RequestError(400, 'INVALID_REQUEST', 'Specify a supported copylink action.');
     if (!Array.isArray(data.itemKeys) || !data.itemKeys.length || !data.itemKeys.every(keyIsValid))
         throw new RequestError(400, 'INVALID_REQUEST', 'itemKeys must contain Zotero item keys.');
+    const wordRanges = new Map();
+    if (data.wordRanges !== undefined) {
+        if (data.action !== 'copyAnnotationLink' || !data.wordRanges
+            || typeof data.wordRanges !== 'object' || Array.isArray(data.wordRanges))
+            throw new RequestError(400, 'INVALID_WORD_RANGE', 'wordRanges must map requested annotation keys to ranges.');
+        for (const [key, range] of Object.entries(data.wordRanges)) {
+            if (!data.itemKeys.includes(key) || !range || typeof range !== 'object' || Array.isArray(range)
+                || !Number.isSafeInteger(range.start) || range.start < 0
+                || (range.end !== undefined && (!Number.isSafeInteger(range.end) || range.end <= range.start)))
+                throw new RequestError(400, 'INVALID_WORD_RANGE', 'Each range needs a nonnegative integer start and an optional greater integer end.');
+            // Snapshot validated options before item lookup/dispatch can yield to another call.
+            wordRanges.set(key, Object.freeze({ start: range.start,
+                ...(range.end === undefined ? {} : { end: range.end }) }));
+        }
+    }
     let libraryID;
     if (data.library?.type === 'user' && data.library.id === undefined) {
         libraryID = Zotero.Libraries.userLibraryID;
@@ -92,14 +108,14 @@ async function resolveRequest(data) {
             throw new RequestError(404, 'ITEM_NOT_FOUND', `Item ${key} does not exist in this library.`);
         targets.push(target);
     }
-    return { action: data.action, targets, selectedCollection };
+    return { action: data.action, targets, selectedCollection, wordRanges };
 }
 
-async function dispatch(action, targets, selectedCollection) {
+async function dispatch(action, targets, selectedCollection, wordRange = null) {
     if (bridge.disposed || !enabled('linkBridge') || !enabled(action))
         throw new RequestError(503, 'ACTION_UNAVAILABLE', 'The bridge or requested action is disabled.');
     const context = {
-        action, ids: targets.map(target => target.id),
+        action, ids: targets.map(target => target.id), wordRange,
         collectionID: selectedCollection?.id || null, settled: false, result: null,
     };
     bridge.active = context;
@@ -122,6 +138,25 @@ async function dispatch(action, targets, selectedCollection) {
         if (!Array.isArray(result.links) || !result.links.length || result.links.some(link =>
             !link || ['uri', 'label', 'html'].some(field => typeof link[field] !== 'string')))
             throw new RequestError(500, 'INVALID_RESULT', 'The action returned an invalid link result.');
+        if (action === 'copyAnnotationLink') {
+            if (result.links.length !== 1)
+                throw new RequestError(500, 'INVALID_RESULT', 'The annotation action must return one link per target.');
+            const link = result.links[0];
+            // Older actions can still serve default requests, but cannot confirm a range.
+            if (wordRange && (link.wordRange === undefined || link.itemKey === undefined))
+                throw new RequestError(500, 'UNSUPPORTED_WORD_RANGE', 'Update the annotation action to report applied word ranges.');
+            if (link.wordRange !== undefined || link.itemKey !== undefined) {
+                const applied = link.wordRange;
+                if (link.itemKey !== targets[0].key || !applied || typeof applied !== 'object'
+                    || !Number.isSafeInteger(applied.totalWords) || applied.totalWords < 0
+                    || !Number.isSafeInteger(applied.start) || !Number.isSafeInteger(applied.end)
+                    || applied.start < 0 || applied.end < applied.start || applied.end > applied.totalWords
+                    || (applied.start === applied.end && (applied.totalWords !== 0 || wordRange))
+                    || applied.start !== (wordRange?.start ?? 0)
+                    || applied.end !== (wordRange ? (wordRange.end ?? applied.totalWords) : Math.min(8, applied.totalWords)))
+                    throw new RequestError(500, 'INVALID_RESULT', 'The annotation action returned inconsistent word range metadata.');
+            }
+        }
         return result.links;
     } finally {
         if (bridge.active === context)
@@ -146,13 +181,13 @@ class Endpoint {
             return response(409, failure('BUSY', 'Another link request is running. Retry after it finishes.'));
         busy = true;
         try {
-            const { action, targets, selectedCollection } = await resolveRequest(request.data);
+            const { action, targets, selectedCollection, wordRanges } = await resolveRequest(request.data);
             const links = [];
             if (action === 'copySelectionLink') {
                 links.push(...await dispatch(action, targets, selectedCollection));
             } else {
                 for (const target of targets)
-                    links.push(...await dispatch(action, [target], null));
+                    links.push(...await dispatch(action, [target], null, wordRanges.get(target.key)));
             }
             return response(200, { ok: true, links });
         } catch (error) {

@@ -51,7 +51,7 @@ async function runTrial() {
         annotation.libraryID = item.libraryID;
         annotation.parentID = pdf.id;
         annotation.annotationType = 'highlight';
-        annotation.annotationText = 'Annotated < & >';
+        annotation.annotationText = ' One  two\nthree four five six seven eight <&> ';
         annotation.annotationColor = '#ffd400';
         annotation.annotationSortIndex = '00002|000000|00000';
         annotation.annotationPosition = JSON.stringify({ pageIndex: 2, rects: [[0, 0, 10, 10]] });
@@ -73,6 +73,22 @@ async function runTrial() {
         check(scoped.status === 200 && scoped.data.links[0].uri.includes(`/collections/${collection.key}/`), 'explicit collection resolved');
         const annotated = await request({ ...selection, action: 'copyAnnotationLink', itemKeys: [annotation.key] });
         check(annotated.status === 200 && annotated.data.links[0].uri === `zotero://open-pdf/library/items/${pdf.key}?page=3&annotation=${annotation.key}`, 'real PDF annotation key and page returned');
+        const defaultPreview = annotated.data.links[0];
+        check(defaultPreview.itemKey === annotation.key && defaultPreview.wordRange.start === 0
+            && defaultPreview.wordRange.end === 8 && defaultPreview.wordRange.totalWords === 9
+            && defaultPreview.label.startsWith('One  two\nthree four five six seven eight... ('),
+            'default annotation preview counts words and preserves internal whitespace');
+        const ranged = await request({ ...selection, action: 'copyAnnotationLink', itemKeys: [annotation.key],
+            wordRanges: { [annotation.key]: { start: 7 } } });
+        check(ranged.status === 200 && ranged.data.links[0].wordRange.start === 7
+            && ranged.data.links[0].wordRange.end === 9 && ranged.data.links[0].wordRange.totalWords === 9
+            && ranged.data.links[0].label.startsWith('... eight <&> (')
+            && ranged.data.links[0].html.includes('eight &lt;&amp;&gt;'),
+            'real annotation word range returns applied metadata and escaped text');
+        const outOfBounds = await request({ ...selection, action: 'copyAnnotationLink', itemKeys: [annotation.key],
+            wordRanges: { [annotation.key]: { start: 9 } } });
+        check(outOfBounds.status === 422 && outOfBounds.data.error.code === 'WORD_RANGE_OUT_OF_BOUNDS',
+            'real annotation rejects out-of-bounds word range');
         check((await request(selection, 'wrong-token')).status === 403, 'invalid token rejected');
         check((await request({ ...selection, itemKeys: ['ZZZZZZZZ'] })).status === 404, 'missing item rejected');
         check((await request({ ...selection, action: 'copyAnnotationLink' })).status === 422, 'invalid annotation target rejected');

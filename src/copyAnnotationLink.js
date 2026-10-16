@@ -36,8 +36,19 @@ try {
     uri += `?page=${position.pageIndex + 1}&annotation=${item.key}`;
 
     const annotationText = item.annotationText || "";
-    let text = annotationText.split(" ", 8).join(" ");
-    if (annotationText.slice(text.length).trim())
+    // Keep source offsets so repeated whitespace and line breaks survive excerpting.
+    const words = Array.from(annotationText.matchAll(/\S+/gu));
+    const totalWords = words.length;
+    const requestedRange = sink?.wordRange;
+    const start = requestedRange?.start ?? 0;
+    const end = requestedRange ? (requestedRange.end ?? totalWords) : Math.min(8, totalWords);
+    if (requestedRange && (start >= totalWords || end > totalWords))
+        return fail('WORD_RANGE_OUT_OF_BOUNDS', 'The word range exceeds this annotation text.');
+    let text = totalWords
+        ? annotationText.slice(words[start].index, words[end - 1].index + words[end - 1][0].length) : "";
+    if (start > 0)
+        text = `... ${text}`;
+    if (end < totalWords)
         text += "...";
     const top = Zotero.Items.getTopLevel([item])[0];
     const label = (top.isRegularItem() && top.getField('citationKey')) || top.getField('title') || top.key;
@@ -46,7 +57,8 @@ try {
     text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     if (sink) {
-        sink.complete([{ uri, label: labelText, html: `<a href="${uri}">${text}</a>` }]);
+        sink.complete([{ uri, label: labelText, html: `<a href="${uri}">${text}</a>`,
+            itemKey: item.key, wordRange: { start, end, totalWords } }]);
         return;
     }
     const clipboard = new Zotero.ActionsTags.api.utils.ClipboardHelper();

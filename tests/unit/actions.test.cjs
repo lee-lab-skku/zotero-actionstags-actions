@@ -472,7 +472,9 @@ test('annotation clipboard previews add ellipses only for omitted text', async (
         ['one two three four five six seven eight', 'one two three four five six seven eight'],
         ['one two three four five six seven eight nine', 'one two three four five six seven eight...'],
         ['one two three four five six seven eight   ', 'one two three four five six seven eight'],
-        ['one  two three four five six seven eight', 'one  two three four five six seven...'],
+        ['one  two three four five six seven eight', 'one  two three four five six seven eight'],
+        [' one\t two\nthree four five six seven eight nine ', 'one\t two\nthree four five six seven eight...'],
+        [' \t\n ', ''],
         ['', ''],
         [undefined, ''],
     ]) {

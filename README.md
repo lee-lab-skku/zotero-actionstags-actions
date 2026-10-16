@@ -58,7 +58,9 @@ Use the corresponding item, reader, or annotation menu command.
 Copy Selection Link supports standalone attachments and avoids duplicate links when both a parent and its attachments are selected.
 In the library tab, it preserves a single selected collection when the item belongs to it; multiple or mixed collection/search selections use library-level links.
 
-Annotation previews include `...` only when text is omitted; empty previews show only the citation key, title, or item key in parentheses.
+Annotation previews show the first eight whitespace-separated words, preserving the spaces and line breaks between them.
+They include `...` only when words are omitted; empty or whitespace-only annotations show only the citation key, title, or item key in parentheses.
+Bridge clients can choose a different word range for each annotation; see the [API reference](skills/zot-jot/references/api.md#annotation-word-ranges).
 
 Copy Note Link requires Better Notes.
 Better BibTeX is optional for link copying.

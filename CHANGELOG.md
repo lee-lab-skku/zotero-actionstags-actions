@@ -12,6 +12,8 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ## [Unreleased]
 
+## [3.0.0-rc.3] &mdash; 2026-10-16
+
 ### Added
 
 - Per-annotation word ranges for Agent Link Bridge requests, with applied range metadata in annotation link responses.
@@ -39,7 +41,7 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 - Annotation link previews now show ellipses only when words are omitted.
 
-## [3.0.0-rc.2] &mdash; 2026-10-16
+## [3.0.0-rc.2] &mdash; 2026-10-15
 
 ### Added
 
@@ -228,7 +230,8 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - YAML backup generation and tag-triggered release builds.
 - Optional `/unread` tagging actions, disabled by default.
 
-[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.2...HEAD
+[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.3...HEAD
+[3.0.0-rc.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.2...v3.0.0-rc.3
 [3.0.0-rc.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.1...v3.0.0-rc.2
 [3.0.0-rc.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.4...v3.0.0-rc.1
 [3.0.0-beta.4]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.3...v3.0.0-beta.4

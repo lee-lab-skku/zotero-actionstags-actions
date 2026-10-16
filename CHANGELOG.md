@@ -14,7 +14,10 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ### Added
 
-- A bundled `zot-jot` agent skill for generating item, PDF annotation, and Better Notes links through Agent Link Bridge, with setup and troubleshooting guidance.
+- Per-annotation word ranges for Agent Link Bridge requests, with applied range metadata in annotation link responses.
+  Clients can select a passage or the full annotation text; invalid ranges fail the batch, and explicit ranges require the updated bridge and annotation action.
+- A bundled `zot-jot` agent skill for generating item, PDF annotation, and Better Notes links through Agent Link Bridge, with a self-contained API reference and setup and troubleshooting guidance.
+  It supports Markdown, HTML, and plain URL output and verifies applied word ranges for requested annotation passages.
   Releases include a validated `zot-jot.zip`, a direct download link, and a skill-directory link pinned to the release tag.
   Install or update the skill separately from the Zotero actions.
 - Manual release previews with an intended tag, the same tests and real Zotero verification as tag releases, and a downloadable bundle containing the release body, YAML/JSON backups, and skill ZIP.
@@ -22,9 +25,15 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ### Changed
 
+- Default annotation previews now count the first eight whitespace-separated words, preserving spaces, tabs, and line breaks between them.
 - Release publication now consumes a prepared bundle containing the verified backups, tested skill ZIP, and release body without rebuilding assets or rendering the body again.
-- Move the link API reference into the installable skill and add agent link setup instructions to README.
+- Add agent link setup instructions to README.
 - The Update Actions version selection dialog now clarifies that updating actions does not replace installed agent skills.
+
+### Fixed
+
+- Annotation link previews now show ellipses only when words are omitted.
+  Empty or whitespace-only annotations show only the citation key, title, or item key in parentheses.
 
 ## [3.0.0-rc.2] &mdash; 2026-10-16
 

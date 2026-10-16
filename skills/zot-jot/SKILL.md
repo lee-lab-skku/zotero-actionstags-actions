@@ -36,7 +36,7 @@ Read [API contract](references/api.md) for the exact request, response, and erro
 - Keep requests sequential and inspect both the HTTP result and response body.
   A batch is all-or-error, with no partial links or request queue.
 - For `ok: true`, return links in the requested output format using the returned `uri`, plain-text `label`, and escaped `html` fields.
-  For Markdown, use `[label](uri)` with appropriate escaping; for HTML, use the returned `html`; for a plain URL, use `uri`.
+  For Markdown, use `[label](uri)` without any escaping; for HTML, use the returned `html`; for a plain URL, use `uri`.
   Do not reconstruct URIs or replace action-generated labels with guessed citation keys.
 
 ## Handle failures

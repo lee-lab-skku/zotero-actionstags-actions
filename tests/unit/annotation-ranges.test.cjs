@@ -13,7 +13,7 @@ function requestRange(range) {
 
 function expectedLink(itemKey, preview, start, end, totalWords) {
     const uri = `zotero://open-pdf/library/items/PDF00001?page=3&annotation=${itemKey}`;
-    const label = preview ? `${preview} (Smith26)` : '(Smith26)';
+    const label = preview ? `${preview} (Smith26)` : 'p. 3 (Smith26)';
     const escaped = label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     return { uri, label, html: `<a href="${uri}">${escaped}</a>`,
         itemKey, wordRange: { start, end, totalWords } };

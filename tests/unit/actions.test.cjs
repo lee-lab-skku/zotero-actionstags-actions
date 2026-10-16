@@ -481,7 +481,7 @@ test('annotation clipboard previews add ellipses only for omitted text', async (
         const env = linkEnvironment();
         env.Zotero.Items = { getTopLevel: topLevel };
         await run('copyAnnotationLink', env, { item: { ...annotationItem(), annotationText } });
-        const label = `${preview ? preview + ' ' : ''}(PDF title &lt;&amp;)`;
+        const label = `${preview || 'p. 1'} (PDF title &lt;&amp;)`;
         assert.equal(env.copied[1][1], `<a href="zotero://open-pdf/library/items/PDF00001?page=1&annotation=ANN00001">${label}</a>`);
     }
 });
@@ -504,7 +504,7 @@ test('annotation empty previews fall back to the top-level item key', async () =
     item.parentItem.parentItem.getField = () => '';
     env.Zotero.Items = { getTopLevel: topLevel };
     await run('copyAnnotationLink', env, { item });
-    assert.match(env.copied[1][1], />\(TOP00001\)<\/a>$/);
+    assert.match(env.copied[1][1], />p\. 1 \(TOP00001\)<\/a>$/);
 });
 
 test('note actions reject non-notes and a missing Better Notes API without clipboard writes', async () => {

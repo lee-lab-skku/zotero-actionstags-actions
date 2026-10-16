@@ -52,13 +52,18 @@ try {
         text += "...";
     const top = Zotero.Items.getTopLevel([item])[0];
     const label = (top.isRegularItem() && top.getField('citationKey')) || top.getField('title') || top.key;
-    text = text ? `${text} (${label})` : `(${label})`;
+    const pageLabel = item.annotationPageLabel?.trim() || String(position.pageIndex + 1);
+    text = `${text || `p. ${pageLabel}`} (${label})`;
+    const prefix = sink?.prefix;
+    if (prefix)
+        text = `${prefix} — ${text}`;
     const labelText = text;
     text = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
     if (sink) {
         sink.complete([{ uri, label: labelText, html: `<a href="${uri}">${text}</a>`,
-            itemKey: item.key, wordRange: { start, end, totalWords } }]);
+            itemKey: item.key, wordRange: { start, end, totalWords },
+            ...(prefix === undefined ? {} : { prefix }) }]);
         return;
     }
     const clipboard = new Zotero.ActionsTags.api.utils.ClipboardHelper();

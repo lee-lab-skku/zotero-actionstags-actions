@@ -37,6 +37,10 @@ Read [API contract](references/api.md) for the exact request, response, and erro
   Compute zero-based, end-exclusive word indices from the same annotation text, following the API's whitespace rule; omit `end` for the rest of the annotation.
   Do not estimate indices or calculate them from a different or normalized PDF transcription.
   Omit the range when the default first eight words meet the task.
+- For custom text before an annotation label, use `prefixes` keyed by annotation key.
+  Supply plain text without a separator; surrounding whitespace is trimmed and a nonempty prefix is followed by an automatic ` — ` separator.
+  Area/image annotations without text use a page label, so a prefix can describe the referenced figure or region without changing the annotation.
+  Verify each returned `itemKey` and `prefix` against the requested key and trimmed text; missing or mismatched metadata does not confirm prefix support.
 - Keep requests sequential and inspect both the HTTP result and response body.
   A batch is all-or-error, with no partial links or request queue.
 - For explicit annotation ranges, verify the returned `itemKey` and applied `wordRange` against each request before using the link.
@@ -49,7 +53,7 @@ Read [API contract](references/api.md) for the exact request, response, and erro
 ## Handle failures
 
 Use the API reference to distinguish connection, authentication, scope, target, range, dependency, and busy errors.
-Report unsupported ranges or invalid applied metadata rather than silently falling back to the default annotation preview.
+Report unsupported ranges or prefixes, or invalid applied metadata, rather than silently falling back to the default annotation preview.
 A timeout does not cancel the running action; wait before retrying, and retry only after the relevant condition changes or a busy request finishes.
 Do not repeatedly probe a missing or disabled bridge, or expand a link request into installation or open-ended diagnosis.
 Report the concrete blocker and follow the user's requested fallback behavior when a link cannot be obtained.

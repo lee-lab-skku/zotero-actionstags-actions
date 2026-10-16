@@ -48,6 +48,7 @@ const bridge = {
         };
         return {
             wordRange: context.wordRange,
+            prefix: context.prefix,
             complete: links => settle({ ok: true, links }),
             fail: (code, message) => settle(failure(code, message)),
         };
@@ -82,6 +83,17 @@ async function resolveRequest(data) {
                 ...(range.end === undefined ? {} : { end: range.end }) }));
         }
     }
+    const prefixes = new Map();
+    if (data.prefixes !== undefined) {
+        if (data.action !== 'copyAnnotationLink' || !data.prefixes
+            || typeof data.prefixes !== 'object' || Array.isArray(data.prefixes))
+            throw new RequestError(400, 'INVALID_PREFIX', 'prefixes must map requested annotation keys to strings.');
+        for (const [key, prefix] of Object.entries(data.prefixes)) {
+            if (!data.itemKeys.includes(key) || typeof prefix !== 'string')
+                throw new RequestError(400, 'INVALID_PREFIX', 'Each prefix must be a string for a requested annotation key.');
+            prefixes.set(key, prefix.trim());
+        }
+    }
     let libraryID;
     if (data.library?.type === 'user' && data.library.id === undefined) {
         libraryID = Zotero.Libraries.userLibraryID;
@@ -108,14 +120,14 @@ async function resolveRequest(data) {
             throw new RequestError(404, 'ITEM_NOT_FOUND', `Item ${key} does not exist in this library.`);
         targets.push(target);
     }
-    return { action: data.action, targets, selectedCollection, wordRanges };
+    return { action: data.action, targets, selectedCollection, wordRanges, prefixes };
 }
 
-async function dispatch(action, targets, selectedCollection, wordRange = null) {
+async function dispatch(action, targets, selectedCollection, wordRange = null, prefix = undefined) {
     if (bridge.disposed || !enabled('linkBridge') || !enabled(action))
         throw new RequestError(503, 'ACTION_UNAVAILABLE', 'The bridge or requested action is disabled.');
     const context = {
-        action, ids: targets.map(target => target.id), wordRange,
+        action, ids: targets.map(target => target.id), wordRange, prefix,
         collectionID: selectedCollection?.id || null, settled: false, result: null,
     };
     bridge.active = context;
@@ -142,6 +154,12 @@ async function dispatch(action, targets, selectedCollection, wordRange = null) {
             if (result.links.length !== 1)
                 throw new RequestError(500, 'INVALID_RESULT', 'The annotation action must return one link per target.');
             const link = result.links[0];
+            if (prefix !== undefined) {
+                if (link.prefix === undefined)
+                    throw new RequestError(500, 'UNSUPPORTED_PREFIX', 'Update the annotation action to report applied prefixes.');
+                if (link.prefix !== prefix || link.itemKey !== targets[0].key)
+                    throw new RequestError(500, 'INVALID_RESULT', 'The annotation action returned inconsistent prefix metadata.');
+            }
             // Older actions can still serve default requests, but cannot confirm a range.
             if (wordRange && (link.wordRange === undefined || link.itemKey === undefined))
                 throw new RequestError(500, 'UNSUPPORTED_WORD_RANGE', 'Update the annotation action to report applied word ranges.');
@@ -181,13 +199,13 @@ class Endpoint {
             return response(409, failure('BUSY', 'Another link request is running. Retry after it finishes.'));
         busy = true;
         try {
-            const { action, targets, selectedCollection, wordRanges } = await resolveRequest(request.data);
+            const { action, targets, selectedCollection, wordRanges, prefixes } = await resolveRequest(request.data);
             const links = [];
             if (action === 'copySelectionLink') {
                 links.push(...await dispatch(action, targets, selectedCollection));
             } else {
                 for (const target of targets)
-                    links.push(...await dispatch(action, [target], null, wordRanges.get(target.key)));
+                    links.push(...await dispatch(action, [target], null, wordRanges.get(target.key), prefixes.get(target.key)));
             }
             return response(200, { ok: true, links });
         } catch (error) {

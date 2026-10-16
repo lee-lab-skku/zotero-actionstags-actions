@@ -47,7 +47,7 @@ test('annotation bridge previews distinguish complete, truncated and empty text'
         ['one two three four five six seven eight', 'one two three four five six seven eight (Smith26)', 8],
         ['one two three four five six seven eight <&', 'one two three four five six seven eight... (Smith26)', 9],
         ['one two three four five six seven eight   ', 'one two three four five six seven eight (Smith26)', 8],
-        ['', '(Smith26)', 0],
+        ['', 'p. 3 (Smith26)', 0],
     ]) {
         env.targets[2].annotationText = text;
         const result = await env.request({ ...selection, action: 'copyAnnotationLink', itemKeys: ['ANN00001'] });

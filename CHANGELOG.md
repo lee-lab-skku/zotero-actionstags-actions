@@ -16,8 +16,11 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 - Per-annotation word ranges for Agent Link Bridge requests, with applied range metadata in annotation link responses.
   Clients can select a passage or the full annotation text; invalid ranges fail the batch, and explicit ranges require the updated bridge and annotation action.
+- Per-annotation plain-text prefixes for Agent Link Bridge requests, with an automatic em-dash separator and applied prefix metadata in responses.
+  Surrounding whitespace is trimmed, empty prefixes add no separator, and prefixes work alongside word ranges without changing annotation text or link destinations.
+  Explicit prefixes require the updated bridge and annotation action.
 - A bundled `zot-jot` agent skill for generating item, PDF annotation, and Better Notes links through Agent Link Bridge, with a self-contained API reference and setup and troubleshooting guidance.
-  It supports Markdown, HTML, and plain URL output and verifies applied word ranges for requested annotation passages.
+  It supports Markdown, HTML, and plain URL output and verifies applied word ranges and prefixes for annotation links.
   Releases include a validated `zot-jot.zip`, a direct download link, and a skill-directory link pinned to the release tag.
   Install or update the skill separately from the Zotero actions.
 - Manual release previews with an intended tag, the same tests and real Zotero verification as tag releases, and a downloadable bundle containing the release body, YAML/JSON backups, and skill ZIP.
@@ -26,6 +29,8 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 ### Changed
 
 - Default annotation previews now count the first eight whitespace-separated words, preserving spaces, tabs, and line breaks between them.
+- Empty or whitespace-only annotations, including area/image annotations, now show `p. <page> (citation key, title, or item key)`.
+  The page uses Zotero's annotation page label when available, otherwise the one-based PDF page number.
 - Release publication now consumes a prepared bundle containing the verified backups, tested skill ZIP, and release body without rebuilding assets or rendering the body again.
 - Add agent link setup instructions to README.
 - The Update Actions version selection dialog now clarifies that updating actions does not replace installed agent skills.
@@ -33,7 +38,6 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 ### Fixed
 
 - Annotation link previews now show ellipses only when words are omitted.
-  Empty or whitespace-only annotations show only the citation key, title, or item key in parentheses.
 
 ## [3.0.0-rc.2] &mdash; 2026-10-16
 

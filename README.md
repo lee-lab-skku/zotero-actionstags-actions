@@ -59,8 +59,9 @@ Copy Selection Link supports standalone attachments and avoids duplicate links w
 In the library tab, it preserves a single selected collection when the item belongs to it; multiple or mixed collection/search selections use library-level links.
 
 Annotation previews show the first eight whitespace-separated words, preserving the spaces and line breaks between them.
-They include `...` only when words are omitted; empty or whitespace-only annotations show only the citation key, title, or item key in parentheses.
-Bridge clients can choose a different word range for each annotation; see the [API reference](skills/zot-jot/references/api.md#annotation-word-ranges).
+They include `...` only when words are omitted; empty or whitespace-only annotations, including area/image annotations, show `p. <page> (citation key, title, or item key)` instead.
+The page uses Zotero's annotation page label when available, otherwise the one-based PDF page number.
+Bridge clients can choose a different word range or prepend custom text with an automatic separator for each annotation; see the [API reference](skills/zot-jot/references/api.md#annotation-prefixes).
 
 Copy Note Link requires Better Notes.
 Better BibTeX is optional for link copying.

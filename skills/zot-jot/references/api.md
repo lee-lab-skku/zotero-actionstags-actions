@@ -70,6 +70,7 @@ Each range key must appear in `itemKeys`.
 Keys absent from `wordRanges`, including all keys when the map is empty, use the default first eight words.
 Duplicate item keys still produce one link, in first-occurrence request order; requesting several passages from the same annotation requires separate requests.
 
+<!-- markdownlint-disable-next-line MD038 -->
 An omitted prefix adds `... ` before the selected text; an omitted suffix adds `...` after it.
 For `The quick brown fox jumps over the lazy dog.`, selecting `[2, 5)` produces `... brown fox jumps... (citationKey)`.
 Only the label changes; the URI still opens the original annotation, not a new PDF text selection.

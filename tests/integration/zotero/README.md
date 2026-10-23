@@ -19,7 +19,7 @@ The remaining [manual release checks](../../README.md#manual-release-checks) sti
 
 The fixture checks persisted action definitions and their actual startup event, real item/collection/annotation objects, parent deduplication, returned links and escaping, default and explicit annotation word ranges with applied metadata, authenticated localhost requests, error responses, and bridge replacement/disposal.
 Better Notes is omitted from the current automated checks, so the missing-dependency response is checked.
-YAML import dialogs, clipboard behavior, reader UI, Delete/Undo, shared libraries, sync, and other actions remain outside the current automated checks.
+YAML import dialogs, clipboard behavior, reader UI, shared libraries, sync, and Better Notes conversion remain outside the current automated checks.
 
 ### Artifacts and failures
 
@@ -70,7 +70,6 @@ zotero -no-remote -profile /tmp/zotero-link-trial/profile
 
 Omit `--better-notes-xpi` to test the missing-dependency error.
 The builder refuses existing profile/data directories, creates a separate sibling data directory, disables first-run browser guidance, automatic sync, and automatic app/plugin updates, uses port 23129, and installs only the bridge, copylinks, and test startup action.
-It does not enable Update Actions or the other actions in the backup.
 
 ### Windows and WSL
 

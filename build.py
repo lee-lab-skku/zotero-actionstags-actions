@@ -79,15 +79,6 @@ for meta in metas:
     if src.is_file():
         with open(src, 'r', encoding='utf-8') as f:
             src_code = f.read().strip()
-        if action == 'updateActions':
-            for marker, value in [
-                ('const INSTALLED_VERSION = null;', build_version),
-                ("const SOURCE_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';", repository),
-            ]:
-                if src_code.count(marker) != 1:
-                    raise ValueError('Missing or ambiguous updater provenance marker: ' + marker)
-                declaration = marker.split(' = ', 1)[0]
-                src_code = src_code.replace(marker, declaration + ' = ' + json.dumps(value) + ';', 1)
         meta_data['data'] = src_code
     elif meta_data.get('operation') == 4:
         raise ValueError(f'Missing script for action: {action}')
@@ -104,7 +95,7 @@ for meta in metas:
 with open(dist_dir / 'actions-zotero.yml', 'w', encoding='utf-8') as f:
     yaml.dump(datas, f, allow_unicode=True, sort_keys=False)
 
-# JSON is also valid YAML and lets the updater avoid evaluating a remote parser.
+# Keep a JSON representation with the same action definitions and metadata.
 with open(dist_dir / 'actions-zotero.json', 'w', encoding='utf-8') as f:
     json.dump(datas, f, ensure_ascii=False, indent=2)
     f.write('\n')

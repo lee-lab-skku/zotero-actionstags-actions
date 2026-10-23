@@ -12,6 +12,10 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ## [Unreleased]
 
+### Removed
+
+- **Breaking:** Actions other than copying link ones and the bridge. They will be served in a new private repository.
+
 ## [3.0.0] &mdash; 2026-11-09
 
 ### Fixed

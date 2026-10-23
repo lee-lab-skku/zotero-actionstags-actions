@@ -45,16 +45,6 @@ function compileAction(name, body) {
     const parameters = event === 8 ? [] : event === 9 || event === 10
         ? ['window'] : ['item', 'items', 'collection'];
     parameters.push('require', 'triggerType', 'Date');
-    const constants = {};
-    if (name === 'updateActions') {
-        for (const constant of ['INSTALLED_VERSION', 'SOURCE_REPOSITORY']) {
-            const pattern = new RegExp('const ' + constant + ' = (.+);');
-            const literal = pattern.exec(body)[1];
-            constants[constant] = literal.startsWith("'") ? literal.slice(1, -1) : JSON.parse(literal);
-            parameters.push('__test_' + constant);
-            body = body.replace(pattern, 'const ' + constant + ' = __test_' + constant + ';');
-        }
-    }
     const digest = createHash('sha256').update(JSON.stringify([original, body, parameters])).digest('hex').slice(0, 16);
     const compiled = path.join(generated, name + '-' + digest + '.js');
     if (!fs.existsSync(compiled)) {
@@ -78,7 +68,7 @@ function compileAction(name, body) {
                 if (!(key in modules)) throw new Error('Unexpected injected module: ' + key);
                 return modules[key];
             } };
-        return fn(...parameters.map(key => key.startsWith('__test_') ? constants[key.slice(7)] : values[key]));
+        return fn(...parameters.map(key => values[key]));
     };
 }
 

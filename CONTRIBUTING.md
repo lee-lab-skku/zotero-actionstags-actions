@@ -48,8 +48,6 @@ Script actions require a matching source file and an explicit event, including `
 Selection actions run with `items` and no `item`; per-item actions must ignore that selection-level invocation.
 When dispatching a selection action explicitly, pass `itemIDs` without `itemID`.
 Startup scripts must not assume that item or collection arguments exist.
-Global menu commands must run once per selection without changing other actions or non-menu dispatches.
-Per-action running guards must be released in `finally`, including early returns and failures.
 
 ### Zotero APIs and user data
 
@@ -58,27 +56,25 @@ Use plural collection selection getters and handle mixed selections and multiple
 Use `Zotero.Libraries.userLibraryID`, not a hardcoded personal library ID.
 Escape user text before inserting it into HTML clipboard content or notes.
 
-The updater must validate the full backup before applying changes, apply its own action last, and record its version only after every write succeeds.
-Preserve users' enabled settings and shortcuts when updating existing actions.
-Do not download and evaluate parser code to decode release data.
-
 ### Link bridge boundary
 
 The bridge uses the public `Zotero.ActionsTags.api.actionManager.dispatchActionByKey()` API.
 The dispatcher consumes return values and catches exceptions, so bridge result delivery must remain bound to the originating action, target, collection, and agent request.
-Menu calls and sharing calls keep their ordinary behavior.
+Menu calls keep their ordinary clipboard behavior.
 
 The endpoint supports link generation, without exposing arbitrary action execution, script evaluation, metadata writes, or Better BibTeX settings.
 Shutdown removes the bridge endpoint without stopping Zotero's shared server.
 
 ## Distribution contracts
 
+Distribute only `copySelectionLink`, `copyAnnotationLink`, `copyNoteLink`, and `linkBridge`.
+Updates are manual imports; do not include legacy automation or retirement placeholders.
 Publish the YAML and JSON backups with identical action definitions and the skill ZIP from the same release tag and commit.
 The skill must remain installable on its own, with all referenced resources inside its directory and relative paths preserved.
 Keep its ZIP download link and tagged directory link aligned with the published assets.
 Skill installation remains separate from Zotero action imports and updates.
 
-Preserve version and repository provenance through Actions & Tags editor saves; custom action metadata cannot be relied on for this.
+Keep version and repository provenance in the backup root; do not add custom action metadata for it.
 Record the same creation timestamp in both backups.
 Verification metadata must match the actual runtime pair checked and must not imply broader compatibility or test coverage.
 

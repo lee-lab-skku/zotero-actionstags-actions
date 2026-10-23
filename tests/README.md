@@ -6,7 +6,7 @@ The default local checks are `unit/`, `build/`, and `tooling/`; they require no 
 | Directory | Purpose | Execution requirements |
 | --- | --- | --- |
 | `unit/` | Action logic and API-boundary behavior, using Zotero/A&T test doubles | Node.js; local and CI |
-| `build/` | CLI validation, Git provenance, backup equivalence, generated updater behavior, and standalone skill packaging | Python, PyYAML, Git and Node.js; local and CI |
+| `build/` | CLI validation, Git provenance, four-action backup scope and equivalence, and standalone skill packaging | Python, PyYAML, Git and Node.js; local and CI |
 | `tooling/` | Coverage runner and checks of the action harness and source-map reporting | Node.js for tooling tests; optional coverage.py for the coverage command |
 | `support/` | Shared action runner and bridge test doubles | Imported by suites; not a test suite |
 | `integration/http/` | A real HTTP client/socket against the bridge endpoint with mocked Zotero/A&T | Node.js and loopback binding; separate local command and CI step |
@@ -56,9 +56,3 @@ Test in a disposable Zotero 10 profile with compatible Actions & Tags and option
 1. Copy links from a single collection, mixed collection/search selection, multiple libraries, and a reader; include standalone attachments and notes.
 1. Verify authenticated bridge requests and returned links using the [disposable profile fixture](integration/zotero/README.md).
    Open returned URIs and check shared-library targets manually.
-1. Verify Delete moves collection items to trash and Shift+Delete removes them from the collection, including confirmation, Undo, and multiple selected collections.
-   Check Enable transitions and that editing, modified keys, and other views keep their usual behavior.
-1. Verify review dates around local midnight and preference setup with missing or stale groups/collections.
-1. Verify WebDAV failures and a release update with a failed download or write.
-1. Verify Set Preferences focuses No for prerelease opt-in, remembers the startup choice, and permits changing it manually.
-   Check startup/manual updater dispatch, no dialog for equal or older releases, intermediate-version selection, cancellation, and YAML-only labels.

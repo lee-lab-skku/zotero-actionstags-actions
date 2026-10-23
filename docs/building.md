@@ -2,8 +2,9 @@
 
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for development setup and the contracts these artifacts must preserve.
 
-`python build.py` combines `src/` and `meta/` into `dist/actions-zotero.yml` for import and `dist/actions-zotero.json` for updates.
-It resolves paths relative to the script, so it can run from another working directory.
+`python build.py` combines the three copylink actions and Agent Link Bridge from `src/` and `meta/` into equivalent `dist/actions-zotero.yml` and `dist/actions-zotero.json` backups.
+Users install and update the actions by importing the YAML backup.
+The builder resolves paths relative to the script, so it can run from another working directory.
 
 ## Version and source metadata
 
@@ -18,8 +19,7 @@ For a non-GitHub origin, specify `--repository` explicitly.
 Release CI supplies the tag and `GITHUB_REPOSITORY` automatically.
 
 The backup stores these values in top-level `version` and `repository` fields.
-The updater also embeds them as `INSTALLED_VERSION` and `SOURCE_REPOSITORY` constants inside standard action `data`, which Actions & Tags preserves during editor saves.
-Do not rely on custom action metadata to retain them.
+These fields identify the backup file; individual actions do not store or manage an installed release version.
 
 ## Verification metadata
 

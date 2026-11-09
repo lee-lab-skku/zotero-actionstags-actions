@@ -12,6 +12,10 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ## [Unreleased]
 
+### Fixed
+
+- Text annotation link labels now include the page in both menu copies and bridge responses.
+
 ## [3.0.0-rc.3] &mdash; 2026-10-16
 
 ### Added

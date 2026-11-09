@@ -18,7 +18,6 @@ python build.py
 python build_skill.py
 python -m unittest discover -s tests/build -p 'test_*.py'
 node --test tests/unit/*.test.cjs tests/tooling/*.test.cjs
-git diff --check
 ```
 
 These local checks cover action logic, builds, and test tooling without Zotero, a display, network access, or socket binding.

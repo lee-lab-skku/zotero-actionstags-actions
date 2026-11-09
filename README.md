@@ -15,6 +15,8 @@ See [verification scope](tests/integration/zotero/README.md#ci-verification) for
 
 ## Installation
 
+Import the release backup into Actions & Tags, then restart Zotero and configure the action preferences.
+
 1. Download `actions-zotero.yml` from [Releases](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases).
 1. In Zotero, open **Settings &rightarrow; Actions & Tags**, click **Import**, and select the file.
 1. Restart Zotero to load the startup actions and collection Delete behavior.
@@ -36,6 +38,8 @@ Preference setup no longer imports `tara.groupID`; if that is your only organiza
 Unused legacy preferences can remain without affecting these actions.
 
 ## Available actions
+
+The actions below provide link copying, an agent bridge, collection shortcuts, review notes, updates, and connectivity checks.
 
 | Action | Where it runs | What it does |
 | --- | --- | --- |
@@ -171,7 +175,12 @@ Action scripts live in `src/`, plugin definitions in `meta/`, and the bundled ag
 `build.py` creates the YAML and JSON backups; `build_skill.py` packages the skill ZIP.
 Generated assets go in `dist/`.
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for setup, action contracts, testing, and releases, and [CHANGELOG.md](CHANGELOG.md) for release history.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and contribution requirements, and [CHANGELOG.md](CHANGELOG.md) for release history.
+The following guides cover building, testing, and releasing the actions:
+
+- [Building distributable files](docs/building.md) describes build options, backup metadata, and agent skill packaging.
+- [Test suites](tests/README.md) describes suite scope, local checks, coverage, and manual release checks.
+- [Release workflow](docs/releases.md) describes CI verification, release previews, and artifact publication.
 
 ## AI disclosure
 

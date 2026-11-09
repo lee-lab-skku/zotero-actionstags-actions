@@ -38,6 +38,8 @@ node --test tests/integration/http/*.test.cjs
 
 ## Action contracts
 
+These contracts govern action execution, Zotero API use, user data handling, and the link bridge boundary.
+
 ### Execution and selection
 
 Each source script must remain independently usable as an Actions & Tags async function body, including top-level `await` and `return`.
@@ -66,7 +68,7 @@ Do not download and evaluate parser code to decode release data.
 
 The bridge uses the public `Zotero.ActionsTags.api.actionManager.dispatchActionByKey()` API.
 The dispatcher consumes return values and catches exceptions, so bridge result delivery must remain bound to the originating action, target, collection, and agent request.
-Menu calls and sharing calls keep their ordinary behavior.
+Menu calls keep their ordinary clipboard behavior.
 
 The endpoint supports link generation, without exposing arbitrary action execution, script evaluation, metadata writes, or Better BibTeX settings.
 Shutdown removes the bridge endpoint without stopping Zotero's shared server.

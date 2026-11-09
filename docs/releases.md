@@ -1,5 +1,6 @@
 # Release workflow
 
+This guide describes CI verification, release previews, and publication of the prepared release artifacts.
 Follow the [release requirements](../CONTRIBUTING.md#release-requirements) and complete the [manual release checks](../tests/README.md#manual-release-checks) before publishing.
 See [building distributable files](building.md) for build options and artifact metadata.
 

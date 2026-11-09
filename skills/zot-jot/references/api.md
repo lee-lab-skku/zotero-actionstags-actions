@@ -17,7 +17,8 @@ curl --fail-with-body --silent --show-error --max-time 15 \
   --data '{"action":"copySelectionLink","library":{"type":"group","id":100},"itemKeys":["ABCD1234"]}'
 ```
 
-Replace the example group ID and item keys with locally available values. For My Library, use `"library":{"type":"user"}` without an ID.
+Replace the example group ID and item keys with locally available values.
+For My Library, use `"library":{"type":"user"}` without an ID.
 
 | Field | Contract |
 | --- | --- |

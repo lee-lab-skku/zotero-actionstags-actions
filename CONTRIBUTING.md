@@ -7,6 +7,9 @@ User installation and configuration belong in [README.md](README.md).
 
 Use Python 3.10 or later, PyYAML, Git, and Node.js 22 or later.
 There are no Node package dependencies.
+
+### Local checks
+
 From the repository root, run:
 
 ```sh
@@ -33,7 +36,7 @@ node --test tests/integration/http/*.test.cjs
   Consult [API contracts and test oracles](tests/API-contracts.md) for source-backed expectations and integration boundaries.
 - Keep user setup in README and contributor guidance here.
   For link-bridge interface changes, update the installable [zot-jot skill](skills/zot-jot/SKILL.md) and its [API reference](skills/zot-jot/references/api.md), keeping all skill resources self-contained.
-- Run the local checks above and any integration checks relevant to the change.
+- Run the [local checks](#local-checks) and any integration checks relevant to the change.
   Before a release, meet the [release requirements](#release-requirements).
 
 ## Action contracts
@@ -73,7 +76,18 @@ Menu calls keep their ordinary clipboard behavior.
 The endpoint supports link generation, without exposing arbitrary action execution, script evaluation, metadata writes, or Better BibTeX settings.
 Shutdown removes the bridge endpoint without stopping Zotero's shared server.
 
-## Distribution contracts
+### API references
+
+- [Zotero 10 migration guide](https://www.zotero.org/support/dev/zotero_10_for_developers)
+- [Zotero 10.0.1 source](https://github.com/zotero/zotero/tree/10.0.1)
+- [Actions & Tags script execution and action management](https://github.com/windingwind/zotero-actions-tags/blob/master/src/utils/actions.ts)
+- [Actions & Tags public API](https://github.com/windingwind/zotero-actions-tags/blob/master/src/api.ts)
+
+## Distribution and releases
+
+These requirements cover distributable artifacts, verification, publication, and versioning.
+
+### Distribution contracts
 
 Publish the YAML and JSON backups with identical action definitions and the skill ZIP from the same release tag and commit.
 The skill must remain installable on its own, with all referenced resources inside its directory and relative paths preserved.
@@ -86,7 +100,7 @@ Verification metadata must match the actual runtime pair checked and must not im
 
 See [building distributable files](docs/building.md) for build options, metadata fields, and packaging details.
 
-## Verification requirements
+### Verification requirements
 
 Run the default local checks for changes and relevant integration checks when their execution requirements are available.
 Use [API contracts and test oracles](tests/API-contracts.md) to distinguish behavior established by test doubles from behavior requiring real-app verification.
@@ -94,7 +108,7 @@ Coverage is an aid to finding missing cases; it does not replace behavioral asse
 
 See [test suites](tests/README.md) for suite scope, coverage commands, and manual release checks, and [real Zotero verification](tests/integration/zotero/README.md) for disposable-profile instructions and current automation limits.
 
-## Release requirements
+### Release requirements
 
 Require the shared test workflow and real Zotero integration verification to pass on the release commit.
 Complete the [manual release checks](tests/README.md#manual-release-checks) in a disposable profile for behavior outside automated coverage.
@@ -109,10 +123,3 @@ Versions are recorded in Git tags and `CHANGELOG.md`; there is no separate packa
 Use `vMAJOR.MINOR.PATCH` for stable releases and a SemVer suffix such as `v3.0.0-beta.1` for prereleases.
 Make sure the changelog reflects the changes before release.
 The release workflow marks tags containing a prerelease suffix as GitHub prereleases.
-
-## API references
-
-- [Zotero 10 migration guide](https://www.zotero.org/support/dev/zotero_10_for_developers)
-- [Zotero 10.0.1 source](https://github.com/zotero/zotero/tree/10.0.1)
-- [Actions & Tags script execution and action management](https://github.com/windingwind/zotero-actions-tags/blob/master/src/utils/actions.ts)
-- [Actions & Tags public API](https://github.com/windingwind/zotero-actions-tags/blob/master/src/api.ts)

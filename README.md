@@ -5,6 +5,8 @@ A local link bridge also makes the copylink actions available to shell and agent
 
 ## Requirements
 
+Install Zotero and the plugins needed for the actions you use:
+
 - **Zotero 10** with a compatible version of **Actions & Tags**.
 - **Better BibTeX** (optional) for citation keys in link labels; labels fall back to item titles or keys when no citation key is available.
 - **[Better Notes](https://github.com/windingwind/zotero-better-notes)** for Copy Note Link.
@@ -17,13 +19,16 @@ See [verification scope](tests/integration/zotero/README.md#ci-verification) for
 
 Import the release backup into Actions & Tags, then restart Zotero and configure the action preferences.
 
+### Import the backup
+
+Use the YAML file for initial installation and the first upgrade to these Zotero 10 actions, especially if an older updater recorded a release without applying it.
+
 1. Download `actions-zotero.yml` from [Releases](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases).
 1. In Zotero, open **Settings &rightarrow; Actions & Tags**, click **Import**, and select the file.
 1. Restart Zotero to load the startup actions and collection Delete behavior.
 1. Follow the preference prompts to configure review notes and choose whether to include prereleases in update checks.
    Use **Tools &rightarrow; Configure action preferences** to change these settings later.
 
-Use the YAML file for initial installation and the first upgrade to these Zotero 10 actions, especially if an older updater recorded a release without applying it.
 The JSON file supports subsequent updates through [Update Actions](#updates).
 For agent access, also follow [Agent link setup](#agent-link-setup); ordinary menu copying needs no bridge setup or agent skill.
 
@@ -130,6 +135,8 @@ With known library and target identifiers, an authenticated HTTP client is suffi
 
 ### Connect a client
 
+Enable the bridge and configure the client to reach the matching Zotero profile:
+
 1. Follow [Installation](#installation), importing Agent Link Bridge and all three copylink actions together.
 1. Keep the bridge and required copylink actions enabled, then restart Zotero.
    Restart again after importing or re-enabling the bridge.
@@ -169,7 +176,9 @@ Better Notes is required for note links; Better BibTeX is optional.
 | `MISSING_RESULT` from an old copylink action | Import the updated bridge and all three copylink actions together, then restart Zotero. |
 | Note-link failure | Better Notes is installed and compatible. |
 
-## Development
+<div id="development"></div>
+
+## Contributing
 
 Action scripts live in `src/`, plugin definitions in `meta/`, and the bundled agent skill in `skills/`.
 `build.py` creates the YAML and JSON backups; `build_skill.py` packages the skill ZIP.
@@ -178,9 +187,8 @@ Generated assets go in `dist/`.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and contribution requirements, and [CHANGELOG.md](CHANGELOG.md) for release history.
 The following guides cover building, testing, and releasing the actions:
 
-- [Building distributable files](docs/building.md) describes build options, backup metadata, and agent skill packaging.
+- [Development guides](docs/README.md) covers build options, artifact metadata, CI verification, and release previews.
 - [Test suites](tests/README.md) describes suite scope, local checks, coverage, and manual release checks.
-- [Release workflow](docs/releases.md) describes CI verification, release previews, and artifact publication.
 
 ## AI disclosure
 

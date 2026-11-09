@@ -1,5 +1,6 @@
 # Building distributable files
 
+This guide covers backup generation, version and verification metadata, and packaging the bundled agent skill.
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for development setup and the contracts these artifacts must preserve.
 
 `python build.py` combines `src/` and `meta/` into `dist/actions-zotero.yml` for import and `dist/actions-zotero.json` for updates.

@@ -12,6 +12,8 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ## [Unreleased]
 
+## [3.0.0] &mdash; 2026-11-09
+
 ### Fixed
 
 - Text annotation link labels now include the page in both menu copies and bridge responses.
@@ -234,7 +236,8 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - YAML backup generation and tag-triggered release builds.
 - Optional `/unread` tagging actions, disabled by default.
 
-[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.3...HEAD
+[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.3...v3.0.0
 [3.0.0-rc.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.2...v3.0.0-rc.3
 [3.0.0-rc.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.1...v3.0.0-rc.2
 [3.0.0-rc.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.4...v3.0.0-rc.1

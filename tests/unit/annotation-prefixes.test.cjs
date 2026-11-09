@@ -4,6 +4,26 @@ const { run, start } = require('../support/link-bridge.cjs');
 
 const request = { action: 'copyAnnotationLink', library: { type: 'user' }, itemKeys: ['ANN00001'] };
 
+test('text annotation previews include page labels and physical page fallback in menus and bridge', async () => {
+    const env = await start();
+    const item = env.targets[2];
+    item.annotationText = 'A short excerpt';
+    for (const [pageLabel, suffix] of [[' iv ', 'iv'], ['', '3'], ['  ', '3'],
+        [undefined, '3'], ['5<&', '5<&']]) {
+        item.annotationPageLabel = pageLabel;
+        const result = await env.request(request);
+        assert.equal(result.status, 200);
+        assert.equal(result.links[0].label, `A short excerpt (Smith26, p. ${suffix})`);
+        assert.deepEqual(result.links[0].wordRange, { start: 0, end: 3, totalWords: 3 });
+        assert.match(result.links[0].uri, /page=3&annotation=ANN00001$/);
+        env.copied.length = 0;
+        await run('copyAnnotationLink', env, { item });
+        assert.equal(env.copied[0][1], result.links[0].uri);
+        assert.equal(env.copied[1][1], result.links[0].html);
+    }
+    assert.match(env.copied[1][1], /\(Smith26, p\. 5&lt;&amp;\)/);
+});
+
 test('empty annotation previews use page labels, with physical page fallback, in menus and bridge', async () => {
     const env = await start();
     const item = env.targets[2];
@@ -34,7 +54,7 @@ test('prefixes add an automatic separator, escape HTML, preserve ranges and isol
         wordRanges: { ANN00002: { start: 1, end: 2 } } });
     assert.equal(result.status, 200);
     assert.deepEqual(result.links.map(link => [link.itemKey, link.label, link.prefix]), [
-        ['ANN00002', '설명 — ... two... (Smith26)', '설명'],
+        ['ANN00002', '설명 — ... two... (Smith26, p. 3)', '설명'],
         ['ANN00001', '그림 <3> & "결과" — p. 3 (Smith26)', '그림 <3> & "결과"'],
     ]);
     assert.match(result.links[1].html, />그림 &lt;3&gt; &amp; &quot;결과&quot; — p\. 3 \(Smith26\)<\/a>$/);
@@ -44,7 +64,7 @@ test('prefixes add an automatic separator, escape HTML, preserve ranges and isol
     const plain = await env.request({ ...request, itemKeys: ['ANN00001', 'ANN00002'], prefixes: { ANN00002: '' } });
     assert.equal(plain.links[0].label, 'p. 3 (Smith26)');
     assert.equal(plain.links[0].prefix, undefined);
-    assert.equal(plain.links[1].label, 'one two three (Smith26)');
+    assert.equal(plain.links[1].label, 'one two three (Smith26, p. 3)');
     assert.equal(plain.links[1].prefix, '');
     const blank = await env.request({ ...request, prefixes: { ANN00001: ' \t\n ' } });
     assert.equal(blank.links[0].label, 'p. 3 (Smith26)');

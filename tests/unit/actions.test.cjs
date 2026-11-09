@@ -462,7 +462,7 @@ test('PDF clipboard links use one-based pages, group IDs and top-level labels', 
         await run('copyAnnotationLink', env, { item: annotationItem(kind, standalone) });
         const uri = `zotero://open-pdf/${scope}/items/PDF00001?page=1&annotation=ANN00001`;
         assert.deepEqual(env.copied, [['text/unicode', uri],
-            ['text/html', `<a href="${uri}">one two three four five six seven eight... (${label})</a>`], ['copy']]);
+            ['text/html', `<a href="${uri}">one two three four five six seven eight... (${label}, p. 1)</a>`], ['copy']]);
     }
 });
 
@@ -481,7 +481,7 @@ test('annotation clipboard previews add ellipses only for omitted text', async (
         const env = linkEnvironment();
         env.Zotero.Items = { getTopLevel: topLevel };
         await run('copyAnnotationLink', env, { item: { ...annotationItem(), annotationText } });
-        const label = `${preview || 'p. 1'} (PDF title &lt;&amp;)`;
+        const label = preview ? `${preview} (PDF title &lt;&amp;, p. 1)` : 'p. 1 (PDF title &lt;&amp;)';
         assert.equal(env.copied[1][1], `<a href="zotero://open-pdf/library/items/PDF00001?page=1&annotation=ANN00001">${label}</a>`);
     }
 });

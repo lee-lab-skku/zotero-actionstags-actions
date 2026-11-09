@@ -44,7 +44,7 @@ Better BibTeX is optional; labels fall back to titles or keys.
 Annotation previews, including menu calls and requests without ranges, show at most the first eight words.
 A word is a maximal non-whitespace sequence, as matched by JavaScript `/\S+/gu`; repeated spaces, tabs and line breaks separate words without adding empty words.
 Punctuation stays attached: `don't` and `state-of-the-art` each count as one word.
-The preview preserves the original whitespace between selected words and excludes whitespace before the first and after the last selected word.
+The preview preserves the original whitespace between selected words, excludes whitespace before the first and after the last selected word, and displays as `<preview> (<citation key, title, or item key>, p. <page>)`.
 Empty and whitespace-only annotations, including area/image annotations, show `p. <page> (citation key, title, or item key)`.
 The page uses the trimmed annotation page label when nonempty, otherwise the one-based PDF page number.
 Comments are not used as previews, and the URI always uses the physical PDF page number regardless of its displayed label.
@@ -73,7 +73,7 @@ Duplicate item keys still produce one link, in first-occurrence request order; r
 
 <!-- markdownlint-disable-next-line MD038 -->
 An omitted prefix adds `... ` before the selected text; an omitted suffix adds `...` after it.
-For `The quick brown fox jumps over the lazy dog.`, selecting `[2, 5)` produces `... brown fox jumps... (citationKey)`.
+For `The quick brown fox jumps over the lazy dog.` on page 5, selecting `[2, 5)` produces `... brown fox jumps... (citationKey, p. 5)`.
 Only the label changes; the URI still opens the original annotation, not a new PDF text selection.
 
 Every updated annotation action returns `itemKey` and the actual applied `wordRange` alongside `uri`, `label`, and `html`:

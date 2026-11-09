@@ -53,7 +53,7 @@ try {
     const top = Zotero.Items.getTopLevel([item])[0];
     const label = (top.isRegularItem() && top.getField('citationKey')) || top.getField('title') || top.key;
     const pageLabel = item.annotationPageLabel?.trim() || String(position.pageIndex + 1);
-    text = `${text || `p. ${pageLabel}`} (${label})`;
+    text = text ? `${text} (${label}, p. ${pageLabel})` : `p. ${pageLabel} (${label})`;
     const prefix = sink?.prefix;
     if (prefix)
         text = `${prefix} — ${text}`;

@@ -29,7 +29,7 @@ test('annotation and note links preserve page, parent labels, escaping, and per-
     const env = await start();
     const annotation = await env.request({ ...selection, action: 'copyAnnotationLink', itemKeys: ['ANN00001'] });
     assert.equal(annotation.links[0].uri, 'zotero://open-pdf/library/items/PDF00001?page=3&annotation=ANN00001');
-    assert.equal(annotation.links[0].label, 'a < b & c (Smith26)');
+    assert.equal(annotation.links[0].label, 'a < b & c (Smith26, p. 3)');
     assert.match(annotation.links[0].html, /a &lt; b &amp; c/);
     const note = await env.request({ ...selection, action: 'copyNoteLink', itemKeys: ['NOTE0001'] });
     assert.equal(note.links[0].uri, 'zotero://note/u/NOTE0001/');
@@ -44,9 +44,9 @@ test('annotation and note links preserve page, parent labels, escaping, and per-
 test('annotation bridge previews distinguish complete, truncated and empty text', async () => {
     const env = await start();
     for (const [text, label, totalWords] of [
-        ['one two three four five six seven eight', 'one two three four five six seven eight (Smith26)', 8],
-        ['one two three four five six seven eight <&', 'one two three four five six seven eight... (Smith26)', 9],
-        ['one two three four five six seven eight   ', 'one two three four five six seven eight (Smith26)', 8],
+        ['one two three four five six seven eight', 'one two three four five six seven eight (Smith26, p. 3)', 8],
+        ['one two three four five six seven eight <&', 'one two three four five six seven eight... (Smith26, p. 3)', 9],
+        ['one two three four five six seven eight   ', 'one two three four five six seven eight (Smith26, p. 3)', 8],
         ['', 'p. 3 (Smith26)', 0],
     ]) {
         env.targets[2].annotationText = text;

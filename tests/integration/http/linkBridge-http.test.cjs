@@ -34,8 +34,8 @@ test('HTTP client receives the endpoint JSON contract through a real socket with
     const link = (await ranged.json()).links[0];
     assert.equal(link.itemKey, 'ANN00001');
     assert.deepEqual(link.wordRange, { start: 2, end: 5, totalWords: 9 });
-    assert.equal(link.label, '... <three> four &five... (Smith26)');
-    assert.equal(link.html, `<a href="${link.uri}">... &lt;three&gt; four &amp;five... (Smith26)</a>`);
+    assert.equal(link.label, '... <three> four &five... (Smith26, p. 3)');
+    assert.equal(link.html, `<a href="${link.uri}">... &lt;three&gt; four &amp;five... (Smith26, p. 3)</a>`);
     const invalid = await request({ ...annotation, wordRanges: { ANN00001: { start: 2, end: 10 } } });
     assert.equal(invalid.status, 422);
     assert.equal((await invalid.json()).error.code, 'WORD_RANGE_OUT_OF_BOUNDS');

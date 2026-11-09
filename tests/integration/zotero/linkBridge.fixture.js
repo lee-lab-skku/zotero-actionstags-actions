@@ -76,13 +76,13 @@ async function runTrial() {
         const defaultPreview = annotated.data.links[0];
         check(defaultPreview.itemKey === annotation.key && defaultPreview.wordRange.start === 0
             && defaultPreview.wordRange.end === 8 && defaultPreview.wordRange.totalWords === 9
-            && defaultPreview.label.startsWith('One  two\nthree four five six seven eight... ('),
-            'default annotation preview counts words and preserves internal whitespace');
+            && defaultPreview.label === 'One  two\nthree four five six seven eight... (Bridge fixture < & >, p. 3)',
+            'default annotation preview counts words, preserves internal whitespace and includes the page');
         const ranged = await request({ ...selection, action: 'copyAnnotationLink', itemKeys: [annotation.key],
             wordRanges: { [annotation.key]: { start: 7 } } });
         check(ranged.status === 200 && ranged.data.links[0].wordRange.start === 7
             && ranged.data.links[0].wordRange.end === 9 && ranged.data.links[0].wordRange.totalWords === 9
-            && ranged.data.links[0].label.startsWith('... eight <&> (')
+            && ranged.data.links[0].label === '... eight <&> (Bridge fixture < & >, p. 3)'
             && ranged.data.links[0].html.includes('eight &lt;&amp;&gt;'),
             'real annotation word range returns applied metadata and escaped text');
         const outOfBounds = await request({ ...selection, action: 'copyAnnotationLink', itemKeys: [annotation.key],

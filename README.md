@@ -122,8 +122,6 @@ Better Notes is required for note links; Better BibTeX is optional.
 | `MISSING_RESULT` from an old copylink action | Import the updated bridge and all three copylink actions together, then restart Zotero. |
 | Note-link failure | Better Notes is installed and compatible. |
 
-<div id="development"></div>
-
 ## Contributing
 
 Action scripts live in `src/`, plugin definitions in `meta/`, and the bundled agent skill in `skills/`.

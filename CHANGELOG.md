@@ -15,6 +15,9 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 - **Breaking:** Actions other than copying link ones and the bridge.
   They will be served in a new private repository.
+  Importing the new backup does not delete previously installed copies; delete any you no longer use in Actions & Tags.
+- **Breaking:** The JSON action backup release asset.
+  Update Actions from earlier releases reports later releases as manual imports; import `actions-zotero.yml` instead.
 
 ## [3.0.0] &mdash; 2026-11-09
 

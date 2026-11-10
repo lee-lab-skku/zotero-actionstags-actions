@@ -1,6 +1,6 @@
 # Documentation
 
-These guides cover client setup and upgrades for users, and documentation, builds, and releases for contributors.
+These guides cover client setup for users, and documentation, builds, and releases for contributors.
 Start with the repository [README](../README.md) to install the actions, or [Contributing](../CONTRIBUTING.md) to prepare a development checkout.
 
 ## Using the actions

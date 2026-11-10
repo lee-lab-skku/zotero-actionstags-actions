@@ -41,7 +41,6 @@ Install or update the matching skill separately:
 
 The [zot-jot skill](../skills/zot-jot/SKILL.md) (Zotero &mdash; Jump, Open, Trace) describes the agent workflow.
 Its [API reference](../skills/zot-jot/references/api.md) covers direct shell requests, request/response fields, and detailed errors for all clients.
-Better Notes is required for note links; Better BibTeX is optional.
 
 ## Troubleshooting
 

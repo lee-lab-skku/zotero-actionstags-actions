@@ -61,7 +61,7 @@ The installable [zot-jot skill](skills/zot-jot/SKILL.md) guides agents through t
 [CHANGELOG.md](CHANGELOG.md) records release history.
 The following guides cover building, testing, and releasing the actions:
 
-- [Documentation](docs/README.md) covers client setup, upgrades, documentation changes, builds, and releases.
+- [Documentation](docs/README.md) covers client setup, documentation changes, builds, and releases.
 - [Test suites](tests/README.md) describes suite scope, local checks, coverage, and manual release checks.
 
 ## AI disclosure

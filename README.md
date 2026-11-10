@@ -1,7 +1,8 @@
 # Zotero link actions
 
 Zotero link actions copy links to library items, PDF annotations, and Better Notes notes from Zotero's menus.
-They run as JavaScript actions in the [Actions & Tags](https://github.com/windingwind/zotero-actions-tags) plugin, and Agent Link Bridge serves the same links to local scripts and agents.
+They run as JavaScript actions in the [Actions & Tags](https://github.com/windingwind/zotero-actions-tags) plugin.
+Agent Link Bridge serves the same links to local scripts and agents, and the bundled zot-jot skill guides agents through requesting and validating them.
 
 ## Requirements
 

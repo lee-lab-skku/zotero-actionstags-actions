@@ -46,17 +46,16 @@ A run without errors is the automated minimum, not evidence of full conformance.
 
 Install [uv](https://docs.astral.sh/uv/getting-started/installation/) and use Python 3.11 or later.
 uv installs the checker's declared dependencies, including its local English sentence model.
-From this repository's root, a separate mddt checkout can be used as follows:
+From this repository's root, a disposable mddt checkout can be used as follows:
 
 ```sh
-git clone --depth 1 https://github.com/mirinae3145/mddt.git ../mddt
-git -C ../mddt rev-parse HEAD
-uv run ../mddt/skills/mddt/scripts/mddt.py --root . .
+MDDT="$(mktemp -d)/mddt"
+git clone --depth 1 https://github.com/mirinae3145/mddt.git "$MDDT"
+uv run "$MDDT/skills/mddt/scripts/mddt.py" --root . .
 ```
 
-For an existing checkout, update it to the current default branch instead of cloning again.
-For an installed skill, substitute its `scripts/mddt.py` path and record the source revision of that installation.
-Keep the mddt checkout outside this repository so the collection check covers only this project's documents.
+To use an existing mddt checkout or installed skill instead, substitute its `scripts/mddt.py` path.
+Keep the checkout outside this repository so the collection check covers only this project's documents.
 
 For an ordinary text edit, the checker can take the changed Markdown paths instead of the final `.`.
 After adding, removing, moving, or renaming files or headings, check the whole collection.

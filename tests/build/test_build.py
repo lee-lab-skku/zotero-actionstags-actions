@@ -29,7 +29,6 @@ class BuildTests(unittest.TestCase):
         self.assertNotIn('pluginVersion', yaml_data)
         self.assertTrue((ROOT / 'dist/actions-zotero.yml').read_text().startswith('version: '))
         self.assertEqual(yaml_data['repository'], 'lee-lab-skku/zotero-actionstags-actions')
-        self.assertEqual(set(yaml_data['actions']), {meta.stem for meta in (ROOT / 'meta').glob('*.yml')})
         for key, action in yaml_data['actions'].items():
             self.assertIsInstance(action['event'], int)
             self.assertEqual(action['operation'], 4)

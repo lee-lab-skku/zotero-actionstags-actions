@@ -17,14 +17,15 @@ See [verification scope](tests/integration/zotero/README.md#ci-verification) for
 
 ## Installation
 
-Use the YAML backup for installation and updates:
+If your profile still contains retired actions, first follow [Upgrading older installations](docs/upgrading.md) to back up and remove them.
+Then use the YAML backup for installation and updates:
 
 1. Download `actions-zotero.yml` from [Releases](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases).
 1. In Zotero, open **Settings &rightarrow; Actions & Tags**, click **Import**, and select the file.
+1. Verify that Agent Link Bridge and the three copylink actions are enabled.
 1. Restart Zotero to load Agent Link Bridge.
 
 To update later, download and import the YAML backup from the desired release, then restart Zotero.
-If your profile has actions from older releases, first follow [Upgrading older installations](docs/upgrading.md) to back up and remove retired actions.
 The release also includes an equivalent JSON backup for tools that consume JSON.
 For agent access, also follow [Agent link setup](docs/agent-links.md); ordinary menu copying needs no bridge setup or agent skill.
 
@@ -48,7 +49,7 @@ In the library tab, it preserves a single selected collection when the item belo
 Annotation previews show the first eight whitespace-separated words, preserving the spaces and line breaks between them.
 They include `...` only when words are omitted and display as `<preview> (<citation key, title, or item key>, p. <page>)`; empty or whitespace-only annotations, including area/image annotations, show `p. <page> (citation key, title, or item key)` instead.
 The page uses Zotero's annotation page label when available, otherwise the one-based PDF page number.
-Bridge clients can choose a different word range or prepend custom text with an automatic separator for each annotation; see the [API reference](skills/zot-jot/references/api.md#annotation-prefixes).
+Bridge clients can select [annotation word ranges](skills/zot-jot/references/api.md#annotation-word-ranges) or add [annotation prefixes](skills/zot-jot/references/api.md#annotation-prefixes) with an automatic separator.
 
 Copy Note Link requires Better Notes.
 Better BibTeX is optional for link copying.

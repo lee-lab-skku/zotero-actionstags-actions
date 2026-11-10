@@ -92,7 +92,7 @@ Keys absent from `wordRanges`, including all keys when the map is empty, use the
 Duplicate item keys still produce one link, in first-occurrence request order; requesting several passages from the same annotation requires separate requests.
 
 <!-- markdownlint-disable-next-line MD038 -->
-An omitted prefix adds `... ` before the selected text; an omitted suffix adds `...` after it.
+Omitting words before the selected passage adds `... ` before the selected text; omitting words after it adds `...` after the text.
 For `The quick brown fox jumps over the lazy dog.` on page 5, selecting `[2, 5)` produces `... brown fox jumps... (citationKey, p. 5)`.
 Only the label changes; the URI still opens the original annotation, not a new PDF text selection.
 
@@ -186,8 +186,14 @@ A successful request returns HTTP 200:
 }
 ```
 
-Choose the returned fields to match the requested output format.
-Use `uri` for a plain URL, `uri` and the plain-text `label` for a formatted link, or `html` for the action's escaped HTML representation.
+Choose the returned fields to match the requested output format:
+
+| Output | Returned fields |
+| --- | --- |
+| Plain URL | `uri` |
+| HTML | The action's escaped `html` representation |
+| Other formatted link, such as Markdown | `uri` and the plain-text `label` |
+
 Requests do not copy to the clipboard or show action messages.
 Existing menu invocations continue to copy their usual plain URL and HTML content.
 

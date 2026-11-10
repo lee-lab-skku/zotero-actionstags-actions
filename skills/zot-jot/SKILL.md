@@ -17,7 +17,14 @@ Resolve identifiers and the matching Zotero profile before requesting links:
    If these identifiers are missing, resolve them through available means or ask for the missing information before requesting links.
    Do not infer an item key from a title or citation key.
    With known identifiers, an authenticated HTTP client is sufficient; no dedicated Zotero CLI or MCP server is required.
-1. Choose `copySelectionLink` for items, `copyAnnotationLink` for PDF annotations, or `copyNoteLink` for Better Notes notes.
+1. Choose the action for the requested link:
+
+   | Requested link | Action |
+   | --- | --- |
+   | Item selection link | `copySelectionLink` |
+   | PDF annotation link | `copyAnnotationLink` |
+   | Better Notes note link | `copyNoteLink` |
+
    Use keys for the actual targets, not their parents when requesting annotation or note links.
    Better Notes is required only for note links; Better BibTeX is optional.
 1. Start connection discovery with existing client settings and the active Zotero profile.
@@ -52,8 +59,14 @@ Then request and validate links as follows:
    An omitted `end` must resolve to `totalWords`.
    HTTP 200 is insufficient because old bridges can ignore range fields; missing or mismatched metadata must not be presented as the requested passage.
 1. For `ok: true`, return links in the requested output format using the returned `uri`, plain-text `label`, and escaped `html` fields.
-   For Markdown, use `[label](uri)` without any escaping; for HTML, use the returned `html`; for a plain URL, use `uri`.
    Do not reconstruct URIs or replace action-generated labels with guessed citation keys.
+   Choose the returned fields according to the requested format:
+
+   | Format | Output |
+   | --- | --- |
+   | Markdown | `[label](uri)` without any escaping |
+   | HTML | The returned `html` |
+   | Plain URL | The returned `uri` |
 
 ## Handle failures
 

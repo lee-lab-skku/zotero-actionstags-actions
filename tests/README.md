@@ -12,9 +12,10 @@ Choose a suite according to the boundary being checked:
 | `unit/` | Action logic and API-boundary behavior, using Zotero/A&T test doubles | Node.js; local and CI |
 | `build/` | CLI validation, Git provenance, four-action backup scope and equivalence, and standalone skill packaging | Python, PyYAML, Git and Node.js; local and CI |
 | `tooling/` | Coverage runner and checks of the action harness and source-map reporting | Node.js for tooling tests; optional coverage.py for the coverage command |
-| `support/` | Shared action runner and bridge test doubles | Imported by suites; not a test suite |
 | `integration/http/` | A real HTTP client/socket against the bridge endpoint with mocked Zotero/A&T | Node.js and loopback binding; separate local command and CI step |
 | `integration/zotero/` | Disposable-profile fixture with actual Zotero data objects and plugins | Fixed app/plugin pair in manual and release CI, or installed Zotero and supplied XPIs; [verification/profile instructions](integration/zotero/README.md) |
+
+The suites import their shared action runner and bridge test doubles from `support/`, which is not an executable suite.
 
 ## Local checks
 

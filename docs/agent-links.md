@@ -8,9 +8,9 @@ With known library and target identifiers, an authenticated HTTP client is suffi
 
 Enable the bridge and configure the client to reach the matching Zotero profile:
 
-1. Follow [Installation](../README.md#installation), importing Agent Link Bridge and all three copylink actions together.
-1. Keep the bridge and required copylink actions enabled, then restart Zotero.
-   Restart again after importing or re-enabling the bridge.
+1. If the bridge or copylink actions are missing or outdated, follow [Installation](../README.md#installation) to import all four actions and restart Zotero.
+1. Verify that the bridge and required copylink actions are enabled.
+   If you have not restarted since the last import or re-enabling of these actions, restart Zotero to load them.
 1. In Zotero's Advanced Config Editor, verify that `extensions.zotero.httpServer.enabled` is true.
    The usual address is `http://127.0.0.1:23119`; use the port in `extensions.zotero.httpServer.port` if different.
 1. Read `extensions.zotero.actionsTags.actions.linkBridgeToken`, created once per profile at startup.
@@ -24,14 +24,20 @@ Disabling Agent Link Bridge stops link requests.
 
 ## Install the agent skill
 
-Download `zot-jot.zip` from the same [release](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) as the action backup.
-Extract it and install the complete `zot-jot/` directory in your agent's skill location, keeping `SKILL.md` and `references/` together.
-If your installer accepts a ZIP directly, provide that file.
+Importing or updating Zotero actions does not install or update the skill.
+Install or update the matching skill separately:
 
-Alternatively, install the complete [`skills/zot-jot`](../skills/zot-jot/SKILL.md) directory from a checkout of the matching release tag.
-Each release description links both the ZIP and the skill directory pinned to that tag.
-For installers that accept GitHub directory URLs, use the tagged directory link.
-Importing or updating Zotero actions does not install or update the skill; install the matching skill separately when upgrading.
+1. Open the same [release](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) as the action backup.
+   Each release description links both `zot-jot.zip` and the skill directory pinned to that tag.
+1. Install the complete skill using a method supported by your agent:
+
+   | Installer input | Installation method |
+   | --- | --- |
+   | ZIP file | Download `zot-jot.zip` and provide it directly to the installer. |
+   | GitHub directory URL | Provide the release's tagged skill-directory link. |
+   | Local directory | Extract `zot-jot.zip` and install the complete `zot-jot/` directory, or install `skills/zot-jot/` from a checkout of the matching tag. |
+
+   Keep `SKILL.md` and `references/` together in your agent's skill location.
 
 The [zot-jot skill](../skills/zot-jot/SKILL.md) (Zotero &mdash; Jump, Open, Trace) describes the agent workflow.
 Its [API reference](../skills/zot-jot/references/api.md) covers direct shell requests, request/response fields, and detailed errors for all clients.

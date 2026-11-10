@@ -44,7 +44,7 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - **Empty or whitespace-only annotations**, including area/image annotations, now show `p. <page> (citation key, title, or item key)`.
   The page uses Zotero's annotation page label when available, otherwise the one-based PDF page number.
 - Release publication now consumes a prepared bundle containing the verified backups, tested skill ZIP, and release body without rebuilding assets or rendering the body again.
-- Add agent link setup instructions to README.
+- README now includes agent link setup instructions.
 - The Update Actions version selection dialog now clarifies that updating actions does not replace installed agent skills.
 
 ### Fixed
@@ -66,9 +66,9 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - **Tag releases** now run the shared test workflow before publishing and build the same triggering commit that was tested.
   Publishing also requires successful real-app verification and uses its exact YAML and JSON backups without rebuilding.
 - CI now builds backups and checks build behavior, action logic, test tooling, the HTTP bridge socket, and commit whitespace; the shared workflow also supports manual runs.
-- **Test suites**: Separate unit, build, tooling, and integration suites so default local checks require no Zotero installation or socket binding.
+- **Test suites** now separate unit, build, tooling, and integration checks so default local checks require no Zotero installation or socket binding.
   Real-app verification runs separately; its current automation covers bridge/copylink behavior and does not replace the remaining manual release checks.
-- Run CI on Ubuntu 24.04 with updated external actions; cancel superseded branch/PR test runs and serialize releases per tag without cancelling active releases.
+- CI now runs on Ubuntu 24.04 with updated external actions, cancels superseded branch/PR test runs, and serializes releases per tag without cancelling active releases.
 
 ### Fixed
 

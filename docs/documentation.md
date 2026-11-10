@@ -12,7 +12,7 @@ Place content according to its reader and purpose:
 | Location | Purpose |
 | --- | --- |
 | `README.md` | Essential installation, basic menu use, and entry points to the guides and skill |
-| `CONTRIBUTING.md` | Development setup, contribution steps, and durable action and distribution contracts |
+| `CONTRIBUTING.md` | Development setup, contribution requirements, and durable action and distribution contracts |
 | `docs/README.md` and its guides | Detailed user setup, documentation maintenance, builds, and release workflows |
 | `tests/README.md` and its descendants | Suite selection, coverage, test oracles, and real-app verification |
 | `skills/zot-jot/SKILL.md` and `references/` | Independently installable agent workflow and the canonical link API reference |

@@ -29,18 +29,23 @@ node --test tests/integration/http/*.test.cjs
 
 ### Making a change
 
-1. For action changes, edit bodies in `src/` and their matching plugin definitions in `meta/`.
-   Keep generated backups and skill archives in the ignored `dist/` directory.
-1. Preserve the [action contracts](#action-contracts) and update relevant behavioral tests.
-   Consult [API contracts and test oracles](tests/API-contracts.md) for source-backed expectations and integration boundaries.
-1. For Markdown changes, follow the [Documentation workflow](docs/documentation.md) and mddt's writing procedure.
-   Place content before writing, then reread each changed topic whole once it settles.
-   Review placement, document kinds, and summaries as well as checker findings.
-1. Keep essential installation in README, detailed setup in `docs/`, and contribution requirements here.
-   For link-bridge interface changes, update the installable [zot-jot skill](skills/zot-jot/SKILL.md) and its [API reference](skills/zot-jot/references/api.md), keeping all skill resources self-contained.
-1. Run the [local checks](#local-checks), the [Markdown check](docs/documentation.md#checking-markdown) for documentation changes, and any integration checks relevant to the change.
-   Before a release, meet the [release requirements](#release-requirements).
-1. For Markdown changes, report the checker revision, files checked, and retained findings with their reasons in the change description.
+These requirements apply across changes:
+
+- **Behavioral contracts**: Preserve the [action contracts](#action-contracts) and update relevant behavioral tests.
+  Consult [API contracts and test oracles](tests/API-contracts.md) for source-backed expectations and integration boundaries.
+- **Generated files**: Keep generated backups and skill archives in the ignored `dist/` directory.
+- **Verification**: Run the [local checks](#local-checks) and any integration checks relevant to the change.
+  Before a release, meet the [release requirements](#release-requirements).
+
+Apply these additional requirements to the code or documents you change:
+
+- **Action code**: Edit bodies in `src/` and their matching plugin definitions in `meta/`.
+  For link-bridge interface changes, update the installable [zot-jot skill](skills/zot-jot/SKILL.md) and its [API reference](skills/zot-jot/references/api.md), keeping all skill resources self-contained.
+- **Markdown documents**: Follow the [Documentation workflow](docs/documentation.md) for content placement and mddt's writing procedure.
+  Place content before writing, then reread each changed topic whole once it settles.
+  Review placement, document kinds, and summaries as well as checker findings.
+  Run the [Markdown check](docs/documentation.md#checking-markdown).
+  Report the checker revision, files checked, and retained findings with their reasons in the change description.
 
 ## Action contracts
 
@@ -48,21 +53,20 @@ These contracts govern action execution, Zotero API use, user data handling, and
 
 ### Execution and selection
 
-Each source script must remain independently usable as an Actions & Tags async function body, including top-level `await` and `return`.
-Use the plugin's injected `require` to obtain Zotero and Mozilla globals.
-Keep persisted action keys and numeric event/operation values stable.
-Script actions require a matching source file and an explicit event, including `event: 0` for menu-only actions.
-
-Selection actions run with `items` and no `item`; per-item actions must ignore that selection-level invocation.
-When dispatching a selection action explicitly, pass `itemIDs` without `itemID`.
-Startup scripts must not assume that item or collection arguments exist.
+- **Script bodies**: Each source script must remain independently usable as an Actions & Tags async function body, including top-level `await` and `return`.
+  Use the plugin's injected `require` to obtain Zotero and Mozilla globals.
+- **Persisted definitions**: Keep persisted action keys and numeric event/operation values stable.
+  Script actions require a matching source file and an explicit event, including `event: 0` for menu-only actions.
+- **Selection invocation**: Selection actions run with `items` and no `item`; per-item actions must ignore that selection-level invocation.
+  When dispatching a selection action explicitly, pass `itemIDs` without `itemID`.
+- **Startup arguments**: Startup scripts must not assume that item or collection arguments exist.
 
 ### Zotero APIs and user data
 
-Target Zotero 10 APIs.
-Use plural collection selection getters and handle mixed selections and multiple libraries without choosing an arbitrary collection.
-Use `Zotero.Libraries.userLibraryID`, not a hardcoded personal library ID.
-Escape user text before inserting it into HTML clipboard content or notes.
+- **API version**: Target Zotero 10 APIs.
+- **Collection selection**: Use plural collection selection getters and handle mixed selections and multiple libraries without choosing an arbitrary collection.
+- **Personal library**: Use `Zotero.Libraries.userLibraryID`, not a hardcoded personal library ID.
+- **User text**: Escape user text before inserting it into HTML clipboard content or notes.
 
 ### Link bridge boundary
 
@@ -110,10 +114,13 @@ See [test suites](tests/README.md) for suite scope, coverage commands, and manua
 
 ### Release requirements
 
-Require the shared test workflow and real Zotero integration verification to pass on the release commit.
-Complete the [manual release checks](tests/README.md#manual-release-checks) in a disposable profile for behavior outside automated coverage.
-Publish the tested backups and skill archive from that commit without rebuilding them after verification.
-Publication must use the same release body and assets prepared for review; manual preview runs must not create tags or releases.
+Before publication, meet these requirements:
+
+- **Automated verification**: Require the shared test workflow and real Zotero integration verification to pass on the release commit.
+- **Manual verification**: Complete the [manual release checks](tests/README.md#manual-release-checks) in a disposable profile for behavior outside automated coverage.
+- **Published artifacts**: Publish the tested backups and skill archive from that commit without rebuilding them after verification.
+  Publication must use the same release body and assets prepared for review.
+- **Preview runs**: Manual preview runs must not create tags or releases.
 
 See [release workflow](docs/releases.md) for CI behavior, preview instructions, and artifact retrieval.
 

@@ -30,17 +30,25 @@ YAML import dialogs, clipboard behavior, reader UI, shared libraries, sync, and 
 
 ### Artifacts and failures
 
-The build writes A&T's standard backup-root `platformVersion` (Zotero), `pluginVersion` (Actions & Tags), and `timestamp` (UTC creation time) fields into both YAML and JSON.
+The build records A&T's standard backup-root fields in both YAML and JSON:
+
+| Field | Meaning |
+| --- | --- |
+| `platformVersion` | Zotero version being verified |
+| `pluginVersion` | Actions & Tags version being verified |
+| `timestamp` | UTC file creation time, before verification; neither test completion time nor publication time |
+
 The runner requires equivalent backups and metadata matching the requested pair, then checks the actual runtime versions against that pair.
-Only after success does the workflow upload `verified-backups-<commit SHA>`.
-After both required workflows succeed, the release workflow bundles those exact files with the tested skill ZIP and rendered release body.
-A manual release preview retains this bundle for inspection; a tag push publishes it without rebuilding.
-
-The artifact contains `report.json`, `expected-versions.json`, `zotero.log`, and `xvfb.log`, including reports/logs available after a failure.
-The temporary profile and database are removed; profile preferences containing the trial token are never uploaded.
 A missing report, timeout, failed assertion, version mismatch, or abnormal exit fails the workflow.
+The workflows retain these distinct artifacts:
 
-The timestamp identifies file generation, before verification; it is neither the test completion time nor the publication time.
+| Artifact | Contents | Upload condition |
+| --- | --- | --- |
+| `zotero-integration-<commit SHA>` | `report.json`, `expected-versions.json`, `zotero.log`, and `xvfb.log` | Uploads available reports and logs even after failure. |
+| `verified-backups-<commit SHA>` | The verified YAML and JSON backups | Uploads only after successful integration verification. |
+| `release-bundle-<commit SHA>` | Those exact backups, the tested skill ZIP, and the rendered release body | Prepared after both required workflows succeed; retained for manual preview or published on a tag push without rebuilding. |
+
+The temporary profile and database are removed; profile preferences containing the trial token are never uploaded.
 
 ## Running automated verification
 
@@ -54,7 +62,8 @@ Inspect the run's report and logs using the [artifact and failure contract](#art
 
 ### Run locally
 
-To run the same verification locally on Linux after downloading the fixed app/plugin pair:
+Before running locally on Linux, download the fixed app/plugin pair, install `xvfb` and `xauth`, and choose a new output directory.
+Then build the backups and run verification, replacing the example paths with your local paths:
 
 ```sh
 python build.py --platform-version 10.0.6 --plugin-version 2.6.2
@@ -65,7 +74,6 @@ python tests/integration/zotero/run.py \
   --output /tmp/zotero-integration-results
 ```
 
-Install `xvfb` and `xauth` first, and choose a new output directory for each run.
 The official [Linux installation instructions](https://www.zotero.org/support/installation#linux) describe running the extracted app.
 See the [Zotero version history](https://www.zotero.org/support/changelog) and [A&T 2.6.2 release](https://github.com/windingwind/zotero-actions-tags/releases/tag/v2.6.2) when updating the tested pair.
 
@@ -87,7 +95,12 @@ zotero -no-remote -profile /tmp/zotero-link-trial/profile
 ```
 
 Omit `--better-notes-xpi` to test the missing-dependency error.
-The builder refuses existing profile/data directories, creates a separate sibling data directory, disables first-run browser guidance, automatic sync, and automatic app/plugin updates, uses port 23129, and installs only the bridge, copylinks, and test startup action.
+The builder prepares the disposable environment with these settings:
+
+- **Storage**: It refuses existing profile/data directories and creates a separate sibling data directory.
+- **Automatic activity**: It disables first-run browser guidance, automatic sync, and automatic app/plugin updates.
+- **Server**: It uses port 23129.
+- **Actions**: It installs only the bridge, copylinks, and test startup action.
 
 ### Windows and WSL
 

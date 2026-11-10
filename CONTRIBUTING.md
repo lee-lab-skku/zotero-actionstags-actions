@@ -49,40 +49,21 @@ Apply these additional requirements to the code or documents you change:
 
 ## Action contracts
 
-These contracts govern action execution, Zotero API use, user data handling, and the link bridge boundary.
+These contracts cover standalone action packaging, user text, and the agent bridge's scope.
+[API contracts and test oracles](tests/API-contracts.md) records version-specific execution, selection, and dispatcher behavior with the corresponding test expectations.
 
-### Execution and selection
+### Action packaging
 
-- **Script bodies**: Each source script must remain independently usable as an Actions & Tags async function body, including top-level `await` and `return`.
-  Use the plugin's injected `require` to obtain Zotero and Mozilla globals.
-- **Persisted definitions**: Keep persisted action keys and numeric event/operation values stable.
-  Script actions require a matching source file and an explicit event, including `event: 0` for menu-only actions.
-- **Selection invocation**: Selection actions run with `items` and no `item`; per-item actions must ignore that selection-level invocation.
-  When dispatching a selection action explicitly, pass `itemIDs` without `itemID`.
-- **Startup arguments**: Startup scripts must not assume that item or collection arguments exist.
+- **Standalone scripts**: Each source script must remain independently usable as an Actions & Tags async function body, including top-level `await` and `return`.
+- **Action identity**: Keep persisted action keys stable.
 
-### Zotero APIs and user data
+### User data and bridge scope
 
-- **API version**: Target Zotero 10 APIs.
-- **Collection selection**: Use plural collection selection getters and handle mixed selections and multiple libraries without choosing an arbitrary collection.
-- **Personal library**: Use `Zotero.Libraries.userLibraryID`, not a hardcoded personal library ID.
 - **User text**: Escape user text before inserting it into HTML clipboard content or notes.
-
-### Link bridge boundary
-
-The bridge uses the public `Zotero.ActionsTags.api.actionManager.dispatchActionByKey()` API.
-The dispatcher consumes return values and catches exceptions, so bridge result delivery must remain bound to the originating action, target, collection, and agent request.
-Menu calls keep their ordinary clipboard behavior.
-
-The endpoint supports link generation, without exposing arbitrary action execution, script evaluation, metadata writes, or Better BibTeX settings.
-Shutdown removes the bridge endpoint without stopping Zotero's shared server.
-
-### API references
-
-- [Zotero 10 migration guide](https://www.zotero.org/support/dev/zotero_10_for_developers)
-- [Zotero 10.0.1 source](https://github.com/zotero/zotero/tree/10.0.1)
-- [Actions & Tags script execution and action management](https://github.com/windingwind/zotero-actions-tags/blob/master/src/utils/actions.ts)
-- [Actions & Tags public API](https://github.com/windingwind/zotero-actions-tags/blob/master/src/api.ts)
+- **Request isolation**: Bridge result delivery must remain bound to the originating action, target, collection, and agent request.
+  Menu calls keep their ordinary clipboard behavior; bridge requests do not change the clipboard or UI selection.
+- **Endpoint scope**: The endpoint supports link generation, without exposing arbitrary action execution, script evaluation, metadata writes, or Better BibTeX settings.
+  Shutdown removes the bridge endpoint without stopping Zotero's shared server.
 
 ## Distribution and releases
 

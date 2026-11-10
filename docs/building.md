@@ -5,8 +5,9 @@ See [CONTRIBUTING.md](../CONTRIBUTING.md) for development setup and the contract
 
 ## Backup generation
 
-`python build.py` combines the three copylink actions and Agent Link Bridge from `src/` and `meta/` into equivalent `dist/actions-zotero.yml` and `dist/actions-zotero.json` backups.
-Users install and update the actions by importing the YAML backup.
+`python build.py` combines the three copylink actions and Agent Link Bridge from `src/` and `meta/` into `dist/actions-zotero.yml`.
+YAML is the single action backup format for manual imports and integration verification.
+Users install and update the actions by importing this backup.
 The builder resolves paths relative to the script, so it can run from another working directory.
 
 ## Version and source metadata
@@ -37,7 +38,7 @@ These fields identify the backup file; individual actions do not store or manage
 
 ## Verification metadata
 
-Every build records one UTC ISO 8601 creation time in the standard backup-root `timestamp`, shared by YAML and JSON.
+Every build records a UTC ISO 8601 creation time in the standard backup-root `timestamp`.
 Supply `--platform-version <Zotero version> --plugin-version <Actions & Tags version>` together to record the pair being verified in `platformVersion` and `pluginVersion`.
 Local builds omit these version fields unless explicitly supplied; supplying them does not establish successful verification.
 
@@ -55,4 +56,4 @@ Packaging checks archive entries and bytes and uses stable timestamps and permis
 Build tests also extract and validate the standalone skill.
 These checks establish package integrity, rather than agent discovery or link generation behavior.
 
-See [distribution contracts](../CONTRIBUTING.md#distribution-contracts) for requirements shared by the backups and skill archive.
+See [distribution contracts](../CONTRIBUTING.md#distribution-contracts) for requirements shared by the backup and skill archive.

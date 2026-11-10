@@ -1,4 +1,3 @@
-import json
 from datetime import datetime, timezone
 import shutil
 from pathlib import Path
@@ -15,21 +14,19 @@ EXPECTED_ACTIONS = {'copySelectionLink', 'copyAnnotationLink', 'copyNoteLink', '
 
 
 class BuildTests(unittest.TestCase):
-    def test_build_from_another_directory_produces_equivalent_copylink_backups(self):
+    def test_build_from_another_directory_produces_copylink_yaml_backup(self):
         before = datetime.now(timezone.utc)
         with tempfile.TemporaryDirectory() as directory:
             subprocess.run([sys.executable, str(ROOT / 'build.py')], cwd=directory, check=True)
         yaml_data = yaml.safe_load((ROOT / 'dist/actions-zotero.yml').read_text(encoding='utf-8'))
-        json_data = json.loads((ROOT / 'dist/actions-zotero.json').read_text(encoding='utf-8'))
-        self.assertEqual(yaml_data, json_data)
         self.assertEqual(yaml_data['type'], 'ActionsTagsBackup')
         self.assertEqual(set(yaml_data['actions']), EXPECTED_ACTIONS)
-        self.assertTrue(json_data['timestamp'].endswith('Z'))
-        generated = datetime.fromisoformat(json_data['timestamp'].replace('Z', '+00:00'))
+        self.assertTrue(yaml_data['timestamp'].endswith('Z'))
+        generated = datetime.fromisoformat(yaml_data['timestamp'].replace('Z', '+00:00'))
         self.assertGreaterEqual(generated, before.replace(microsecond=(before.microsecond // 1000) * 1000))
         self.assertLessEqual(generated, datetime.now(timezone.utc))
-        self.assertNotIn('platformVersion', json_data)
-        self.assertNotIn('pluginVersion', json_data)
+        self.assertNotIn('platformVersion', yaml_data)
+        self.assertNotIn('pluginVersion', yaml_data)
         self.assertTrue((ROOT / 'dist/actions-zotero.yml').read_text().startswith('version: '))
         self.assertEqual(yaml_data['repository'], 'lee-lab-skku/zotero-actionstags-actions')
         self.assertEqual(set(yaml_data['actions']), {meta.stem for meta in (ROOT / 'meta').glob('*.yml')})
@@ -53,8 +50,7 @@ class BuildTests(unittest.TestCase):
 
             def build():
                 subprocess.run([sys.executable, str(repo / 'build.py')], check=True, cwd=directory)
-                data = json.loads((repo / 'dist/actions-zotero.json').read_text())
-                self.assertEqual(data, yaml.safe_load((repo / 'dist/actions-zotero.yml').read_text()))
+                data = yaml.safe_load((repo / 'dist/actions-zotero.yml').read_text(encoding='utf-8'))
                 self.assertEqual(data['repository'], 'example-lab/custom-actions')
                 self.assertEqual(set(data['actions']), EXPECTED_ACTIONS)
                 return data['version']
@@ -78,19 +74,17 @@ class BuildTests(unittest.TestCase):
             source.write_text(source.read_text() + '\n// local edit\n')
             self.assertEqual(build(), version + '-dirty')
 
-    def test_release_build_records_version_and_repository_in_both_backups(self):
+    def test_release_build_records_version_and_repository_in_yaml_backup(self):
         for version, repository in [('v3.0.0', 'lee-lab-skku/zotero-actionstags-actions'),
                                     ('v3.0.0-beta.4', 'example-lab/custom-actions')]:
             with self.subTest(version=version), tempfile.TemporaryDirectory() as directory:
                 subprocess.run([sys.executable, str(ROOT / 'build.py'), '--version', version,
                                 '--repository', repository], cwd=directory, check=True)
                 yaml_data = yaml.safe_load((ROOT / 'dist/actions-zotero.yml').read_text(encoding='utf-8'))
-                json_data = json.loads((ROOT / 'dist/actions-zotero.json').read_text(encoding='utf-8'))
-                self.assertEqual(yaml_data, json_data)
-                self.assertEqual(json_data['version'], version)
-                self.assertEqual(json_data['repository'], repository)
-                self.assertEqual(set(json_data['actions']), EXPECTED_ACTIONS)
-                for key, action in json_data['actions'].items():
+                self.assertEqual(yaml_data['version'], version)
+                self.assertEqual(yaml_data['repository'], repository)
+                self.assertEqual(set(yaml_data['actions']), EXPECTED_ACTIONS)
+                for key, action in yaml_data['actions'].items():
                     self.assertEqual(action['data'], (ROOT / 'src' / (key + '.js')).read_text().strip())
 
 
@@ -117,17 +111,17 @@ class BuildValidationTests(unittest.TestCase):
             with self.subTest(option=option, value=value):
                 result = self.build(option, value)
                 self.assertNotEqual(result.returncode, 0)
-                self.assertFalse((self.root / 'dist/actions-zotero.json').exists())
+                self.assertFalse((self.root / 'dist/actions-zotero.yml').exists())
 
-    def test_standard_app_plugin_metadata_is_paired_and_backups_remain_equivalent(self):
+    def test_standard_app_plugin_metadata_is_paired_in_the_only_yaml_backup(self):
         result = self.build('--platform-version', '10.0.6', '--plugin-version', '2.6.2')
         self.assertEqual(result.returncode, 0, result.stderr)
-        backup = json.loads((self.root / 'dist/actions-zotero.json').read_text())
-        self.assertEqual(backup, yaml.safe_load((self.root / 'dist/actions-zotero.yml').read_text()))
+        self.assertEqual({path.name for path in (self.root / 'dist').iterdir()}, {'actions-zotero.yml'})
+        backup = yaml.safe_load((self.root / 'dist/actions-zotero.yml').read_text(encoding='utf-8'))
         self.assertEqual(backup['platformVersion'], '10.0.6')
         self.assertEqual(backup['pluginVersion'], '2.6.2')
 
-    def test_incomplete_or_empty_app_plugin_metadata_preserves_existing_backups(self):
+    def test_incomplete_or_empty_app_plugin_metadata_preserves_existing_backup(self):
         self.assertEqual(self.build().returncode, 0)
         originals = {path: path.read_bytes() for path in (self.root / 'dist').iterdir()}
         for options in [('--platform-version', '10.0.6'), ('--plugin-version', '2.6.2'),
@@ -152,12 +146,12 @@ class BuildValidationTests(unittest.TestCase):
         self.assertIn('Cannot infer a GitHub source', result.stderr)
         result = self.build('--repository', 'owner/repo')
         self.assertEqual(result.returncode, 0, result.stderr)
-        backup = json.loads((self.root / 'dist/actions-zotero.json').read_text())
+        backup = yaml.safe_load((self.root / 'dist/actions-zotero.yml').read_text(encoding='utf-8'))
         self.assertEqual(backup['repository'], 'owner/repo')
 
-    def test_missing_script_fails_without_replacing_existing_backups(self):
+    def test_missing_script_fails_without_replacing_existing_backup(self):
         self.assertEqual(self.build().returncode, 0)
-        output = self.root / 'dist/actions-zotero.json'
+        output = self.root / 'dist/actions-zotero.yml'
         previous = output.read_bytes()
         (self.root / 'src/copyNoteLink.js').unlink()
         result = self.build('--version', 'v2.0.0')

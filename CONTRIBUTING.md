@@ -94,12 +94,12 @@ Preserve these contracts when preparing artifacts:
 
 - **Action scope**: Distribute only `copySelectionLink`, `copyAnnotationLink`, `copyNoteLink`, and `linkBridge`.
   Updates are manual imports; do not include legacy automation or retirement placeholders.
-- **Release alignment**: Publish the YAML and JSON backups with identical action definitions and the skill ZIP from the same release tag and commit.
+- **Release alignment**: Publish the YAML backup and skill ZIP from the same release tag and commit.
   Keep its ZIP download link and tagged directory link aligned with the published assets.
 - **Skill independence**: The skill must remain installable on its own, with all referenced resources inside its directory and relative paths preserved.
   Skill installation remains separate from Zotero action imports and updates.
 - **Provenance**: Keep version and repository provenance in the backup root; do not add custom action metadata for it.
-  Record the same creation timestamp in both backups.
+  Record the backup's UTC creation timestamp.
   Verification metadata must match the actual runtime pair checked and must not imply broader compatibility or test coverage.
 
 See [building distributable files](docs/building.md) for build options, metadata fields, and packaging details.
@@ -118,7 +118,7 @@ Before publication, meet these requirements:
 
 - **Automated verification**: Require the shared test workflow and real Zotero integration verification to pass on the release commit.
 - **Manual verification**: Complete the [manual release checks](tests/README.md#manual-release-checks) in a disposable profile for behavior outside automated coverage.
-- **Published artifacts**: Publish the tested backups and skill archive from that commit without rebuilding them after verification.
+- **Published artifacts**: Publish the tested backup and skill archive from that commit without rebuilding them after verification.
   Publication must use the same release body and assets prepared for review.
 - **Preview runs**: Manual preview runs must not create tags or releases.
 

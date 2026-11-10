@@ -30,7 +30,7 @@ YAML import dialogs, clipboard behavior, reader UI, shared libraries, sync, and 
 
 ### Artifacts and failures
 
-The build records A&T's standard backup-root fields in both YAML and JSON:
+The build records A&T's standard backup-root fields in the YAML backup:
 
 | Field | Meaning |
 | --- | --- |
@@ -38,15 +38,15 @@ The build records A&T's standard backup-root fields in both YAML and JSON:
 | `pluginVersion` | Actions & Tags version being verified |
 | `timestamp` | UTC file creation time, before verification; neither test completion time nor publication time |
 
-The runner requires equivalent backups and metadata matching the requested pair, then checks the actual runtime versions against that pair.
+The runner requires backup metadata matching the requested pair, then checks the actual runtime versions against that pair.
 A missing report, timeout, failed assertion, version mismatch, or abnormal exit fails the workflow.
 The workflows retain these distinct artifacts:
 
 | Artifact | Contents | Upload condition |
 | --- | --- | --- |
 | `zotero-integration-<commit SHA>` | `report.json`, `expected-versions.json`, `zotero.log`, and `xvfb.log` | Uploads available reports and logs even after failure. |
-| `verified-backups-<commit SHA>` | The verified YAML and JSON backups | Uploads only after successful integration verification. |
-| `release-bundle-<commit SHA>` | Those exact backups, the tested skill ZIP, and the rendered release body | Prepared after both required workflows succeed; retained for manual preview or published on a tag push without rebuilding. |
+| `verified-backups-<commit SHA>` | The verified YAML backup | Uploads only after successful integration verification. |
+| `release-bundle-<commit SHA>` | That exact backup, the tested skill ZIP, and the rendered release body | Prepared after both required workflows succeed; retained for manual preview or published on a tag push without rebuilding. |
 
 The temporary profile and database are removed; profile preferences containing the trial token are never uploaded.
 
@@ -63,7 +63,7 @@ Inspect the run's report and logs using the [artifact and failure contract](#art
 ### Run locally
 
 Before running locally on Linux, download the fixed app/plugin pair, install `xvfb` and `xauth`, and choose a new output directory.
-Then build the backups and run verification, replacing the example paths with your local paths:
+Then build the backup and run verification, replacing the example paths with your local paths:
 
 ```sh
 python build.py --platform-version 10.0.6 --plugin-version 2.6.2

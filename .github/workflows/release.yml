@@ -35,7 +35,7 @@ jobs:
     env:
       RELEASE_TAG: ${{ inputs.preview_tag || github.ref_name }}
     steps:
-      - name: Download verified release backups
+      - name: Download verified release backup
         uses: actions/download-artifact@v8
         with:
           name: verified-backups-${{ github.sha }}
@@ -65,7 +65,7 @@ jobs:
               "Install the skill separately from the Zotero action backup; both links target this release.\n"
           )
           assets = [Path('dist') / name for name in
-                    ('actions-zotero.yml', 'actions-zotero.json', 'zot-jot.zip')]
+                    ('actions-zotero.yml', 'zot-jot.zip')]
           inventory = ''.join(f'- `{path.name}` ({path.stat().st_size:,} bytes)\n' for path in assets)
           Path('dist/release-body.md').write_text(body, encoding='utf-8')
           preview = os.environ['GITHUB_EVENT_NAME'] == 'workflow_dispatch'
@@ -86,7 +86,6 @@ jobs:
           path: |
             dist/release-body.md
             dist/actions-zotero.yml
-            dist/actions-zotero.json
             dist/zot-jot.zip
           if-no-files-found: error
           retention-days: 7
@@ -111,7 +110,6 @@ jobs:
           body_path: dist/release-body.md
           files: |
             dist/actions-zotero.yml
-            dist/actions-zotero.json
             dist/zot-jot.zip
           fail_on_unmatched_files: true
           prerelease: ${{ contains(github.ref_name, '-') }}

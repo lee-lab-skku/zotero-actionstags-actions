@@ -1,17 +1,16 @@
 from pathlib import Path
 import argparse
-import json
 from datetime import datetime, timezone
 import re
 import subprocess
 import yaml
 from typing import Dict, Any
 
-parser = argparse.ArgumentParser(description='Build Actions & Tags backups.')
+parser = argparse.ArgumentParser(description='Build an Actions & Tags YAML backup.')
 parser.add_argument('--version', help='Explicit release tag; otherwise derive the build ID from Git.')
 parser.add_argument('--repository', help='Source GitHub owner/repo; otherwise infer from origin.')
-parser.add_argument('--platform-version', help='Zotero version to verify with the generated backups.')
-parser.add_argument('--plugin-version', help='Actions & Tags version to verify with the generated backups.')
+parser.add_argument('--platform-version', help='Zotero version to verify with the generated backup.')
+parser.add_argument('--plugin-version', help='Actions & Tags version to verify with the generated backup.')
 args = parser.parse_args()
 if (args.platform_version is None) != (args.plugin_version is None):
     parser.error('--platform-version and --plugin-version must be provided together')
@@ -94,8 +93,3 @@ for meta in metas:
 
 with open(dist_dir / 'actions-zotero.yml', 'w', encoding='utf-8') as f:
     yaml.dump(datas, f, allow_unicode=True, sort_keys=False)
-
-# Keep a JSON representation with the same action definitions and metadata.
-with open(dist_dir / 'actions-zotero.json', 'w', encoding='utf-8') as f:
-    json.dump(datas, f, ensure_ascii=False, indent=2)
-    f.write('\n')

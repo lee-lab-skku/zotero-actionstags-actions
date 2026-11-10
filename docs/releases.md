@@ -23,8 +23,8 @@ External actions use major version tags to receive compatible updates.
 ### Artifact flow
 
 Tag releases require both workflows to pass on the triggering commit SHA.
-The integration workflow builds the YAML/JSON once, verifies their action definitions in the actual app, and uploads those exact files.
-Release preparation combines them with the tested skill ZIP from the same commit and renders the release body once.
+The integration workflow builds the YAML backup once, verifies its action definitions in the actual app, and uploads that exact file.
+Release preparation combines it with the tested skill ZIP from the same commit and renders the release body once.
 The run summary shows that body and the asset sizes.
 Publication consumes that prepared bundle without rebuilding or rendering again.
 
@@ -44,7 +44,7 @@ Manual runs execute the same tests and real Zotero verification as tag releases,
 
 ### Preview artifacts and publication
 
-The bundle contains `release-body.md`, `actions-zotero.yml`, `actions-zotero.json`, and `zot-jot.zip`, retained for seven days.
+The bundle contains `release-body.md`, `actions-zotero.yml`, and `zot-jot.zip`, retained for seven days.
 Preview links may not resolve until the tag and release exist.
 
 Manual dispatch never creates a tag or GitHub Release, even when dispatched against an existing tag.

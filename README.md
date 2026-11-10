@@ -25,7 +25,6 @@ Use the YAML backup for installation and updates:
 1. Restart Zotero to load Agent Link Bridge.
 
 To update later, download and import the YAML backup from the desired release, then restart Zotero.
-The release also includes an equivalent JSON backup for tools that consume JSON.
 For agent access, also follow [Agent link setup](docs/agent-links.md); ordinary menu copying needs no bridge setup or agent skill.
 
 ## Available actions
@@ -62,7 +61,7 @@ The installable [zot-jot skill](skills/zot-jot/SKILL.md) guides agents through t
 ## Contributing
 
 Action scripts live in `src/`, plugin definitions in `meta/`, and the bundled agent skill in `skills/`.
-`build.py` creates the YAML and JSON backups; `build_skill.py` packages the skill ZIP.
+`build.py` creates the YAML backup; `build_skill.py` packages the skill ZIP.
 Generated assets go in `dist/`.
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and contribution requirements, and [CHANGELOG.md](CHANGELOG.md) for release history.

@@ -4,8 +4,7 @@
 
 All notable changes to this project will be documented in this file.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 For this changelog, `withdrawl` at commit `80b729a` is the initial baseline, without a release date; earlier versions are intentionally omitted.
 Version `2.4.2` describes changes from that baseline, and each later version describes changes from the preceding listed version.
@@ -14,7 +13,8 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ### Removed
 
-- **Breaking:** Actions other than copying link ones and the bridge. They will be served in a new private repository.
+- **Breaking:** Actions other than copying link ones and the bridge.
+  They will be served in a new private repository.
 
 ## [3.0.0] &mdash; 2026-11-09
 
@@ -26,22 +26,22 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ### Added
 
-- Per-annotation word ranges for Agent Link Bridge requests, with applied range metadata in annotation link responses.
+- **Per-annotation word ranges** for Agent Link Bridge requests, with applied range metadata in annotation link responses.
   Clients can select a passage or the full annotation text; invalid ranges fail the batch, and explicit ranges require the updated bridge and annotation action.
-- Per-annotation plain-text prefixes for Agent Link Bridge requests, with an automatic em-dash separator and applied prefix metadata in responses.
+- **Per-annotation plain-text prefixes** for Agent Link Bridge requests, with an automatic em-dash separator and applied prefix metadata in responses.
   Surrounding whitespace is trimmed, empty prefixes add no separator, and prefixes work alongside word ranges without changing annotation text or link destinations.
   Explicit prefixes require the updated bridge and annotation action.
-- A bundled `zot-jot` agent skill for generating item, PDF annotation, and Better Notes links through Agent Link Bridge, with a self-contained API reference and setup and troubleshooting guidance.
+- **A bundled `zot-jot` agent skill** for generating item, PDF annotation, and Better Notes links through Agent Link Bridge, with a self-contained API reference and setup and troubleshooting guidance.
   It supports Markdown, HTML, and plain URL output and verifies applied word ranges and prefixes for annotation links.
   Releases include a validated `zot-jot.zip`, a direct download link, and a skill-directory link pinned to the release tag.
   Install or update the skill separately from the Zotero actions.
-- Manual release previews with an intended tag, the same tests and real Zotero verification as tag releases, and a downloadable bundle containing the release body, YAML/JSON backups, and skill ZIP.
+- **Manual release previews** with an intended tag, the same tests and real Zotero verification as tag releases, and a downloadable bundle containing the release body, YAML/JSON backups, and skill ZIP.
   The run summary shows the rendered release body and asset sizes; preview runs do not create tags or GitHub Releases.
 
 ### Changed
 
 - Default annotation previews now count the first eight whitespace-separated words, preserving spaces, tabs, and line breaks between them.
-- Empty or whitespace-only annotations, including area/image annotations, now show `p. <page> (citation key, title, or item key)`.
+- **Empty or whitespace-only annotations**, including area/image annotations, now show `p. <page> (citation key, title, or item key)`.
   The page uses Zotero's annotation page label when available, otherwise the one-based PDF page number.
 - Release publication now consumes a prepared bundle containing the verified backups, tested skill ZIP, and release body without rebuilding assets or rendering the body again.
 - Add agent link setup instructions to README.
@@ -58,15 +58,15 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - Standard Actions & Tags backup fields for Zotero and plugin versions in verified release assets, and a shared UTC creation timestamp in YAML and JSON builds.
 - Local coverage reports for original action sources and subprocess builds, with JavaScript LCOV and Python HTML/JSON output.
 - Expanded regression tests grounded in documented API contracts, covering action dispatch, links, preferences, review dates, update failures, and bridge lifecycle behavior.
-- Real Zotero integration verification, available manually and required for releases, using Zotero 10.0.6 and Actions & Tags 2.6.2 in a disposable profile under Xvfb.
+- **Real Zotero integration verification**, available manually and required for releases, using Zotero 10.0.6 and Actions & Tags 2.6.2 in a disposable profile under Xvfb.
   It checks actual startup dispatch and authenticated bridge requests, requires matching installed versions and a successful exit within 120 seconds, and retains reports and logs.
 
 ### Changed
 
-- Tag releases now run the shared test workflow before publishing and build the same triggering commit that was tested.
+- **Tag releases** now run the shared test workflow before publishing and build the same triggering commit that was tested.
   Publishing also requires successful real-app verification and uses its exact YAML and JSON backups without rebuilding.
 - CI now builds backups and checks build behavior, action logic, test tooling, the HTTP bridge socket, and commit whitespace; the shared workflow also supports manual runs.
-- Separate unit, build, tooling, and integration suites so default local checks require no Zotero installation or socket binding.
+- **Test suites**: Separate unit, build, tooling, and integration suites so default local checks require no Zotero installation or socket binding.
   Real-app verification runs separately; its current automation covers bridge/copylink behavior and does not replace the remaining manual release checks.
 - Run CI on Ubuntu 24.04 with updated external actions; cancel superseded branch/PR test runs and serialize releases per tag without cancelling active releases.
 
@@ -83,7 +83,7 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ### Fixed
 
-- Run global preference, update, and VPN menu commands once per selection, filtering item-level follow-up calls without changing other action dispatches.
+- **Selection-level commands**: Run global preference, update, and VPN menu commands once per selection, filtering item-level follow-up calls without changing other action dispatches.
   Suppress overlapping executions of the same command and release the guard after completion, cancellation, or failure.
 
 ## [3.0.0-beta.4] &mdash; 2026-10-14
@@ -91,7 +91,7 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 ### Added
 
 - Version and source repository metadata in generated YAML/JSON backups, both at the file root and inside Update Actions.
-- A prerelease opt-in question in Set preferences.
+- **A prerelease opt-in question** in Set preferences.
   Startup remembers the choice.
 
 ### Changed
@@ -118,11 +118,11 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ### Added
 
-- A Trash on Delete action that moves selected collection items to the library trash with Zotero's confirmation and Undo support.
+- **A Trash on Delete action** that moves selected collection items to the library trash with Zotero's confirmation and Undo support.
   Restart Zotero after importing to activate it; disabling the action immediately restores normal collection removal.
-- An Agent Link Bridge startup action exposing `POST /action-links` on Zotero's existing local HTTP server.
+- **An Agent Link Bridge startup action** exposing `POST /action-links` on Zotero's existing local HTTP server.
   Local clients can request selection, PDF annotation, and Better Notes links by explicit library and item keys, with an optional collection key for selection links.
-- Profile-token authentication and structured link/error responses for the three copylink actions, preserving their existing menu and clipboard behavior.
+- **Profile-token authentication and structured link/error responses** for the three copylink actions, preserving their existing menu and clipboard behavior.
   Import the updated copylink actions together with the bridge and restart Zotero before pairing a client.
 
 ### Changed
@@ -144,7 +144,7 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - **Breaking:** Copy one selection link per resolved item instead of one per selected row, deduplicating parent and attachment selections.
   Include a collection path only when the collection context is unambiguous and the item belongs to it.
 - Fall back to item titles or keys when citation keys are unavailable.
-- Preserve tags, child notes, embedded images, attachments, and Zotero annotations when sharing or retrieving items.
+- **Sharing and retrieval**: Preserve tags, child notes, embedded images, attachments, and Zotero annotations when sharing or retrieving items.
   Linked files are imported as stored attachments, and URL attachments are retained.
 - **Breaking:** Limit sharing and retrieval to regular, non-trashed items in a different library from the destination; same-library copying is rejected.
 - **Breaking:** Require destination write permissions and all attachment files and note images to be locally available before copying; incomplete copies are no longer attempted.

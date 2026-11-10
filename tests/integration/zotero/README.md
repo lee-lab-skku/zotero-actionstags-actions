@@ -1,12 +1,13 @@
 # Real Zotero integration verification
 
-The fixture creates synthetic local items in an empty profile, installs the four bridge/copylink definitions, runs the real Actions & Tags startup script, and calls the real HTTP endpoint.
-It writes `link-bridge-report.json` in that profile and exits Zotero.
+This guide describes real-app verification of the bridge and copylink actions, its coverage limits, and how to run automated or interactive disposable profiles.
 
 ## CI verification
 
-Run **Zotero integration** manually from GitHub Actions, selecting the branch to test.
-The [workflow](../../../.github/workflows/zotero-integration.yml) is also required by tag releases and [manual release previews](../../../docs/releases.md#release-preview), alongside the regular test workflow.
+The fixture creates synthetic local items in an empty profile, installs the four bridge/copylink definitions, runs the real Actions & Tags startup script, and calls the real HTTP endpoint.
+It writes `link-bridge-report.json` in that profile and exits Zotero.
+
+The [workflow](../../../.github/workflows/zotero-integration.yml) is required by tag releases and [manual release previews](../../../docs/releases.md#release-preview), alongside the regular test workflow.
 It downloads the official Linux tarball and Actions & Tags XPI for one fixed pair: Zotero 10.0.6 and A&T 2.6.2.
 It builds the selected commit's actions, starts Zotero under Xvfb with a fresh profile, and requires a successful fixture report, the expected installed versions, and a zero exit code within 120 seconds.
 It does not run on ordinary pushes or PRs.
@@ -17,7 +18,13 @@ Real-app behavioral verification is a release requirement; the current automatio
 Passing it establishes only those checked behaviors on that app/plugin pair.
 The remaining [manual release checks](../../README.md#manual-release-checks) still apply.
 
-The fixture checks persisted action definitions and their actual startup event, real item/collection/annotation objects, parent deduplication, returned links and escaping, default and explicit annotation word ranges with applied metadata, authenticated localhost requests, error responses, and bridge replacement/disposal.
+The fixture checks these behaviors:
+
+- **Action loading**: Persisted action definitions and their actual startup event.
+- **Data and links**: Real item/collection/annotation objects, parent deduplication, returned links, and escaping.
+- **Annotation ranges**: Default and explicit word ranges with applied metadata.
+- **HTTP and lifecycle**: Authenticated localhost requests, error responses, and bridge replacement/disposal.
+
 Better Notes is omitted from the current automated checks, so the missing-dependency response is checked.
 YAML import dialogs, clipboard behavior, reader UI, shared libraries, sync, and Better Notes conversion remain outside the current automated checks.
 
@@ -28,11 +35,22 @@ The runner requires equivalent backups and metadata matching the requested pair,
 Only after success does the workflow upload `verified-backups-<commit SHA>`.
 After both required workflows succeed, the release workflow bundles those exact files with the tested skill ZIP and rendered release body.
 A manual release preview retains this bundle for inspection; a tag push publishes it without rebuilding.
-The timestamp identifies file generation, before verification; it is neither the test completion time nor the publication time.
 
 The artifact contains `report.json`, `expected-versions.json`, `zotero.log`, and `xvfb.log`, including reports/logs available after a failure.
 The temporary profile and database are removed; profile preferences containing the trial token are never uploaded.
 A missing report, timeout, failed assertion, version mismatch, or abnormal exit fails the workflow.
+
+The timestamp identifies file generation, before verification; it is neither the test completion time nor the publication time.
+
+## Running automated verification
+
+Run the fixed app/plugin verification in CI or on a Linux machine with the required runtime dependencies.
+
+### Run in CI
+
+Run **Zotero integration** manually from GitHub Actions, selecting the branch to test.
+Tag releases and [manual release previews](../../../docs/releases.md#release-preview) also require this verification.
+Inspect the run's report and logs using the [artifact and failure contract](#artifacts-and-failures).
 
 ### Run locally
 

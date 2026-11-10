@@ -7,6 +7,7 @@ User installation and configuration belong in [README.md](README.md).
 
 Use Python 3.10 or later, PyYAML, Git, and Node.js 22 or later.
 There are no Node package dependencies.
+Markdown checks additionally need uv and Python 3.11 or later; CI uses Python 3.12 for both builds and documentation.
 
 ### Local checks
 
@@ -29,14 +30,18 @@ node --test tests/integration/http/*.test.cjs
 
 ### Making a change
 
-- Edit action bodies in `src/` and their matching plugin definitions in `meta/`.
-  Keep generated backups and skill archives in the ignored `dist/` directory.
-- Preserve the [action contracts](#action-contracts) and update relevant behavioral tests.
-  Consult [API contracts and test oracles](tests/API-contracts.md) for source-backed expectations and integration boundaries.
-- Keep user setup in README and contributor guidance here.
-  For link-bridge interface changes, update the installable [zot-jot skill](skills/zot-jot/SKILL.md) and its [API reference](skills/zot-jot/references/api.md), keeping all skill resources self-contained.
-- Run the [local checks](#local-checks) and any integration checks relevant to the change.
-  Before a release, meet the [release requirements](#release-requirements).
+1. For action changes, edit bodies in `src/` and their matching plugin definitions in `meta/`.
+   Keep generated backups and skill archives in the ignored `dist/` directory.
+1. Preserve the [action contracts](#action-contracts) and update relevant behavioral tests.
+   Consult [API contracts and test oracles](tests/API-contracts.md) for source-backed expectations and integration boundaries.
+1. For Markdown changes, follow the [Documentation workflow](docs/documentation.md) and mddt's writing procedure.
+   Place content before writing, then reread each changed topic whole once it settles.
+   Review placement, document kinds, and summaries as well as checker findings.
+1. Keep essential installation in README, detailed setup in `docs/`, and contribution requirements here.
+   For link-bridge interface changes, update the installable [zot-jot skill](skills/zot-jot/SKILL.md) and its [API reference](skills/zot-jot/references/api.md), keeping all skill resources self-contained.
+1. Run the [local checks](#local-checks), the [Markdown check](docs/documentation.md#checking-markdown) for documentation changes, and any integration checks relevant to the change.
+   Before a release, meet the [release requirements](#release-requirements).
+1. For Markdown changes, report the checker revision, files checked, and retained findings with their reasons in the change description.
 
 ## Action contracts
 
@@ -82,16 +87,17 @@ These requirements cover distributable artifacts, verification, publication, and
 
 ### Distribution contracts
 
-Distribute only `copySelectionLink`, `copyAnnotationLink`, `copyNoteLink`, and `linkBridge`.
-Updates are manual imports; do not include legacy automation or retirement placeholders.
-Publish the YAML and JSON backups with identical action definitions and the skill ZIP from the same release tag and commit.
-The skill must remain installable on its own, with all referenced resources inside its directory and relative paths preserved.
-Keep its ZIP download link and tagged directory link aligned with the published assets.
-Skill installation remains separate from Zotero action imports and updates.
+Preserve these contracts when preparing artifacts:
 
-Keep version and repository provenance in the backup root; do not add custom action metadata for it.
-Record the same creation timestamp in both backups.
-Verification metadata must match the actual runtime pair checked and must not imply broader compatibility or test coverage.
+- **Action scope**: Distribute only `copySelectionLink`, `copyAnnotationLink`, `copyNoteLink`, and `linkBridge`.
+  Updates are manual imports; do not include legacy automation or retirement placeholders.
+- **Release alignment**: Publish the YAML and JSON backups with identical action definitions and the skill ZIP from the same release tag and commit.
+  Keep its ZIP download link and tagged directory link aligned with the published assets.
+- **Skill independence**: The skill must remain installable on its own, with all referenced resources inside its directory and relative paths preserved.
+  Skill installation remains separate from Zotero action imports and updates.
+- **Provenance**: Keep version and repository provenance in the backup root; do not add custom action metadata for it.
+  Record the same creation timestamp in both backups.
+  Verification metadata must match the actual runtime pair checked and must not imply broader compatibility or test coverage.
 
 See [building distributable files](docs/building.md) for build options, metadata fields, and packaging details.
 

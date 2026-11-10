@@ -1,7 +1,11 @@
 # Test suites
 
-Tests are grouped by what they verify.
-The default local checks are `unit/`, `build/`, and `tooling/`; they require no installed Zotero, display, external network access, or loopback binding.
+This guide maps the test suites to their execution requirements and covers local checks, coverage, and manual release checks.
+The default local suites are `unit/`, `build/`, and `tooling/`; they require no installed Zotero, display, external network access, or loopback binding.
+
+## Suite selection
+
+Choose a suite according to the boundary being checked:
 
 | Directory | Purpose | Execution requirements |
 | --- | --- | --- |
@@ -14,18 +18,8 @@ The default local checks are `unit/`, `build/`, and `tooling/`; they require no 
 
 ## Local checks
 
-From the repository root:
-
-```sh
-python -m unittest discover -s tests/build -p 'test_*.py'
-node --test tests/unit/*.test.cjs tests/tooling/*.test.cjs
-```
-
-The HTTP socket check is separate:
-
-```sh
-node --test tests/integration/http/*.test.cjs
-```
+Follow [Contributing](../CONTRIBUTING.md#development-setup) for dependencies, builds, and the canonical local and HTTP socket commands.
+For Markdown changes, also follow the [Documentation workflow](../docs/documentation.md) for mddt review and checks.
 
 CI executes the local suites and the HTTP socket suite.
 See [CI and release workflow](../docs/releases.md#ci-workflows) for the current execution environment and triggers.
@@ -33,6 +27,8 @@ Real Zotero integration verification is a separate workflow invoked manually and
 Its automated checks do not replace UI import, URI-opening or shared-library checks.
 
 ## Coverage and expectations
+
+Install coverage.py and run the local coverage command from the repository root:
 
 ```sh
 python -m pip install "coverage>=7.10,<8"
@@ -43,10 +39,10 @@ Coverage runs `unit/`, `tooling/`, and `build/`, reporting original action sourc
 Integration suites are excluded from this local coverage command.
 JavaScript uses Node's built-in experimental coverage with source maps to measure every original `src/*.js` action body.
 Python coverage includes subprocess builds and maps temporary checkout copies back to `build.py`.
+
 Generated wrappers and reports stay in ignored `coverage/`: action coverage at `actions.lcov`, Python HTML at `python/index.html`, and Python JSON at `build.json`.
 Coverage helps identify missing cases; it does not establish API compatibility or replace behavioral assertions.
 [API contracts and test oracles](API-contracts.md) records the basis for expected results and the limits of the doubles.
-[CONTRIBUTING.md](../CONTRIBUTING.md) contains the complete setup and validation commands.
 
 ## Manual release checks
 

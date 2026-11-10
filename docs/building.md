@@ -1,7 +1,9 @@
 # Building distributable files
 
-This guide covers backup generation, version and verification metadata, and packaging the bundled agent skill.
+This reference covers backup generation, version and verification metadata, and packaging the bundled agent skill.
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for development setup and the contracts these artifacts must preserve.
+
+## Backup generation
 
 `python build.py` combines the three copylink actions and Agent Link Bridge from `src/` and `meta/` into equivalent `dist/actions-zotero.yml` and `dist/actions-zotero.json` backups.
 Users install and update the actions by importing the YAML backup.

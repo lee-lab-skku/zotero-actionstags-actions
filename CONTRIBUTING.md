@@ -14,7 +14,6 @@ Markdown checks additionally need uv and Python 3.11 or later; CI uses Python 3.
 From the repository root, run:
 
 ```sh
-python -m pip install PyYAML
 python build.py
 python build_skill.py
 python -m unittest discover -s tests/build -p 'test_*.py'

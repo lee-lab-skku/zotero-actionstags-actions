@@ -1,7 +1,7 @@
 # Documentation workflow
 
 Follow mddt's writing procedure when changing this repository's Markdown documents.
-This guide places content in the repository's document trees and describes local review, checker reporting, and CI's floating version.
+This guide places content in the repository's document trees and describes local review, checks, and CI's floating version.
 
 ## Scope and placement
 
@@ -37,7 +37,7 @@ Follow the full [writing and restructuring procedure](https://github.com/mirinae
    Keep the skill's packaged resources self-contained.
 1. Once the content settles, reread each changed topic whole and review its order, forms, and level of detail.
    Rewrite overviews and parent summaries from the deepest changed documents upward.
-1. Run the [Markdown check](#checking-markdown), judge the findings, and report the result.
+1. Run the [Markdown check](#checking-markdown) and judge the findings.
 
 Writers and reviewers judge placement, document kinds, and summaries; the checker cannot decide those questions.
 A run without errors is the automated minimum, not evidence of full conformance.
@@ -63,6 +63,9 @@ After adding, removing, moving, or renaming files or headings, check the whole c
 Add `--review` after introducing child documents or when deliberately reviewing structure; it includes outlines and summary-related findings.
 The [checker reference](https://github.com/mirinae3145/mddt/blob/main/skills/mddt/references/checker.md) defines file selection, diagnostics, and exit statuses.
 
+Missing-anchor findings need manual review because they are warnings, even though moved headings can break links.
+If a move changes a target used outside this repository, report the old and new locations so those callers can be updated.
+
 ## Continuous integration
 
 The **Documentation** job in the shared [Test workflow](../.github/workflows/test.yml) runs on branch pushes, pull requests, manual runs, and release calls.
@@ -74,14 +77,3 @@ CI fails on checker errors anywhere in the collection, including errors in uncha
 It reports warnings only for changed files, comparing a PR with its merge base or a push with its previous commit.
 Manual runs, new branches, and runs without an available comparison base report warnings for all checked files.
 Warnings require judgment and do not fail the job; checker or input failures do fail it.
-
-## Reporting a change
-
-Include the following in the change description:
-
-- **Checker revision**: The mddt commit used, noting any difference from CI.
-- **Scope**: The checked files or whole-collection command, including any exclusions.
-- **Retained findings**: The warnings or review findings kept after judgment and why their structure serves the reader.
-
-Missing-anchor findings need manual review because they are warnings, even though moved headings can break links.
-If a move changes a target used outside this repository, report the old and new locations so those callers can be updated.

@@ -75,7 +75,7 @@ jobs:
       - name: Save verified release backup
         uses: actions/upload-artifact@v7
         with:
-          name: verified-backups-${{ github.sha }}
+          name: verified-backup-${{ github.sha }}
           path: dist/actions-zotero.yml
           if-no-files-found: error
           retention-days: 7

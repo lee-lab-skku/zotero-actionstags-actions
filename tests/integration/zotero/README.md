@@ -45,7 +45,7 @@ The workflows retain these distinct artifacts:
 | Artifact | Contents | Upload condition |
 | --- | --- | --- |
 | `zotero-integration-<commit SHA>` | `report.json`, `expected-versions.json`, `zotero.log`, and `xvfb.log` | Uploads available reports and logs even after failure. |
-| `verified-backups-<commit SHA>` | The verified YAML backup | Uploads only after successful integration verification. |
+| `verified-backup-<commit SHA>` | The verified YAML backup | Uploads only after successful integration verification. |
 | `release-bundle-<commit SHA>` | That exact backup, the tested skill ZIP, and the rendered release body | Prepared after both required workflows succeed; retained for manual preview or published on a tag push without rebuilding. |
 
 The temporary profile and database are removed; profile preferences containing the trial token are never uploaded.

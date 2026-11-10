@@ -11,6 +11,11 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 
 ## [Unreleased]
 
+### Changed
+
+- The project is renamed to Zotero link actions, and the repository moved to `lee-lab-skku/zotero-link-actions`.
+  Backups record the new repository; GitHub redirects links to the previous repository name.
+
 ### Removed
 
 - **Breaking:** Actions other than copying link ones and the bridge.
@@ -243,18 +248,18 @@ Version `2.4.2` describes changes from that baseline, and each later version des
 - YAML backup generation and tag-triggered release builds.
 - Optional `/unread` tagging actions, disabled by default.
 
-[Unreleased]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0...HEAD
-[3.0.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.3...v3.0.0
-[3.0.0-rc.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.2...v3.0.0-rc.3
-[3.0.0-rc.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-rc.1...v3.0.0-rc.2
-[3.0.0-rc.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.4...v3.0.0-rc.1
-[3.0.0-beta.4]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.3...v3.0.0-beta.4
-[3.0.0-beta.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.2...v3.0.0-beta.3
-[3.0.0-beta.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v3.0.0-beta.1...v3.0.0-beta.2
-[3.0.0-beta.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.6.0...v3.0.0-beta.1
-[2.6.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.5.1...v2.6.0
-[2.5.1]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.5.0...v2.5.1
-[2.5.0]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.4.3...v2.5.0
-[2.4.3]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/v2.4.2...v2.4.3
-[2.4.2]: https://github.com/lee-lab-skku/zotero-actionstags-actions/compare/80b729a...v2.4.2
-[withdrawl]: https://github.com/lee-lab-skku/zotero-actionstags-actions/tree/80b729a
+[Unreleased]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v3.0.0-rc.3...v3.0.0
+[3.0.0-rc.3]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v3.0.0-rc.2...v3.0.0-rc.3
+[3.0.0-rc.2]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v3.0.0-rc.1...v3.0.0-rc.2
+[3.0.0-rc.1]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v3.0.0-beta.4...v3.0.0-rc.1
+[3.0.0-beta.4]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v3.0.0-beta.3...v3.0.0-beta.4
+[3.0.0-beta.3]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v3.0.0-beta.2...v3.0.0-beta.3
+[3.0.0-beta.2]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v3.0.0-beta.1...v3.0.0-beta.2
+[3.0.0-beta.1]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v2.6.0...v3.0.0-beta.1
+[2.6.0]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v2.5.1...v2.6.0
+[2.5.1]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v2.5.0...v2.5.1
+[2.5.0]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v2.4.3...v2.5.0
+[2.4.3]: https://github.com/lee-lab-skku/zotero-link-actions/compare/v2.4.2...v2.4.3
+[2.4.2]: https://github.com/lee-lab-skku/zotero-link-actions/compare/80b729a...v2.4.2
+[withdrawl]: https://github.com/lee-lab-skku/zotero-link-actions/tree/80b729a

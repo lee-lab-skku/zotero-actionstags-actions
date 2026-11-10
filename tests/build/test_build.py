@@ -28,7 +28,7 @@ class BuildTests(unittest.TestCase):
         self.assertNotIn('platformVersion', yaml_data)
         self.assertNotIn('pluginVersion', yaml_data)
         self.assertTrue((ROOT / 'dist/actions-zotero.yml').read_text().startswith('version: '))
-        self.assertEqual(yaml_data['repository'], 'lee-lab-skku/zotero-actionstags-actions')
+        self.assertEqual(yaml_data['repository'], 'lee-lab-skku/zotero-link-actions')
         for key, action in yaml_data['actions'].items():
             self.assertIsInstance(action['event'], int)
             self.assertEqual(action['operation'], 4)
@@ -74,7 +74,7 @@ class BuildTests(unittest.TestCase):
             self.assertEqual(build(), version + '-dirty')
 
     def test_release_build_records_version_and_repository_in_yaml_backup(self):
-        for version, repository in [('v3.0.0', 'lee-lab-skku/zotero-actionstags-actions'),
+        for version, repository in [('v3.0.0', 'lee-lab-skku/zotero-link-actions'),
                                     ('v3.0.0-beta.4', 'example-lab/custom-actions')]:
             with self.subTest(version=version), tempfile.TemporaryDirectory() as directory:
                 subprocess.run([sys.executable, str(ROOT / 'build.py'), '--version', version,

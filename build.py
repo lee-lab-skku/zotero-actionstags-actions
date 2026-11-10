@@ -34,7 +34,7 @@ if repository is None:
             parser.error('Cannot infer a GitHub source from origin; provide --repository explicitly')
         repository = source.group(1)
     else:
-        repository = 'lee-lab-skku/zotero-actionstags-actions'
+        repository = 'lee-lab-skku/zotero-link-actions'
 if (not re.fullmatch(r'[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+', repository)
         or any(part in {'.', '..'} for part in repository.split('/'))):
     parser.error('--repository must be a GitHub owner/repo path')

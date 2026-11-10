@@ -27,7 +27,7 @@ Disabling Agent Link Bridge stops link requests.
 Importing or updating Zotero actions does not install or update the skill.
 Install or update the matching skill separately:
 
-1. Open the same [release](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases) as the action backup.
+1. Open the same [release](https://github.com/lee-lab-skku/zotero-link-actions/releases) as the action backup.
    Each release description links both `zot-jot.zip` and the skill directory pinned to that tag.
 1. Install the complete skill using a method supported by your agent:
 

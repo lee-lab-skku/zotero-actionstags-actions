@@ -1,4 +1,4 @@
-# Zotero Actions & Tags actions
+# Zotero link actions
 
 JavaScript actions for [Zotero Actions & Tags](https://github.com/windingwind/zotero-actions-tags) that copy links to library items, PDF annotations, and notes.
 A local link bridge also makes the copylink actions available to shell and agent clients.
@@ -19,7 +19,7 @@ See [verification scope](tests/integration/zotero/README.md#ci-verification) for
 
 Use the YAML backup for installation and updates:
 
-1. Download `actions-zotero.yml` from [Releases](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases).
+1. Download `actions-zotero.yml` from [Releases](https://github.com/lee-lab-skku/zotero-link-actions/releases).
 1. In Zotero, open **Settings &rightarrow; Actions & Tags**, click **Import**, and select the file.
 1. Verify that Agent Link Bridge and the three copylink actions are enabled.
 1. Restart Zotero to load Agent Link Bridge.

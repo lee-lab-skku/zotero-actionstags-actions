@@ -29,7 +29,7 @@ The backup's `repository` field identifies the source as follows:
 | --- | --- | --- |
 | Yes | - | Use the supplied `owner/repo`. |
 | No | GitHub URL using HTTPS, scp-style SSH, or `ssh://` | Infer `owner/repo` from the URL. |
-| No | No origin available | Use `lee-lab-skku/zotero-actionstags-actions`. |
+| No | No origin available | Use `lee-lab-skku/zotero-link-actions`. |
 | No | Other origin | The build fails; supply `--repository` explicitly. |
 
 Release CI supplies the tag and `GITHUB_REPOSITORY` automatically.

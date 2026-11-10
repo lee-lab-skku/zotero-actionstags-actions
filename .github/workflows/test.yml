@@ -2,11 +2,9 @@ name: Test
 
 on:
   push:
-    branches:
-      - '**'
+    branches: [main]
   pull_request:
   workflow_dispatch:
-  workflow_call:
 
 permissions:
   contents: read
@@ -34,7 +32,7 @@ jobs:
           git -C "$RUNNER_TEMP/mddt" log -1 --format='mddt revision: %H'
 
       - name: Setup uv
-        uses: astral-sh/setup-uv@v10
+        uses: astral-sh/setup-uv@v10.3.3
         with:
           python-version: '3.12'
           enable-cache: false

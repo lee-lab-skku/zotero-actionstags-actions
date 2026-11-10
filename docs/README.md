@@ -5,11 +5,7 @@ Start with the repository [README](../README.md) to install the actions, or [Con
 
 ## Using the actions
 
-Use these guides when connecting a client or updating an older profile:
-
-- [Agent link setup](agent-links.md) covers profile authentication, client configuration, skill installation, and troubleshooting.
-- [Upgrading older installations](upgrading.md) covers backing up and removing retired actions before importing a current release.
-
+[Agent link setup](agent-links.md) covers profile authentication, client configuration, skill installation, and troubleshooting.
 The installable [zot-jot skill](../skills/zot-jot/SKILL.md) guides agents through link requests and result validation.
 Its self-contained [Action link API](../skills/zot-jot/references/api.md) defines request fields, annotation options, responses, and errors for all clients.
 

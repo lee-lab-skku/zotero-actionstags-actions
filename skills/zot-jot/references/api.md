@@ -121,7 +121,6 @@ For explicit requests, verify each returned `itemKey`, `wordRange.start`, and `w
 Old bridges can ignore `wordRanges`, so HTTP 200 alone does not confirm that the requested passage was selected.
 Treat missing or mismatched metadata as unsupported or invalid, and do not use the result as the requested passage.
 The updated bridge rejects explicit ranges from old annotation actions with `UNSUPPORTED_WORD_RANGE`; default requests can still work with old actions.
-Import the updated bridge and annotation action together, restart Zotero, and update the separately installed skill when upgrading.
 
 ## Annotation prefixes
 

@@ -17,8 +17,7 @@ See [verification scope](tests/integration/zotero/README.md#ci-verification) for
 
 ## Installation
 
-If your profile still contains retired actions, first follow [Upgrading older installations](docs/upgrading.md) to back up and remove them.
-Then use the YAML backup for installation and updates:
+Use the YAML backup for installation and updates:
 
 1. Download `actions-zotero.yml` from [Releases](https://github.com/lee-lab-skku/zotero-actionstags-actions/releases).
 1. In Zotero, open **Settings &rightarrow; Actions & Tags**, click **Import**, and select the file.

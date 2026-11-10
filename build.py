@@ -1,17 +1,16 @@
 from pathlib import Path
 import argparse
-import json
 from datetime import datetime, timezone
 import re
 import subprocess
 import yaml
 from typing import Dict, Any
 
-parser = argparse.ArgumentParser(description='Build Actions & Tags backups.')
+parser = argparse.ArgumentParser(description='Build an Actions & Tags YAML backup.')
 parser.add_argument('--version', help='Explicit release tag; otherwise derive the build ID from Git.')
 parser.add_argument('--repository', help='Source GitHub owner/repo; otherwise infer from origin.')
-parser.add_argument('--platform-version', help='Zotero version to verify with the generated backups.')
-parser.add_argument('--plugin-version', help='Actions & Tags version to verify with the generated backups.')
+parser.add_argument('--platform-version', help='Zotero version to verify with the generated backup.')
+parser.add_argument('--plugin-version', help='Actions & Tags version to verify with the generated backup.')
 args = parser.parse_args()
 if (args.platform_version is None) != (args.plugin_version is None):
     parser.error('--platform-version and --plugin-version must be provided together')
@@ -79,15 +78,6 @@ for meta in metas:
     if src.is_file():
         with open(src, 'r', encoding='utf-8') as f:
             src_code = f.read().strip()
-        if action == 'updateActions':
-            for marker, value in [
-                ('const INSTALLED_VERSION = null;', build_version),
-                ("const SOURCE_REPOSITORY = 'lee-lab-skku/zotero-actionstags-actions';", repository),
-            ]:
-                if src_code.count(marker) != 1:
-                    raise ValueError('Missing or ambiguous updater provenance marker: ' + marker)
-                declaration = marker.split(' = ', 1)[0]
-                src_code = src_code.replace(marker, declaration + ' = ' + json.dumps(value) + ';', 1)
         meta_data['data'] = src_code
     elif meta_data.get('operation') == 4:
         raise ValueError(f'Missing script for action: {action}')
@@ -103,8 +93,3 @@ for meta in metas:
 
 with open(dist_dir / 'actions-zotero.yml', 'w', encoding='utf-8') as f:
     yaml.dump(datas, f, allow_unicode=True, sort_keys=False)
-
-# JSON is also valid YAML and lets the updater avoid evaluating a remote parser.
-with open(dist_dir / 'actions-zotero.json', 'w', encoding='utf-8') as f:
-    json.dump(datas, f, ensure_ascii=False, indent=2)
-    f.write('\n')

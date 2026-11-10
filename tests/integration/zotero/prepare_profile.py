@@ -5,6 +5,8 @@ from pathlib import Path
 import shutil
 import zipfile
 
+import yaml
+
 
 def native_path(path):
     value = str(path.resolve())
@@ -24,7 +26,7 @@ def main():
     if profile.exists() or data.exists():
         parser.error('Profile and sibling data directory must not already exist.')
     root = Path(__file__).resolve().parents[3]
-    backup = json.loads((root / 'dist/actions-zotero.json').read_text(encoding='utf-8'))
+    backup = yaml.safe_load((root / 'dist/actions-zotero.yml').read_text(encoding='utf-8'))
     keys = ['copySelectionLink', 'copyAnnotationLink', 'copyNoteLink', 'linkBridge']
     actions = {key: backup['actions'][key] for key in keys}
     fixture = 'const trialActions = ' + json.dumps({'actions': actions}) + ';\n'

@@ -1,30 +1,44 @@
 # Building distributable files
 
-This guide covers backup generation, version and verification metadata, and packaging the bundled agent skill.
+This reference covers backup generation, version and verification metadata, and packaging the bundled agent skill.
 See [CONTRIBUTING.md](../CONTRIBUTING.md) for development setup and the contracts these artifacts must preserve.
 
-`python build.py` combines `src/` and `meta/` into `dist/actions-zotero.yml` for import and `dist/actions-zotero.json` for updates.
-It resolves paths relative to the script, so it can run from another working directory.
+## Backup generation
+
+`python build.py` combines the three copylink actions and Agent Link Bridge from `src/` and `meta/` into `dist/actions-zotero.yml`.
+YAML is the single action backup format for manual imports and integration verification.
+Users install and update the actions by importing this backup.
+The builder resolves paths relative to the script, so it can run from another working directory.
 
 ## Version and source metadata
 
-Use `python build.py --version <tag>` to embed an explicit release tag.
-Without it, the build derives an ID from Git: a clean tagged commit uses its tag; later commits use `<tag>-<distance>-g<hash>`, with `-dirty` appended for tracked edits.
-Without a reachable version tag, Git falls back to the commit hash.
-Outside a Git checkout, pass `--version` explicitly.
+The backup stores the build identifier in `version` according to these conditions:
 
-Use `--repository <owner/repo>` to identify the source repository.
-Local builds infer it from a GitHub `origin` using HTTPS, scp-style SSH, or `ssh://`; without an origin, they fall back to `lee-lab-skku/zotero-actionstags-actions`.
-For a non-GitHub origin, specify `--repository` explicitly.
+| `--version <tag>` supplied | Git state | Recorded version or required action |
+| --- | --- | --- |
+| Yes | - | Use the supplied tag. |
+| No | Clean checkout exactly at a version tag | Use the tag. |
+| No | Version tag reachable; later commit or tracked edits | Use `<tag>-<distance>-g<hash>`, adding `-dirty` for tracked edits; distance is zero for edits at the tag. |
+| No | Git can derive a commit ID, but no version tag is reachable | Use the commit hash, adding `-dirty` for tracked edits. |
+| No | Git cannot derive an ID, including outside a checkout | The build fails; supply `--version` explicitly. |
+
+Git considers tags matching `v[0-9]*` when deriving the build identifier.
+The backup's `repository` field identifies the source as follows:
+
+| `--repository <owner/repo>` supplied | Origin | Recorded repository or required action |
+| --- | --- | --- |
+| Yes | - | Use the supplied `owner/repo`. |
+| No | GitHub URL using HTTPS, scp-style SSH, or `ssh://` | Infer `owner/repo` from the URL. |
+| No | No origin available | Use `lee-lab-skku/zotero-actionstags-actions`. |
+| No | Other origin | The build fails; supply `--repository` explicitly. |
+
 Release CI supplies the tag and `GITHUB_REPOSITORY` automatically.
-
-The backup stores these values in top-level `version` and `repository` fields.
-The updater also embeds them as `INSTALLED_VERSION` and `SOURCE_REPOSITORY` constants inside standard action `data`, which Actions & Tags preserves during editor saves.
-Do not rely on custom action metadata to retain them.
+Both values are top-level backup fields.
+These fields identify the backup file; individual actions do not store or manage an installed release version.
 
 ## Verification metadata
 
-Every build records one UTC ISO 8601 creation time in the standard backup-root `timestamp`, shared by YAML and JSON.
+Every build records a UTC ISO 8601 creation time in the standard backup-root `timestamp`.
 Supply `--platform-version <Zotero version> --plugin-version <Actions & Tags version>` together to record the pair being verified in `platformVersion` and `pluginVersion`.
 Local builds omit these version fields unless explicitly supplied; supplying them does not establish successful verification.
 
@@ -42,4 +56,4 @@ Packaging checks archive entries and bytes and uses stable timestamps and permis
 Build tests also extract and validate the standalone skill.
 These checks establish package integrity, rather than agent discovery or link generation behavior.
 
-See [distribution contracts](../CONTRIBUTING.md#distribution-contracts) for requirements shared by the backups and skill archive.
+See [distribution contracts](../CONTRIBUTING.md#distribution-contracts) for requirements shared by the backup and skill archive.

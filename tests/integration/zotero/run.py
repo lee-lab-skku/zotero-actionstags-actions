@@ -12,13 +12,10 @@ import tempfile
 import yaml
 
 
-def validate_backups(root, expected):
-    """Require equivalent backups for the exact app/plugin pair about to run."""
+def validate_backup(root, expected):
+    """Require a YAML backup for the exact app/plugin pair about to run."""
     dist = root / 'dist'
-    backup = json.loads((dist / 'actions-zotero.json').read_text(encoding='utf-8'))
-    yaml_backup = yaml.safe_load((dist / 'actions-zotero.yml').read_text(encoding='utf-8'))
-    if backup != yaml_backup:
-        raise SystemExit('YAML and JSON backups differ.')
+    backup = yaml.safe_load((dist / 'actions-zotero.yml').read_text(encoding='utf-8'))
     if (backup.get('platformVersion') != expected['zotero']
             or backup.get('pluginVersion') != expected['actionsTags']):
         raise SystemExit('Backup app/plugin metadata differs from the requested runtime pair.')
@@ -36,7 +33,7 @@ def main():
     if args.timeout <= 0:
         parser.error('Timeout must be positive.')
     expected = {'zotero': args.expected_zotero, 'actionsTags': args.expected_actions_tags}
-    validate_backups(Path(__file__).resolve().parents[3], expected)
+    validate_backup(Path(__file__).resolve().parents[3], expected)
     if not shutil.which('xvfb-run'):
         parser.error('Install xvfb and xauth before running the Linux integration checks.')
     output = args.output.resolve()

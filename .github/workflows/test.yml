@@ -2,8 +2,7 @@ name: Test
 
 on:
   push:
-    branches:
-      - '**'
+    branches: [main]
   pull_request:
   workflow_dispatch:
   workflow_call:
@@ -16,6 +15,81 @@ concurrency:
   cancel-in-progress: ${{ github.ref_type != 'tag' }}
 
 jobs:
+  documentation:
+    name: Documentation
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - name: Checkout tested commit
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Fetch the current mddt default branch
+        run: |
+          git clone --depth 1 https://github.com/mirinae3145/mddt.git "$RUNNER_TEMP/mddt"
+          git -C "$RUNNER_TEMP/mddt" log -1 --format='mddt revision: %H'
+
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.3.3
+        with:
+          python-version: '3.12'
+          enable-cache: false
+
+      - name: Check documentation
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+          import subprocess
+          import sys
+
+          event = json.loads(Path(os.environ['GITHUB_EVENT_PATH']).read_text())
+          pull_request = event.get('pull_request')
+          base = pull_request['base']['sha'] if pull_request else event.get('before')
+          changed = None
+          if base and base.strip('0'):
+              available = subprocess.run(['git', 'cat-file', '-e', f'{base}^{{commit}}'],
+                                         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+              if available.returncode == 0 and pull_request:
+                  merge_base = subprocess.run(['git', 'merge-base', base, 'HEAD'],
+                                              capture_output=True, text=True)
+                  base = merge_base.stdout.strip() if merge_base.returncode == 0 else None
+              if base and available.returncode == 0:
+                  names = subprocess.check_output(
+                      ['git', 'diff', '--name-only', '--no-renames', '-z', base, 'HEAD'])
+                  changed = set(names.decode('utf-8').split('\0')) - {''}
+          if changed is None:
+              print('No comparison base; reporting warnings for all checked files.', flush=True)
+
+          checker = Path(os.environ['RUNNER_TEMP']) / 'mddt/skills/mddt/scripts/mddt.py'
+          result = subprocess.run(['uv', 'run', str(checker), '--root', '.', '--format', 'json', '.'],
+                                  capture_output=True, text=True)
+          print(result.stderr, end='', file=sys.stderr)
+          if result.returncode not in (0, 1):
+              print(result.stdout, end='')
+              sys.exit(result.returncode)
+          report = json.loads(result.stdout)
+          errors = 0
+          warnings = 0
+          for diagnostic in report['diagnostics']:
+              severity = diagnostic['severity']
+              path = Path(diagnostic['file']).as_posix()
+              if severity == 'error':
+                  errors += 1
+              elif severity == 'warning' and (changed is None or path in changed):
+                  warnings += 1
+              else:
+                  continue
+              print(f"{path}:{diagnostic['line']}: {severity} {diagnostic['code']}: {diagnostic['message']}")
+          print(f"Checked {len(report['files'])} files: {errors} errors, {warnings} reported warnings.")
+          sys.exit(1 if errors else result.returncode)
+          PY
+
   test:
     runs-on: ubuntu-24.04
     timeout-minutes: 10

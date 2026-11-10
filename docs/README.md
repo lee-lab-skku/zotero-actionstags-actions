@@ -1,12 +1,19 @@
-# Development guides
+# Documentation
 
-These guides describe how to build, verify, and publish the action backups and bundled agent skill.
-Start with [CONTRIBUTING.md](../CONTRIBUTING.md) for development setup and contribution requirements.
+These guides cover client setup and upgrades for users, and documentation, builds, and releases for contributors.
+Start with the repository [README](../README.md) to install the actions, or [Contributing](../CONTRIBUTING.md) to prepare a development checkout.
 
-## Build and release
+## Using the actions
 
-Use these guides for artifact preparation and publication:
+[Agent link setup](agent-links.md) covers profile authentication, client configuration, skill installation, and troubleshooting.
+The installable [zot-jot skill](../skills/zot-jot/SKILL.md) guides agents through link requests and result validation.
+Its self-contained [Action link API](../skills/zot-jot/references/api.md) defines request fields, annotation options, responses, and errors for all clients.
 
+## Contributing changes
+
+Use these guides to maintain the documentation and prepare distributable artifacts:
+
+- [Documentation workflow](documentation.md) covers mddt placement and review, local checks, and CI's floating checker revision.
 - [Building distributable files](building.md) covers backup generation, version and verification metadata, and agent skill packaging.
 - [Release workflow](releases.md) covers CI verification, release previews, and publication of the prepared artifacts.
 

@@ -56,9 +56,11 @@ jobs:
           if base and base.strip('0'):
               available = subprocess.run(['git', 'cat-file', '-e', f'{base}^{{commit}}'],
                                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-              if available.returncode == 0:
-                  if pull_request:
-                      base = subprocess.check_output(['git', 'merge-base', base, 'HEAD'], text=True).strip()
+              if available.returncode == 0 and pull_request:
+                  merge_base = subprocess.run(['git', 'merge-base', base, 'HEAD'],
+                                              capture_output=True, text=True)
+                  base = merge_base.stdout.strip() if merge_base.returncode == 0 else None
+              if base and available.returncode == 0:
                   names = subprocess.check_output(
                       ['git', 'diff', '--name-only', '--no-renames', '-z', base, 'HEAD'])
                   changed = set(names.decode('utf-8').split('\0')) - {''}

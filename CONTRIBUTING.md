@@ -45,7 +45,6 @@ Apply these additional requirements to the code or documents you change:
   Place content before writing, then reread each changed topic whole once it settles.
   Review placement, document kinds, and summaries as well as checker findings.
   Run the [Markdown check](docs/documentation.md#checking-markdown).
-  Report the checker revision, files checked, and retained findings with their reasons in the change description.
 
 ## Action contracts
 
